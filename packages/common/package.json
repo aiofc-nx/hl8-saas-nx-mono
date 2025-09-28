@@ -7,6 +7,7 @@
   "types": "./src/index.d.ts",
   "dependencies": {
     "@hl8/logger": "workspace:*",
+    "@hl8/utils": "workspace:*",
     "@nestjs/common": "11.1.6",
     "@nestjs/core": "11.1.6",
     "@nestjs/swagger": "11.2.0",

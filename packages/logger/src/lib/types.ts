@@ -1,12 +1,42 @@
 /**
  * HL8 SAAS平台日志模块类型定义
  *
- * @description 定义日志模块中使用的所有类型和接口
- * 包含日志级别、配置选项、请求上下文等类型定义
+ * 定义日志模块中使用的所有类型和接口，包含日志级别、配置选项、请求上下文等类型定义。
+ * 提供完整的类型安全保障，支持 TypeScript 的严格类型检查和智能提示。
+ * 遵循 Clean Architecture 的类型设计原则，确保类型的一致性和可维护性。
  *
- * @fileoverview 日志模块类型定义文件
- * @author HL8 SAAS Platform Team
- * @since 1.0.0
+ * @description 此文件定义了日志模块的完整类型体系。
+ * 包含日志级别、配置选项、请求上下文、日志条目等核心类型定义。
+ * 支持类型安全的日志配置和使用，提供完整的 TypeScript 类型支持。
+ *
+ * ## 业务规则
+ *
+ * ### 类型安全规则
+ * - 所有类型定义都经过严格的类型检查
+ * - 支持 TypeScript 的严格模式和类型推断
+ * - 提供完整的类型提示和自动补全
+ * - 类型定义与运行时行为完全一致
+ *
+ * ### 接口设计规则
+ * - 接口设计遵循单一职责原则
+ * - 支持接口扩展和组合，提高复用性
+ * - 提供可选属性和默认值，增强灵活性
+ * - 接口命名清晰明确，易于理解和使用
+ *
+ * ### 配置类型规则
+ * - 配置类型支持嵌套和组合配置
+ * - 提供完整的配置验证和类型检查
+ * - 支持默认配置和可选配置项
+ * - 配置类型与业务需求完全匹配
+ *
+ * ## 业务逻辑流程
+ *
+ * 1. **类型定义**：定义核心业务类型和接口
+ * 2. **配置类型**：定义配置选项和验证规则
+ * 3. **上下文类型**：定义请求上下文和元数据类型
+ * 4. **日志类型**：定义日志条目和方法类型
+ * 5. **模块类型**：定义模块配置和参数类型
+ * 6. **类型导出**：导出所有类型供其他模块使用
  */
 
 import { FastifyRequest } from 'fastify';
@@ -241,13 +271,69 @@ export type LogMethod = (message: string, ...args: unknown[]) => void;
 /**
  * 日志器接口
  *
- * @description 定义日志器的基本接口
- * 包含所有日志级别的方法和配置选项
+ * 定义日志器的基本接口，包含所有日志级别的方法和配置选项。
+ * 提供统一的日志记录接口，支持不同日志级别的记录和上下文管理。
+ *
+ * @description 此接口定义了日志器的标准方法签名。
+ * 包含 trace、debug、info、warn、error、fatal 等日志级别方法。
+ * 支持 NestJS 标准的 log 和 verbose 方法，以及上下文管理功能。
+ *
+ * ## 业务规则
+ *
+ * ### 日志级别规则
+ * - 支持六个标准日志级别：trace、debug、info、warn、error、fatal
+ * - 日志级别从低到高排序，高级别日志包含低级别日志
+ * - 支持动态设置和获取当前日志级别
+ * - 日志级别影响日志输出和性能表现
+ *
+ * ### 方法签名规则
+ * - 所有日志方法支持字符串消息和额外参数
+ * - 支持对象消息和结构化数据记录
+ * - 方法参数类型安全，支持 TypeScript 类型检查
+ * - 日志方法执行速度快，避免阻塞主线程
+ *
+ * ### 上下文管理规则
+ * - 支持设置和获取请求上下文信息
+ * - 上下文信息自动附加到所有日志记录中
+ * - 支持嵌套上下文和上下文继承
+ * - 上下文管理线程安全，支持异步操作
+ *
+ * ## 业务逻辑流程
+ *
+ * 1. **日志记录**：根据级别调用相应的日志方法
+ * 2. **参数处理**：处理消息字符串和额外参数
+ * 3. **上下文附加**：自动附加当前请求上下文信息
+ * 4. **格式化输出**：根据配置格式化日志输出
+ * 5. **异步写入**：异步写入日志到目标输出
  *
  * @example
  * ```typescript
- * const logger: LoggerInterface = new FastifyLogger();
- * logger.info('Application started');
+ * import { LoggerInterface, PinoLogger } from '@hl8/logger';
+ *
+ * const logger: LoggerInterface = new PinoLogger({
+ *   level: 'info',
+ *   destination: { type: 'console' }
+ * });
+ *
+ * // 记录不同级别的日志
+ * logger.trace('Detailed trace information');
+ * logger.debug('Debug information for development');
+ * logger.info('Application started successfully');
+ * logger.warn('Configuration warning', { config: 'deprecated' });
+ * logger.error('Database connection failed', { error: 'timeout' });
+ * logger.fatal('Critical system error', { error: 'out of memory' });
+ *
+ * // NestJS 标准方法
+ * logger.log('Standard log message', 'UserService');
+ * logger.verbose('Verbose log message', 'DatabaseService');
+ *
+ * // 上下文管理
+ * logger.setContext({ requestId: 'req-123', userId: 'user-456' });
+ * const context = logger.getContext();
+ *
+ * // 级别管理
+ * logger.setLevel('debug');
+ * const currentLevel = logger.getLevel();
  * ```
  */
 export interface LoggerInterface {
@@ -327,7 +413,9 @@ export interface LoggerModuleAsyncParams {
   /** 注入的依赖 */
   inject?: unknown[];
   /** 工厂函数 */
-  useFactory: (...args: unknown[]) => LoggerModuleParams | Promise<LoggerModuleParams>;
+  useFactory: (
+    ...args: unknown[]
+  ) => LoggerModuleParams | Promise<LoggerModuleParams>;
   /** 额外的提供者 */
   providers?: unknown[];
 }

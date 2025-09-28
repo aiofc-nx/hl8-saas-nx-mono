@@ -1,35 +1,114 @@
 /**
  * HL8 SAAS平台日志装饰器
  *
- * @description 提供日志相关的装饰器功能
- * 包含日志注入装饰器、日志方法装饰器、日志级别装饰器等
+ * 提供日志相关的装饰器功能，包含日志注入装饰器、日志方法装饰器、日志级别装饰器等。
+ * 简化日志器的使用，提供声明式的日志记录和性能监控能力。
+ * 遵循 Clean Architecture 的装饰器设计原则，提供统一的日志管理接口。
  *
- * @fileoverview 日志装饰器实现文件
- * @author HL8 SAAS Platform Team
- * @since 1.0.0
+ * @description 此文件实现了日志模块的装饰器功能。
+ * 包含日志注入装饰器、方法日志装饰器、性能监控装饰器等。
+ * 支持自动上下文绑定、参数记录、性能监控等功能。
+ *
+ * ## 业务规则
+ *
+ * ### 日志注入装饰器规则
+ * - 支持自动注入日志器实例到类属性中
+ * - 支持自定义上下文名称和日志级别
+ * - 日志器实例延迟创建，提高性能
+ * - 支持上下文自动绑定和元数据设置
+ *
+ * ### 方法日志装饰器规则
+ * - 支持自动记录方法调用的开始和结束
+ * - 支持自定义日志级别和消息格式
+ * - 支持参数和返回值的记录（可选）
+ * - 支持异常捕获和错误日志记录
+ *
+ * ### 性能监控装饰器规则
+ * - 支持自动记录方法执行时间
+ * - 支持性能阈值设置和告警
+ * - 支持慢查询和性能瓶颈检测
+ * - 支持性能统计和报告生成
+ *
+ * ## 业务逻辑流程
+ *
+ * 1. **装饰器应用**：将装饰器应用到类或方法上
+ * 2. **元数据收集**：收集装饰器配置和上下文信息
+ * 3. **日志器创建**：创建或获取日志器实例
+ * 4. **方法包装**：包装原始方法，添加日志记录逻辑
+ * 5. **日志记录**：在方法执行前后记录相应日志
+ * 6. **性能监控**：记录方法执行时间和性能指标
+ * 7. **异常处理**：捕获异常并记录错误日志
  */
 
 import { PinoLogger } from './pino-logger';
 import type { RequestContext } from './types';
-import { getCurrentRequestContext, updateCurrentRequestMetadata } from './context';
+import {
+  getCurrentRequestContext,
+  updateCurrentRequestMetadata,
+} from './context';
 
 /**
  * 日志注入装饰器
  *
- * @description 用于在类中注入日志记录器实例
- * 支持自动上下文绑定和日志级别设置
+ * 用于在类中注入日志记录器实例，支持自动上下文绑定和日志级别设置。
+ * 简化日志器的使用，提供声明式的日志器注入能力。
  *
- * @param context - 日志上下文名称
- * @returns {PropertyDecorator} 属性装饰器
+ * @description 此装饰器用于在类属性中注入日志记录器实例。
+ * 支持自定义上下文名称，自动设置日志器的上下文信息。
+ * 日志器实例延迟创建，提高性能并支持依赖注入。
+ *
+ * ## 业务规则
+ *
+ * ### 注入规则
+ * - 自动创建 PinoLogger 实例并注入到类属性中
+ * - 支持自定义上下文名称，用于标识日志来源
+ * - 日志器实例延迟创建，仅在首次访问时创建
+ * - 支持属性描述符配置，确保正确的属性行为
+ *
+ * ### 上下文绑定规则
+ * - 自动设置日志器的上下文信息
+ * - 上下文包含请求ID和自定义元数据
+ * - 支持嵌套上下文和上下文继承
+ * - 上下文信息在所有日志记录中自动附加
+ *
+ * ### 性能优化规则
+ * - 使用 getter 方式实现延迟初始化
+ * - 避免在类实例化时创建日志器
+ * - 支持单例模式，避免重复创建
+ * - 日志器创建过程高效且轻量
+ *
+ * ## 业务逻辑流程
+ *
+ * 1. **装饰器应用**：将装饰器应用到类属性上
+ * 2. **属性定义**：定义属性的 getter 访问器
+ * 3. **延迟创建**：在首次访问时创建日志器实例
+ * 4. **上下文设置**：设置日志器的上下文信息
+ * 5. **实例返回**：返回配置完成的日志器实例
+ * 6. **后续访问**：直接返回已创建的日志器实例
+ *
+ * @param context - 日志上下文名称，用于标识日志来源和上下文信息
+ * @returns PropertyDecorator 属性装饰器，用于装饰类属性
  *
  * @example
  * ```typescript
- * class UserService {
+ * import { InjectLogger, PinoLogger } from '@hl8/logger';
+ * import { Injectable } from '@nestjs/common';
+ *
+ * @Injectable()
+ * export class UserService {
  *   @InjectLogger('UserService')
  *   private readonly logger: PinoLogger;
  *
- *   createUser(userData: any) {
+ *   async createUser(userData: any) {
  *     this.logger.info('Creating user', { userData });
+ *     try {
+ *       const user = await this.userRepository.create(userData);
+ *       this.logger.info('User created successfully', { userId: user.id });
+ *       return user;
+ *     } catch (error) {
+ *       this.logger.error('Failed to create user', { error: error.message });
+ *       throw error;
+ *     }
  *   }
  * }
  * ```
@@ -42,7 +121,7 @@ export function InjectLogger(context?: string): PropertyDecorator {
       get() {
         // 创建日志记录器实例
         const logger = new PinoLogger({ level: 'trace' });
-        
+
         // 设置上下文
         if (context) {
           logger.setContext({ requestId: '', metadata: { context } });
@@ -75,13 +154,19 @@ export function InjectLogger(context?: string): PropertyDecorator {
  * }
  * ```
  */
-export function LogMethod(options: {
-  level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-  message?: string;
-  includeArgs?: boolean;
-  includeResult?: boolean;
-} = {}): MethodDecorator {
-  return function (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+export function LogMethod(
+  options: {
+    level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    message?: string;
+    includeArgs?: boolean;
+    includeResult?: boolean;
+  } = {}
+): MethodDecorator {
+  return function (
+    target: any,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
     const {
       level = 'info',
@@ -92,7 +177,9 @@ export function LogMethod(options: {
 
     descriptor.value = async function (...args: unknown[]) {
       const logger = new PinoLogger();
-      const methodName = `${(target as { constructor: { name: string } }).constructor.name}.${String(propertyKey)}`;
+      const methodName = `${
+        (target as { constructor: { name: string } }).constructor.name
+      }.${String(propertyKey)}`;
       const logMessage = message || `${methodName} called`;
 
       try {
@@ -118,11 +205,14 @@ export function LogMethod(options: {
         // 记录方法错误日志
         logger.error(`${methodName} failed`, {
           method: methodName,
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          } : error,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
           timestamp: new Date().toISOString(),
         });
 
@@ -153,13 +243,19 @@ export function LogMethod(options: {
  * }
  * ```
  */
-export function LogPerformance(options: {
-  threshold?: number;
-  level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-  includeMemory?: boolean;
-  includeArgs?: boolean;
-} = {}): MethodDecorator {
-  return function (target: unknown, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+export function LogPerformance(
+  options: {
+    threshold?: number;
+    level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    includeMemory?: boolean;
+    includeArgs?: boolean;
+  } = {}
+): MethodDecorator {
+  return function (
+    target: unknown,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
     const {
       threshold = 1000,
@@ -170,7 +266,9 @@ export function LogPerformance(options: {
 
     descriptor.value = async function (...args: unknown[]) {
       const logger = new PinoLogger();
-      const methodName = `${(target as { constructor: { name: string } }).constructor.name}.${String(propertyKey)}`;
+      const methodName = `${
+        (target as { constructor: { name: string } }).constructor.name
+      }.${String(propertyKey)}`;
       const startTime = Date.now();
       const startMemory = includeMemory ? process.memoryUsage() : undefined;
 
@@ -191,16 +289,21 @@ export function LogPerformance(options: {
           duration,
           threshold,
           args: includeArgs ? args : undefined,
-          memory: includeMemory ? {
-            start: startMemory,
-            end: endMemory,
-            delta: endMemory && startMemory ? {
-              rss: endMemory.rss - startMemory.rss,
-              heapUsed: endMemory.heapUsed - startMemory.heapUsed,
-              heapTotal: endMemory.heapTotal - startMemory.heapTotal,
-              external: endMemory.external - startMemory.external,
-            } : undefined,
-          } : undefined,
+          memory: includeMemory
+            ? {
+                start: startMemory,
+                end: endMemory,
+                delta:
+                  endMemory && startMemory
+                    ? {
+                        rss: endMemory.rss - startMemory.rss,
+                        heapUsed: endMemory.heapUsed - startMemory.heapUsed,
+                        heapTotal: endMemory.heapTotal - startMemory.heapTotal,
+                        external: endMemory.external - startMemory.external,
+                      }
+                    : undefined,
+              }
+            : undefined,
           timestamp: new Date().toISOString(),
         });
 
@@ -213,11 +316,14 @@ export function LogPerformance(options: {
           method: methodName,
           duration,
           threshold,
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          } : error,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: error.stack,
+                }
+              : error,
           timestamp: new Date().toISOString(),
         });
 
@@ -248,13 +354,19 @@ export function LogPerformance(options: {
  * }
  * ```
  */
-export function LogError(options: {
-  level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-  includeStack?: boolean;
-  includeArgs?: boolean;
-  rethrow?: boolean;
-} = {}): MethodDecorator {
-  return function (target: unknown, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+export function LogError(
+  options: {
+    level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    includeStack?: boolean;
+    includeArgs?: boolean;
+    rethrow?: boolean;
+  } = {}
+): MethodDecorator {
+  return function (
+    target: unknown,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
     const {
       level = 'error',
@@ -265,7 +377,9 @@ export function LogError(options: {
 
     descriptor.value = async function (...args: unknown[]) {
       const logger = new PinoLogger();
-      const methodName = `${(target as { constructor: { name: string } }).constructor.name}.${String(propertyKey)}`;
+      const methodName = `${
+        (target as { constructor: { name: string } }).constructor.name
+      }.${String(propertyKey)}`;
 
       try {
         // 执行原方法
@@ -275,11 +389,14 @@ export function LogError(options: {
         // 记录错误日志
         logger[level](`${methodName} error`, {
           method: methodName,
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: includeStack ? error.stack : undefined,
-          } : error,
+          error:
+            error instanceof Error
+              ? {
+                  name: error.name,
+                  message: error.message,
+                  stack: includeStack ? error.stack : undefined,
+                }
+              : error,
           args: includeArgs ? args : undefined,
           timestamp: new Date().toISOString(),
         });
@@ -313,12 +430,25 @@ export function LogError(options: {
  * }
  * ```
  */
-export function RequestContext(contextKey: keyof RequestContext): ParameterDecorator {
-  return function (target: unknown, propertyKey: string | symbol | undefined, parameterIndex: number) {
+export function RequestContext(
+  contextKey: keyof RequestContext
+): ParameterDecorator {
+  return function (
+    target: unknown,
+    propertyKey: string | symbol | undefined,
+    parameterIndex: number
+  ) {
     if (!propertyKey) return;
-    const existingMetadata = Reflect.getMetadata('requestContext', target as object, propertyKey) || [];
+    const existingMetadata =
+      Reflect.getMetadata('requestContext', target as object, propertyKey) ||
+      [];
     existingMetadata[parameterIndex] = contextKey;
-    Reflect.defineMetadata('requestContext', existingMetadata, target as object, propertyKey);
+    Reflect.defineMetadata(
+      'requestContext',
+      existingMetadata,
+      target as object,
+      propertyKey
+    );
   };
 }
 
@@ -342,8 +472,14 @@ export function RequestContext(contextKey: keyof RequestContext): ParameterDecor
  * }
  * ```
  */
-export function LogLevel(level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'): ClassDecorator & MethodDecorator {
-  return function (target: unknown, propertyKey?: string | symbol, descriptor?: PropertyDescriptor) {
+export function LogLevel(
+  level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+): ClassDecorator & MethodDecorator {
+  return function (
+    target: unknown,
+    propertyKey?: string | symbol,
+    descriptor?: PropertyDescriptor
+  ) {
     if (propertyKey && descriptor) {
       // 方法装饰器
       const originalMethod = descriptor.value;
@@ -379,8 +515,14 @@ export function LogLevel(level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 
  * }
  * ```
  */
-export function LogContext(context: Record<string, unknown>): ClassDecorator & MethodDecorator {
-  return function (target: unknown, propertyKey?: string | symbol, descriptor?: PropertyDescriptor) {
+export function LogContext(
+  context: Record<string, unknown>
+): ClassDecorator & MethodDecorator {
+  return function (
+    target: unknown,
+    propertyKey?: string | symbol,
+    descriptor?: PropertyDescriptor
+  ) {
     if (propertyKey && descriptor) {
       // 方法装饰器
       const originalMethod = descriptor.value;
@@ -413,7 +555,7 @@ export function LogContext(context: Record<string, unknown>): ClassDecorator & M
  */
 export function getLogger(context?: string): PinoLogger {
   const logger = new PinoLogger();
-  
+
   if (context) {
     logger.setContext({ requestId: '', metadata: { context } });
   }
