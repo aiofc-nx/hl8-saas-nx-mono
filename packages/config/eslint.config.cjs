@@ -1,4 +1,4 @@
-const baseConfig = require('../../eslint.config-nestjs.cjs');
+const baseConfig = require('../../eslint.config.cjs');
 
 module.exports = [
   ...baseConfig,

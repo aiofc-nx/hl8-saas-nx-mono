@@ -11,7 +11,7 @@
     "noPropertyAccessFromIndexSignature": true
   },
   "files": [],
-  "include": ["eslint.config.cjs"],
+  "include": [],
   "references": [
     {
       "path": "./tsconfig.lib.json"

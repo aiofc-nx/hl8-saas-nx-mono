@@ -1,15 +1,11 @@
 {
-  "name": "@hl8/common",
+  "name": "@hl8/config",
   "version": "0.0.1",
   "private": true,
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "@hl8/logger": "workspace:*",
-    "@nestjs/common": "11.1.6",
-    "@nestjs/core": "11.1.6",
-    "@nestjs/swagger": "11.2.0",
     "tslib": "^2.3.0"
   }
 }
