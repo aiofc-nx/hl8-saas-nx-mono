@@ -40,7 +40,7 @@
       "options": {
         "targetName": "test"
       },
-      "exclude": ["packags/server-e2e/**/*"]
+      "exclude": ["packags/server-e2e/**/*", "apps/api-e2e/**/*"]
     },
     {
       "plugin": "@nx/webpack/plugin",
