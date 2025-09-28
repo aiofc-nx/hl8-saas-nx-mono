@@ -5,7 +5,38 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "description": "HL8 SAAS平台配置管理模块 - 完全类型安全的配置管理",
+  "keywords": [
+    "nestjs",
+    "config",
+    "configuration",
+    "typescript",
+    "type-safe",
+    "validation"
+  ],
   "dependencies": {
-    "tslib": "^2.3.0"
+    "chalk": "^4.1.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "debug": "^4.3.4",
+    "dotenv": "^17.2.2",
+    "dotenv-expand": "^10.0.0",
+    "js-yaml": "^4.1.0",
+    "lodash.merge": "^4.6.2",
+    "reflect-metadata": "^0.1.13",
+    "set-value": "^4.1.0",
+    "tslib": "^2.8.1"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^9.0.0 || ^10.0.0 || ^11.0.0",
+    "rxjs": "^7.2.0"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.8",
+    "@types/js-yaml": "^4.0.9",
+    "@types/lodash.merge": "^4.6.7",
+    "@types/node": "^20.0.0",
+    "@types/set-value": "^4.0.1"
   }
 }

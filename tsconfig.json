@@ -10,5 +10,6 @@
     "esModuleInterop": false,
     "useDefineForClassFields": false
   },
-  "extends": "./tsconfig.base.json"
+  "extends": "./tsconfig.base.json",
+  "references": []
 }
