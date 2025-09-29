@@ -129,10 +129,17 @@ export function wait(ms: number): Promise<void> {
 export function createTempDir(prefix: string = 'test'): string {
   const os = require('os');
   const path = require('path');
-  return path.join(
+  const fs = require('fs');
+
+  const tempDir = path.join(
     os.tmpdir(),
     `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   );
+
+  // 实际创建目录
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  return tempDir;
 }
 
 /**

@@ -1,0 +1,16 @@
+{"level":"info","time":"2025-09-29T03:16:11.545Z","pid":18345,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T03:16:17.642Z","pid":18345,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:19:27.679Z","pid":19688,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T03:22:17.218Z","pid":22819,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T03:22:22.352Z","pid":22819,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:22:48.681Z","pid":22819,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:23:10.045Z","pid":22819,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:56:44.541Z","pid":33474,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T03:56:49.069Z","pid":33474,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:56:57.587Z","pid":33474,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T03:57:17.287Z","pid":33474,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T04:05:02.396Z","pid":42780,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T04:05:08.888Z","pid":42780,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T04:05:14.926Z","pid":42780,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}
+{"level":"info","time":"2025-09-29T04:10:07.142Z","pid":48338,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","environment":"development","msg":"AppService initialized"}
+{"level":"info","time":"2025-09-29T04:10:23.394Z","pid":48338,"hostname":"wsl","appName":"HL8 SAAS API","version":"1.0.0","msg":"Greeting message requested"}

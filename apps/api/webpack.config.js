@@ -52,12 +52,15 @@ module.exports = {
     new webpack.IgnorePlugin({
       resourceRegExp: /^@fastify\/view$/,
     }),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^class-transformer\/storage$/,
+    }),
     new NxAppWebpackPlugin({
       target: 'node',
       compiler: 'tsc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: ['./src/assets'],
+      assets: ['./src/assets', './src/config'],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: true,

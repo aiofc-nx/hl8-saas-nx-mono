@@ -94,7 +94,7 @@ alwaysApply: true
 
 ### 工具调用规范
 
-- **工作目录**: 确保在 monorepo 根路径 `/home/arligle/aiofix-ai/hl8-saas-platform-next`
+- **工作目录**: 确保在 monorepo 根路径 `/home/arligle/aiofix-ai/hl8-saas-nx-mono`
 - **命令执行**: 使用相对路径进入子项目目录执行命令
 - **MCP工具优先**: 优先使用可用的 MCP 工具进行项目操作
 - **eslint-mcp工具优先**：优先使用可用的 MCP 工具进行linting 检查和修复

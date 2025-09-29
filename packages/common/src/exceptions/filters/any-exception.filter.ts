@@ -61,12 +61,15 @@ export class AnyExceptionFilter implements ExceptionFilter {
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly messageProvider?: ExceptionMessageProvider,
     private readonly documentationUrl?: string,
+    injectedLogger?: PinoLogger
   ) {
-    this.logger = new PinoLogger({
-      destination: {
-        type: 'console',
-      },
-    });
+    this.logger =
+      injectedLogger ||
+      new PinoLogger({
+        destination: {
+          type: 'console',
+        },
+      });
   }
 
   /**
@@ -117,13 +120,13 @@ export class AnyExceptionFilter implements ExceptionFilter {
     exception: AbstractHttpException,
     request: any,
     response: any,
-    httpAdapter: any,
+    httpAdapter: any
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const errorResponse = exception.toErrorResponse(
       requestId,
       this.messageProvider,
-      this.documentationUrl,
+      this.documentationUrl
     );
 
     // 记录异常日志
@@ -159,15 +162,19 @@ export class AnyExceptionFilter implements ExceptionFilter {
     exception: unknown,
     request: any,
     response: any,
-    httpAdapter: any,
+    httpAdapter: any
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
-    
+
     // 创建通用错误响应
     const errorResponse: ErrorResponse = {
       type: this.documentationUrl || 'about:blank',
-      title: this.messageProvider?.getMessage('INTERNAL_ERROR', 'title') || 'Internal Server Error',
-      detail: this.messageProvider?.getMessage('INTERNAL_ERROR', 'detail') || 'An unexpected error occurred',
+      title:
+        this.messageProvider?.getMessage('INTERNAL_ERROR', 'title') ||
+        'Internal Server Error',
+      detail:
+        this.messageProvider?.getMessage('INTERNAL_ERROR', 'detail') ||
+        'An unexpected error occurred',
       status: 500,
       instance: requestId,
       errorCode: 'INTERNAL_ERROR',
@@ -176,8 +183,10 @@ export class AnyExceptionFilter implements ExceptionFilter {
     // 记录详细异常日志
     this.logger.error('Unexpected exception occurred', {
       exception: {
-        name: exception instanceof Error ? exception.constructor.name : 'Unknown',
-        message: exception instanceof Error ? exception.message : String(exception),
+        name:
+          exception instanceof Error ? exception.constructor.name : 'Unknown',
+        message:
+          exception instanceof Error ? exception.message : String(exception),
         stack: exception instanceof Error ? exception.stack : undefined,
       },
       request: {

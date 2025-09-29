@@ -9,8 +9,10 @@
  * @since 1.0.0
  */
 
-import * as pino from 'pino';
+const pino = require('pino');
+const pinoPretty = require('pino-pretty');
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { Logger as PinoLoggerType } from 'pino';
 import {
   LoggerInterface,
   LogLevel,
@@ -56,7 +58,7 @@ import { storage } from './context';
  */
 export class PinoLogger implements LoggerInterface {
   /** Pino 日志器实例 */
-  private readonly pino: pino.Logger;
+  private readonly pino: PinoLoggerType;
   /** 当前日志级别 */
   private _level: LogLevel;
   /** 日志配置 */
@@ -94,8 +96,8 @@ export class PinoLogger implements LoggerInterface {
    *
    * @private
    */
-  private createPinoInstance(): pino.Logger {
-    const pinoConfig: pino.LoggerOptions = {
+  private createPinoInstance(): PinoLoggerType {
+    const pinoConfig: any = {
       level: this._level,
       timestamp: pino.stdTimeFunctions.isoTime,
       formatters: {
@@ -118,23 +120,97 @@ export class PinoLogger implements LoggerInterface {
       },
     };
 
+    // 应用格式化配置
+    if (this.config.format) {
+      if (this.config.format.timestamp !== undefined) {
+        pinoConfig.timestamp = this.config.format.timestamp
+          ? pino.stdTimeFunctions.isoTime
+          : false;
+      }
+
+      if (this.config.format.translateTime) {
+        pinoConfig.translateTime = this.config.format.translateTime;
+      }
+
+      if (this.config.format.ignore) {
+        pinoConfig.ignore = this.config.format.ignore;
+      }
+    }
+
+    // 准备 pino-pretty 选项
+    const shouldUsePretty =
+      this.config.format?.prettyPrint || this.config.format?.colorize;
+    const prettyOptions: any = {};
+
+    if (shouldUsePretty && this.config.format) {
+      if (this.config.format.translateTime) {
+        prettyOptions.translateTime = this.config.format.translateTime;
+      }
+
+      if (this.config.format.ignore) {
+        prettyOptions.ignore = this.config.format.ignore;
+      }
+
+      if (this.config.format.colorize) {
+        prettyOptions.colorize = this.config.format.colorize;
+      }
+
+      // 启用 JSON 格式化，让对象属性换行显示
+      prettyOptions.singleLine = false;
+      prettyOptions.crlf = false;
+    }
+
     // 配置输出目标
     if (this.config.destination) {
       switch (this.config.destination.type) {
         case 'file':
-          return pino(
-            pinoConfig,
-            pino.destination({
-              dest: this.config.destination.path || './logs/app.log',
-              append: this.config.destination.append !== false,
-            })
-          );
+          if (shouldUsePretty) {
+            return pino(
+              pinoConfig,
+              pino.multistream([
+                { stream: pinoPretty(prettyOptions) },
+                {
+                  stream: pino.destination({
+                    dest: this.config.destination.path || './logs/app.log',
+                    append: this.config.destination.append !== false,
+                  }),
+                },
+              ])
+            );
+          } else {
+            return pino(
+              pinoConfig,
+              pino.destination({
+                dest: this.config.destination.path || './logs/app.log',
+                append: this.config.destination.append !== false,
+              })
+            );
+          }
         case 'stream':
-          return pino(pinoConfig, this.config.destination.stream);
+          if (shouldUsePretty) {
+            return pino(
+              pinoConfig,
+              pino.multistream([
+                { stream: pinoPretty(prettyOptions) },
+                { stream: this.config.destination.stream },
+              ])
+            );
+          } else {
+            return pino(pinoConfig, this.config.destination.stream);
+          }
         case 'console':
         default:
-          return pino(pinoConfig);
+          if (shouldUsePretty) {
+            return pino(pinoConfig, pinoPretty(prettyOptions));
+          } else {
+            return pino(pinoConfig);
+          }
       }
+    }
+
+    // 没有配置 destination 时，默认输出到控制台（美化格式）
+    if (shouldUsePretty) {
+      return pino(pinoConfig, pinoPretty(prettyOptions));
     }
 
     return pino(pinoConfig);
@@ -402,7 +478,7 @@ export class PinoLogger implements LoggerInterface {
     const childPino = this.pino.child(bindings);
     const childLogger = new PinoLogger(this.config);
     // 替换内部的 Pino 实例
-    (childLogger as unknown as { pino: pino.Logger }).pino = childPino;
+    (childLogger as unknown as { pino: PinoLoggerType }).pino = childPino;
     return childLogger;
   }
 
@@ -551,10 +627,10 @@ export class PinoLogger implements LoggerInterface {
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.error(`Operation failed: ${operation}`, { 
-        duration, 
-        operation, 
-        error: error instanceof Error ? error.message : String(error) 
+      this.error(`Operation failed: ${operation}`, {
+        duration,
+        operation,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -577,4 +653,3 @@ export class PinoLogger implements LoggerInterface {
     });
   }
 }
-

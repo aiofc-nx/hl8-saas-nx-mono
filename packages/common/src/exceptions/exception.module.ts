@@ -1,7 +1,13 @@
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
-import { ExceptionConfig, DEFAULT_EXCEPTION_CONFIG } from './config/exception.config';
-import { ExceptionMessageProvider, DefaultExceptionMessageProvider } from './config/exception-message.provider';
+import { APP_FILTER, HttpAdapterHost } from '@nestjs/core';
+import {
+  ExceptionConfig,
+  DEFAULT_EXCEPTION_CONFIG,
+} from './config/exception.config';
+import {
+  ExceptionMessageProvider,
+  DefaultExceptionMessageProvider,
+} from './config/exception-message.provider';
 import { AnyExceptionFilter } from './filters/any-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 
@@ -24,7 +30,8 @@ export class ExceptionModule {
 
     const messageProvider: Provider = {
       provide: 'EXCEPTION_MESSAGE_PROVIDER',
-      useValue: mergedConfig.messageProvider || new DefaultExceptionMessageProvider(),
+      useValue:
+        mergedConfig.messageProvider || new DefaultExceptionMessageProvider(),
     };
 
     return {
@@ -36,16 +43,38 @@ export class ExceptionModule {
           useFactory: (
             httpAdapterHost: any,
             msgProvider: ExceptionMessageProvider,
-          ) => new AnyExceptionFilter(httpAdapterHost, msgProvider, mergedConfig.documentationUrl),
-          inject: ['HttpAdapterHost', 'EXCEPTION_MESSAGE_PROVIDER'],
+            logger: any
+          ) =>
+            new AnyExceptionFilter(
+              httpAdapterHost,
+              msgProvider,
+              mergedConfig.documentationUrl,
+              logger
+            ),
+          inject: [
+            HttpAdapterHost,
+            'EXCEPTION_MESSAGE_PROVIDER',
+            'LOGGER_PROVIDER',
+          ],
         },
         {
           provide: APP_FILTER,
           useFactory: (
             httpAdapterHost: any,
             msgProvider: ExceptionMessageProvider,
-          ) => new HttpExceptionFilter(httpAdapterHost, msgProvider, mergedConfig.documentationUrl),
-          inject: ['HttpAdapterHost', 'EXCEPTION_MESSAGE_PROVIDER'],
+            logger: any
+          ) =>
+            new HttpExceptionFilter(
+              httpAdapterHost,
+              msgProvider,
+              mergedConfig.documentationUrl,
+              logger
+            ),
+          inject: [
+            HttpAdapterHost,
+            'EXCEPTION_MESSAGE_PROVIDER',
+            'LOGGER_PROVIDER',
+          ],
         },
       ],
       exports: ['EXCEPTION_MESSAGE_PROVIDER'],
@@ -87,18 +116,36 @@ export class ExceptionModule {
           useFactory: (
             httpAdapterHost: any,
             msgProvider: ExceptionMessageProvider,
-            config: ExceptionConfig,
-          ) => new AnyExceptionFilter(httpAdapterHost, msgProvider, config.documentationUrl),
-          inject: ['HttpAdapterHost', 'EXCEPTION_MESSAGE_PROVIDER', 'EXCEPTION_CONFIG'],
+            config: ExceptionConfig
+          ) =>
+            new AnyExceptionFilter(
+              httpAdapterHost,
+              msgProvider,
+              config.documentationUrl
+            ),
+          inject: [
+            HttpAdapterHost,
+            'EXCEPTION_MESSAGE_PROVIDER',
+            'EXCEPTION_CONFIG',
+          ],
         },
         {
           provide: APP_FILTER,
           useFactory: (
             httpAdapterHost: any,
             msgProvider: ExceptionMessageProvider,
-            config: ExceptionConfig,
-          ) => new HttpExceptionFilter(httpAdapterHost, msgProvider, config.documentationUrl),
-          inject: ['HttpAdapterHost', 'EXCEPTION_MESSAGE_PROVIDER', 'EXCEPTION_CONFIG'],
+            config: ExceptionConfig
+          ) =>
+            new HttpExceptionFilter(
+              httpAdapterHost,
+              msgProvider,
+              config.documentationUrl
+            ),
+          inject: [
+            HttpAdapterHost,
+            'EXCEPTION_MESSAGE_PROVIDER',
+            'EXCEPTION_CONFIG',
+          ],
         },
       ],
       exports: ['EXCEPTION_MESSAGE_PROVIDER'],

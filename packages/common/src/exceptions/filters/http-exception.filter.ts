@@ -60,12 +60,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly messageProvider?: ExceptionMessageProvider,
     private readonly documentationUrl?: string,
+    injectedLogger?: PinoLogger
   ) {
-    this.logger = new PinoLogger({
-      destination: {
-        type: 'console',
-      },
-    });
+    this.logger =
+      injectedLogger ||
+      new PinoLogger({
+        destination: {
+          type: 'console',
+        },
+      });
   }
 
   /**
@@ -76,7 +79,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
    * @param exception HTTP异常
    * @param host 请求上下文
    */
-  catch(exception: HttpException | AbstractHttpException, host: ArgumentsHost): void {
+  catch(
+    exception: HttpException | AbstractHttpException,
+    host: ArgumentsHost
+  ): void {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
     const request = ctx.getRequest();
@@ -84,7 +90,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // 处理自定义HTTP异常
     if (exception instanceof AbstractHttpException) {
-      this.handleAbstractHttpException(exception, request, response, httpAdapter);
+      this.handleAbstractHttpException(
+        exception,
+        request,
+        response,
+        httpAdapter
+      );
       return;
     }
 
@@ -106,13 +117,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     exception: AbstractHttpException,
     request: any,
     response: any,
-    httpAdapter: any,
+    httpAdapter: any
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const errorResponse = exception.toErrorResponse(
       requestId,
       this.messageProvider,
-      this.documentationUrl,
+      this.documentationUrl
     );
 
     // 记录异常日志
@@ -148,23 +159,27 @@ export class HttpExceptionFilter implements ExceptionFilter {
     exception: HttpException,
     request: any,
     response: any,
-    httpAdapter: any,
+    httpAdapter: any
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse();
-    
+
     // 创建标准错误响应
     const errorResponse: ErrorResponse = {
       type: this.documentationUrl || 'about:blank',
-      title: this.messageProvider?.getMessage(exception.name, 'title') || exception.name,
-      detail: typeof exceptionResponse === 'string' 
-        ? exceptionResponse 
-        : (exceptionResponse as any)?.message || exception.message,
+      title:
+        this.messageProvider?.getMessage(exception.name, 'title') ||
+        exception.name,
+      detail:
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as any)?.message || exception.message,
       status,
       instance: requestId,
       errorCode: exception.name,
-      data: typeof exceptionResponse === 'object' ? exceptionResponse : undefined,
+      data:
+        typeof exceptionResponse === 'object' ? exceptionResponse : undefined,
     };
 
     // 记录异常日志

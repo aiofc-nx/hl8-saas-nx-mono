@@ -70,7 +70,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { ConfigLoader } from '../interfaces/typed-config-module-options.interface';
 import { ErrorHandler, ConfigError } from '../errors';
-import { ConfigRecord, ConfigParser, EnvSubstitutor } from '../types';
+import { ConfigRecord } from '../types';
 
 /**
  * 文件加载器选项接口
@@ -304,6 +304,16 @@ function substituteEnvironmentVariables(config: ConfigRecord): ConfigRecord {
     return (config as string).replace(
       /\$\{([^}]+)\}/g,
       (match: string, key: string) => {
+        // 支持 ${VAR:-DEFAULT} 语法
+        const defaultMatch = key.match(/^([^:]+):-(.*)$/);
+        if (defaultMatch) {
+          const [, envKey, defaultValue] = defaultMatch;
+          return process.env[envKey] !== undefined
+            ? (process.env[envKey] as string)
+            : defaultValue;
+        }
+
+        // 支持 ${VAR} 语法
         const value = process.env[key];
         return value !== undefined ? value : match;
       }

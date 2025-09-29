@@ -109,6 +109,9 @@ export * from './lib/nestjs-logger';
 export * from './lib/types';
 export type { LogLevel } from './lib/types';
 
+// 常量导出
+export * from './lib/constants';
+
 // 上下文管理导出
 export * from './lib/context';
 

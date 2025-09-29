@@ -108,6 +108,12 @@ export interface LogFormat {
   timeFormat?: string;
   /** 是否显示进程ID */
   pid?: boolean;
+  /** 是否启用美化打印 */
+  prettyPrint?: boolean;
+  /** 时间格式转换 */
+  translateTime?: string;
+  /** 忽略的字段 */
+  ignore?: string;
   /** 是否显示主机名 */
   hostname?: boolean;
 }

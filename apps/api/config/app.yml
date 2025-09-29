@@ -1,0 +1,47 @@
+# API应用配置文件
+# 定义API应用的默认配置，支持环境变量覆盖
+
+app:
+  name: "HL8 SAAS API"
+  version: "1.0.0"
+  environment: "development"
+  description: "HL8 SAAS平台API服务"
+
+server:
+  port: 4000
+  host: "localhost"
+  enableCors: true
+  corsOrigins:
+    - "http://localhost:3001"
+    - "http://localhost:3000"
+
+database:
+  type: "postgresql"
+  host: "${DB_HOST:-localhost}"
+  port: "${DB_PORT:-5432}"
+  database: "${DB_NAME:-hl8_saas}"
+  username: "${DB_USERNAME:-postgres}"
+  password: "${DB_PASSWORD:-password}"
+  ssl: false
+  poolSize: 10
+
+auth:
+  jwtSecret: "${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}"
+  jwtExpirationTime: 3600
+  jwtRefreshSecret: "${JWT_REFRESH_SECRET:-your-super-secret-refresh-key}"
+  jwtRefreshExpirationTime: 86400
+  passwordSaltRounds: 12
+
+logging:
+  level: "${LOG_LEVEL:-info}"
+  filePath: "./logs/api.log"
+  enableRequestLogging: true
+  enableResponseLogging: true
+  enableConsoleLogging: true
+
+cache:
+  type: "memory"
+  redisHost: "${REDIS_HOST:-localhost}"
+  redisPort: "${REDIS_PORT:-6379}"
+  redisPassword: "${REDIS_PASSWORD:-}"
+  defaultTtl: 3600
