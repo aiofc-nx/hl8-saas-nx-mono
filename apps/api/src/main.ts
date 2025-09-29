@@ -21,7 +21,8 @@ async function bootstrap() {
   // 获取应用配置
   const appConfig = app.get(AppConfig);
 
-  const globalPrefix = 'api';
+  // 从配置文件获取API前缀
+  const globalPrefix = appConfig.server.globalPrefix || 'api';
   app.setGlobalPrefix(globalPrefix);
 
   // 从配置文件获取端口和主机

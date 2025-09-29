@@ -17,6 +17,7 @@
     "paths": {
       "@hl8/common": ["packages/common/src/index.ts"],
       "@hl8/config": ["packages/config/src/index.ts"],
+      "@hl8/fastify-pro": ["packages/fastify-pro/src/index.ts"],
       "@hl8/logger": ["packages/logger/src/index.ts"],
       "@hl8/utils": ["packages/utils/src/index.ts"]
     }

@@ -128,6 +128,11 @@ export class ServerConfig {
   @IsString()
   public readonly host?: string;
 
+  /** 全局API前缀 */
+  @IsOptional()
+  @IsString()
+  public readonly globalPrefix?: string;
+
   /** 是否启用CORS */
   @IsOptional()
   @IsBoolean()

@@ -1,0 +1,32 @@
+{
+  "name": "@hl8/fastify-pro",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "description": "企业级Fastify集成库，提供高性能、企业级功能的Web框架支持",
+  "keywords": [
+    "fastify",
+    "nestjs",
+    "enterprise",
+    "web",
+    "framework",
+    "performance"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/platform-fastify": "^10.0.0",
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/platform-fastify": "^10.0.0",
+    "fastify": "^4.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
