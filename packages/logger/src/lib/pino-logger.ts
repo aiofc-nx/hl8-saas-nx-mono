@@ -140,7 +140,13 @@ export class PinoLogger implements LoggerInterface {
     // 准备 pino-pretty 选项
     const shouldUsePretty =
       this.config.format?.prettyPrint || this.config.format?.colorize;
-    const prettyOptions: any = {};
+    const prettyOptions: any = {
+      // 强制启用多行格式
+      singleLine: false,
+      crlf: false,
+      hideObject: false,
+      messageFormat: '{msg}',
+    };
 
     if (shouldUsePretty && this.config.format) {
       if (this.config.format.translateTime) {
@@ -154,10 +160,6 @@ export class PinoLogger implements LoggerInterface {
       if (this.config.format.colorize) {
         prettyOptions.colorize = this.config.format.colorize;
       }
-
-      // 启用 JSON 格式化，让对象属性换行显示
-      prettyOptions.singleLine = false;
-      prettyOptions.crlf = false;
     }
 
     // 配置输出目标
@@ -209,11 +211,8 @@ export class PinoLogger implements LoggerInterface {
     }
 
     // 没有配置 destination 时，默认输出到控制台（美化格式）
-    if (shouldUsePretty) {
-      return pino(pinoConfig, pinoPretty(prettyOptions));
-    }
-
-    return pino(pinoConfig);
+    // 强制启用 pretty 模式，确保日志美化显示
+    return pino(pinoConfig, pinoPretty(prettyOptions));
   }
 
   /**

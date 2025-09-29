@@ -4,6 +4,18 @@
   "include": [],
   "references": [
     {
+      "path": "../../packages/common"
+    },
+    {
+      "path": "../../packages/fastify-pro"
+    },
+    {
+      "path": "../../packages/logger"
+    },
+    {
+      "path": "../../packages/utils"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {
@@ -11,6 +23,8 @@
     }
   ],
   "compilerOptions": {
+    "composite": true,
+    "declaration": true,
     "esModuleInterop": true
   }
 }

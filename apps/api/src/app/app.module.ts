@@ -58,9 +58,13 @@ import { Module } from '@nestjs/common';
 import { TypedConfigModule, fileLoader } from '@hl8/config';
 import { LoggerModule } from '@hl8/logger';
 import { ExceptionModule } from '@hl8/common';
+import { FastifyProModule } from '@hl8/fastify-pro';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfig } from './config/app.config';
+import { HealthModule } from './health/health.module';
+import { TenantModule } from './tenant/tenant.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { join } from 'path';
 
 @Module({
@@ -93,6 +97,20 @@ import { join } from 'path';
                 loggingConfig.format?.translateTime ?? 'yyyy-mm-dd HH:MM:ss',
               ignore: loggingConfig.format?.ignore ?? 'pid,hostname',
             },
+            // 确保 JSON 格式美化
+            serializers: {
+              req: (req) => ({
+                method: req.method,
+                url: req.url,
+                headers: req.headers,
+                remoteAddress: req.remoteAddress,
+                remotePort: req.remotePort,
+              }),
+              res: (res) => ({
+                statusCode: res.statusCode,
+                responseTime: res.responseTime,
+              }),
+            },
           },
           enableRequestLogging: loggingConfig.enableRequestLogging,
           enableResponseLogging: loggingConfig.enableResponseLogging,
@@ -110,6 +128,36 @@ import { join } from 'path';
       enableRequestLogging: true,
       enableResponseLogging: true,
     }),
+
+    // Fastify-Pro 企业级 Web 框架模块 - 提供企业级功能
+    FastifyProModule.forRootAsync({
+      useFactory: (appConfig: AppConfig) => ({
+        enterprise: {
+          enableHealthCheck: false, // 禁用自动健康检查，使用自定义 HealthController
+          enablePerformanceMonitoring: true,
+          enableMultiTenant: true,
+          tenantHeader: 'X-Tenant-ID',
+          corsOptions: {
+            origin: appConfig.server.corsOrigins || ['http://localhost:3000'],
+            credentials: true,
+          },
+          logger: {
+            level: appConfig.logging.level,
+            prettyPrint: appConfig.logging.format?.prettyPrint ?? true,
+          },
+        },
+      }),
+      inject: [AppConfig],
+    }) as any,
+
+    // 健康检查模块 - 提供应用健康状态检查
+    HealthModule,
+
+    // 租户模块 - 提供多租户管理功能
+    TenantModule,
+
+    // 性能指标模块 - 提供性能监控和指标收集功能
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

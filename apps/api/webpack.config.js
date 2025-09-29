@@ -9,6 +9,12 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
   },
+  // 忽略 source map 警告
+  ignoreWarnings: [
+    /Failed to parse source map/,
+    /Critical dependency: the request of a dependency is an expression/,
+    /Module Warning \(from .*source-map-loader/,
+  ],
   plugins: [
     new webpack.IgnorePlugin({
       resourceRegExp: /^@nestjs\/websockets\/socket-module$/,
@@ -45,9 +51,6 @@ module.exports = {
     }),
     new webpack.IgnorePlugin({
       resourceRegExp: /^@nestjs\/platform-socket\.io$/,
-    }),
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^@fastify\/static$/,
     }),
     new webpack.IgnorePlugin({
       resourceRegExp: /^@fastify\/view$/,

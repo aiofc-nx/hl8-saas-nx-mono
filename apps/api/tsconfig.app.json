@@ -4,22 +4,19 @@
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
     "types": ["node"],
-    "composite": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "es2021"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
-  "references": [
-    {
-      "path": "../../packages/logger"
-    },
-    {
-      "path": "../../packages/common"
-    },
-    {
-      "path": "../../packages/config"
-    }
+  "include": ["src/**/*.ts", "../../packages/**/*.ts"],
+  "exclude": [
+    "jest.config.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "../../packages/**/*.spec.ts",
+    "../../packages/**/*.test.ts",
+    "../../packages/**/__tests__/**",
+    "../../packages/**/test/**",
+    "../../packages/**/tests/**"
   ]
 }

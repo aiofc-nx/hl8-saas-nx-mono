@@ -15,6 +15,7 @@ server:
   corsOrigins:
     - "http://localhost:3001"
     - "http://localhost:3000"
+    - "https://app.hl8-saas.com"
 
 database:
   type: "postgresql"

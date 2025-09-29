@@ -99,7 +99,7 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { red, yellow, cyan, blue } from 'chalk';
+import chalk from 'chalk';
 import type { ClassConstructor } from 'class-transformer';
 import type { ValidatorOptions, ValidationError } from 'class-validator';
 const merge = require('lodash.merge');
@@ -533,13 +533,15 @@ export class TypedConfigModule {
         const constraintMessage = Object.entries(constraints || {})
           .map(
             ([key, val]) =>
-              `    - ${key}: ${yellow(val)}, current config is \`${blue(
-                JSON.stringify(value)
-              )}\``
+              `    - ${key}: ${chalk.yellow(
+                val
+              )}, current config is \`${chalk.blue(JSON.stringify(value))}\``
           )
           .join(`\n`);
         const msg = [
-          `  - config ${cyan(property)} does not match the following rules:`,
+          `  - config ${chalk.cyan(
+            property
+          )} does not match the following rules:`,
           `${constraintMessage}`,
         ].join(`\n`);
         return msg;
@@ -547,7 +549,7 @@ export class TypedConfigModule {
       .filter(Boolean)
       .join(`\n`);
 
-    const configErrorMessage = red(
+    const configErrorMessage = chalk.red(
       `Configuration is not valid:\n${messages}\n`
     );
     return configErrorMessage;

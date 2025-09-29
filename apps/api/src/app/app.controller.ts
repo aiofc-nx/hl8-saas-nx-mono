@@ -46,7 +46,7 @@
  * ```
  */
 
-import { Controller, Get, HttpStatus } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
 /**
@@ -141,32 +141,6 @@ export class AppController {
   @Get('config')
   getConfigInfo() {
     return this.appService.getConfigInfo();
-  }
-
-  /**
-   * 健康检查端点
-   *
-   * @description 返回应用的健康状态，用于监控和负载均衡器检查
-   * @returns 包含健康状态信息的响应对象
-   *
-   * @example
-   * ```typescript
-   * // 请求示例
-   * GET /health
-   *
-   * // 响应示例
-   * {
-   *   "status": "healthy",
-   *   "timestamp": "2024-01-01T00:00:00.000Z",
-   *   "uptime": 12345,
-   *   "version": "1.0.0",
-   *   "environment": "development"
-   * }
-   * ```
-   */
-  @Get('health')
-  getHealth() {
-    return this.appService.getHealth();
   }
 
   /**

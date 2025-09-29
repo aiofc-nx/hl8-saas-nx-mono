@@ -28,7 +28,11 @@ import { IFastifyPluginConfig } from '../types/fastify.types';
  */
 export interface ICorsPluginConfig extends IFastifyPluginConfig {
   /** 允许的源域名 */
-  origin?: boolean | string | string[] | ((origin: string) => boolean);
+  origin?:
+    | boolean
+    | string
+    | string[]
+    | ((origin: string | undefined) => boolean);
 
   /** 允许的HTTP方法 */
   methods?: string | string[];
@@ -97,9 +101,16 @@ export class CorsPlugin extends CoreFastifyPlugin {
     // 动态导入@fastify/cors插件
     const corsPlugin = await import('@fastify/cors');
 
-    // 注册CORS插件
+    // 处理origin函数类型转换，确保兼容@fastify/cors v11
+    const originHandler = this.corsConfig.origin;
+    const processedOrigin =
+      typeof originHandler === 'function'
+        ? (origin: string | undefined) => originHandler(origin || '')
+        : originHandler;
+
+    // 注册CORS插件 - 使用兼容Fastify v5和@fastify/cors v11的注册方式
     await fastify.register(corsPlugin.default, {
-      origin: this.corsConfig.origin as any,
+      origin: processedOrigin,
       methods: this.corsConfig.methods,
       allowedHeaders: this.corsConfig.allowedHeaders,
       exposedHeaders: this.corsConfig.exposedHeaders,
@@ -153,7 +164,7 @@ export class CorsPlugin extends CoreFastifyPlugin {
    *
    * @description 验证请求的源域名是否被允许
    */
-  isOriginAllowed(origin: string): boolean {
+  isOriginAllowed(origin: string | undefined): boolean {
     if (this.corsConfig.origin === true) return true;
     if (this.corsConfig.origin === false) return false;
 
@@ -162,7 +173,7 @@ export class CorsPlugin extends CoreFastifyPlugin {
     }
 
     if (Array.isArray(this.corsConfig.origin)) {
-      return this.corsConfig.origin.includes(origin);
+      return this.corsConfig.origin.includes(origin || '');
     }
 
     if (typeof this.corsConfig.origin === 'function') {
