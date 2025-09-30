@@ -1,17 +1,48 @@
 /**
  * 企业级Fastify插件基类
  *
- * @description 提供插件生命周期管理、健康检查、性能监控等企业级功能
+ * 提供插件生命周期管理、健康检查、性能监控等企业级功能。
  *
- * ## 核心特点
+ * @description 此基类提供插件生命周期管理、健康检查、性能监控等企业级功能。
+ * 为所有Fastify插件提供统一的基础功能，支持智能管理和性能监控。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
  *
- * ### 🎯 **设计定位**
- * - **插件基类**：为所有Fastify插件提供统一的基础功能
- * - **生命周期管理**：完整的插件注册、卸载、健康检查流程
- * - **性能监控**：插件性能指标收集和分析
- * - **错误处理**：统一的错误处理和恢复机制
+ * ## 业务规则
  *
- * @since 1.0.0
+ * ### 设计定位规则
+ * - 插件基类：为所有Fastify插件提供统一的基础功能
+ * - 生命周期管理：完整的插件注册、卸载、健康检查流程
+ * - 性能监控：插件性能指标收集和分析
+ * - 错误处理：统一的错误处理和恢复机制
+ *
+ * ### 生命周期规则
+ * - 支持插件注册和卸载
+ * - 支持插件状态管理
+ * - 支持插件健康检查
+ * - 支持插件性能监控
+ *
+ * ### 性能监控规则
+ * - 记录插件执行时间
+ * - 记录插件成功和失败次数
+ * - 记录插件错误信息
+ * - 支持插件性能分析
+ *
+ * @example
+ * ```typescript
+ * // 创建自定义插件
+ * class MyPlugin extends CoreFastifyPlugin {
+ *   protected async doRegister(fastify: FastifyInstance): Promise<void> {
+ *     // 插件注册逻辑
+ *   }
+ * }
+ * 
+ * // 注册插件
+ * const plugin = new MyPlugin({
+ *   name: 'my-plugin',
+ *   priority: 1,
+ *   enabled: true
+ * });
+ * ```
  */
 
 import { FastifyInstance } from 'fastify';
@@ -24,7 +55,48 @@ import {
 /**
  * 企业级Fastify插件基类
  *
- * @description 提供插件生命周期管理和企业级功能
+ * 提供插件生命周期管理和企业级功能，支持性能监控、错误处理等。
+ *
+ * @description 此基类提供插件生命周期管理和企业级功能。
+ * 支持性能监控、错误处理、状态管理等企业级功能。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
+ *
+ * ## 业务规则
+ *
+ * ### 生命周期管理规则
+ * - 支持插件注册和卸载
+ * - 支持插件状态管理
+ * - 支持插件健康检查
+ * - 支持插件性能监控
+ *
+ * ### 性能监控规则
+ * - 记录插件执行时间
+ * - 记录插件成功和失败次数
+ * - 记录插件错误信息
+ * - 支持插件性能分析
+ *
+ * ### 错误处理规则
+ * - 统一的错误处理和恢复机制
+ * - 支持错误信息记录和分析
+ * - 支持错误统计和告警
+ * - 支持错误恢复和重试
+ *
+ * @example
+ * ```typescript
+ * // 创建自定义插件
+ * class MyPlugin extends CoreFastifyPlugin {
+ *   protected async doRegister(fastify: FastifyInstance): Promise<void> {
+ *     // 插件注册逻辑
+ *   }
+ * }
+ * 
+ * // 注册插件
+ * const plugin = new MyPlugin({
+ *   name: 'my-plugin',
+ *   priority: 1,
+ *   enabled: true
+ * });
+ * ```
  */
 export abstract class CoreFastifyPlugin implements IFastifyPlugin {
   public readonly name: string;

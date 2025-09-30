@@ -1,22 +1,45 @@
 /**
  * 健康检查服务
  *
- * @description 提供完整的系统健康检查功能，包括组件状态、依赖检查、性能监控等
+ * 提供完整的系统健康检查功能，包括组件状态、依赖检查、性能监控等。
  *
- * ## 健康检查核心概念
+ * @description 此服务提供完整的系统健康检查功能。
+ * 包括组件状态、依赖检查、性能监控等，支持多种健康状态和检查维度。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
  *
- * ### 🏥 **健康状态**
- * - **healthy**: 系统完全正常
- * - **degraded**: 部分功能异常，但核心功能正常
- * - **unhealthy**: 系统严重异常，需要立即处理
+ * ## 业务规则
  *
- * ### 🔍 **检查维度**
- * - **系统资源**: CPU、内存、磁盘使用率
- * - **网络连接**: 数据库、Redis、外部API连接
- * - **业务组件**: 插件、中间件、路由状态
- * - **性能指标**: 响应时间、吞吐量、错误率
+ * ### 健康状态规则
+ * - healthy: 系统完全正常，所有组件运行正常
+ * - degraded: 部分功能异常，但核心功能正常
+ * - unhealthy: 系统严重异常，需要立即处理
+ * - 状态转换必须基于明确的阈值和规则
  *
- * @since 1.0.0
+ * ### 检查维度规则
+ * - 系统资源：CPU、内存、磁盘使用率
+ * - 网络连接：数据库、Redis、外部API连接
+ * - 业务组件：插件、中间件、路由状态
+ * - 性能指标：响应时间、吞吐量、错误率
+ *
+ * ### 监控规则
+ * - 支持实时监控和定期检查
+ * - 支持自定义检查器
+ * - 支持检查结果缓存
+ * - 支持告警和通知
+ *
+ * @example
+ * ```typescript
+ * // 创建健康检查服务
+ * const healthCheck = new HealthCheckService({
+ *   timeout: 5000,
+ *   checkSystemResources: true,
+ *   checkNetworkConnections: true
+ * });
+ *
+ * // 执行健康检查
+ * const result = await healthCheck.checkHealth();
+ * console.log('健康状态:', result.status);
+ * ```
  */
 
 import { FastifyInstance } from 'fastify';
@@ -137,7 +160,42 @@ export class HealthCheckService {
   /**
    * 执行健康检查
    *
-   * @description 执行完整的系统健康检查
+   * 执行完整的系统健康检查，包括组件状态、系统资源、网络连接等。
+   *
+   * @description 此方法执行完整的系统健康检查。
+   * 包括组件状态、系统资源、网络连接等，返回详细的健康状态信息。
+   * 支持并发检查和超时控制，确保检查结果的准确性。
+   *
+   * ## 业务规则
+   *
+   * ### 检查流程规则
+   * - 并发执行所有启用的检查器
+   * - 计算整体健康状态
+   * - 收集系统资源信息
+   * - 处理检查错误和异常
+   *
+   * ### 状态计算规则
+   * - healthy: 所有组件都正常
+   * - degraded: 部分组件异常但核心功能正常
+   * - unhealthy: 关键组件异常或系统严重问题
+   * - 状态计算基于组件健康状态和权重
+   *
+   * ### 性能规则
+   * - 检查超时时间可配置
+   * - 支持并发检查提高效率
+   * - 检查结果包含响应时间
+   * - 支持检查结果缓存
+   *
+   * @returns 健康检查结果对象
+   *
+   * @example
+   * ```typescript
+   * // 执行健康检查
+   * const result = await healthCheck.performHealthCheck();
+   * console.log('健康状态:', result.status);
+   * console.log('响应时间:', result.responseTime);
+   * console.log('组件状态:', result.components);
+   * ```
    */
   async performHealthCheck(): Promise<IHealthCheckResult> {
     const startTime = Date.now();

@@ -1,245 +1,502 @@
 /**
- * TenantMiddleware 单元测试
+ * TenantExtractionMiddleware 单元测试
  *
- * @description 测试多租户中间件的功能
+ * @description 测试租户提取中间件的核心功能
  *
  * @since 1.0.0
  */
 
 import {
-  TenantMiddleware,
-  createTenantMiddleware,
-  DefaultTenantConfigs,
+  TenantExtractionMiddleware,
+  ITenantExtractionConfig,
 } from './tenant.middleware';
-import { ITenantMiddlewareConfig } from './tenant.middleware';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
-describe('TenantMiddleware', () => {
-  let middleware: TenantMiddleware;
-  let mockConfig: ITenantMiddlewareConfig;
+// Mock CoreFastifyMiddleware
+jest.mock('./core-fastify.middleware', () => {
+  return {
+    CoreFastifyMiddleware: jest.fn().mockImplementation(() => ({
+      config: {},
+      middleware: jest.fn(),
+    })),
+  };
+});
+
+describe('TenantExtractionMiddleware', () => {
+  let middleware: TenantExtractionMiddleware;
+  let mockRequest: Partial<FastifyRequest>;
+  let mockReply: Partial<FastifyReply>;
+  let mockDone: jest.Mock;
 
   beforeEach(() => {
-    mockConfig = {
-      name: 'tenant',
-      priority: 1,
-      enabled: true,
-      path: '/api',
-      tenantHeader: 'X-Tenant-ID',
-      tenantQueryParam: 'tenant',
-      validateTenant: true,
-      allowSubdomainTenant: true,
-    };
-  });
+    jest.clearAllMocks();
 
-  afterEach(() => {
-    if (middleware) {
-      middleware = null as any;
-    }
+    mockRequest = {
+      headers: {},
+      query: {},
+      url: '/api/test',
+      method: 'GET',
+    };
+
+    mockReply = {
+      header: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    mockDone = jest.fn();
   });
 
   describe('构造函数', () => {
-    it('应该正确初始化中间件', () => {
-      middleware = new TenantMiddleware(mockConfig);
-      expect(middleware).toBeDefined();
-      expect(middleware.name).toBe('tenant');
-      expect(middleware.enabled).toBe(true);
-      expect(middleware.priority).toBe(1);
-    });
-
-    it('应该使用默认配置', () => {
-      const minimalConfig = {
+    it('应该使用默认配置创建中间件', () => {
+      const config: ITenantExtractionConfig = {
         name: 'tenant',
       };
-      middleware = new TenantMiddleware(minimalConfig);
+
+      middleware = new TenantExtractionMiddleware(config);
+
       expect(middleware).toBeDefined();
-    });
-  });
-
-  describe('中间件注册', () => {
-    beforeEach(() => {
-      middleware = new TenantMiddleware(mockConfig);
+      expect(middleware.config.name).toBe('tenant');
+      expect(middleware.config.tenantHeader).toBe('X-Tenant-ID');
+      expect(middleware.config.tenantQueryParam).toBe('tenant');
+      expect(middleware.config.enableBasicValidation).toBe(true);
     });
 
-    it('应该能够注册中间件', async () => {
-      const mockFastify = {
-        addHook: jest.fn().mockResolvedValue(undefined),
+    it('应该使用自定义配置创建中间件', () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantHeader: 'X-Custom-Tenant-ID',
+        tenantQueryParam: 'custom-tenant',
+        enableBasicValidation: false,
       };
 
-      await expect(
-        middleware.register(mockFastify as any)
-      ).resolves.not.toThrow();
-      expect(mockFastify.addHook).toHaveBeenCalledWith(
-        'preHandler',
-        expect.any(Function)
-      );
+      middleware = new TenantExtractionMiddleware(config);
+
+      expect(middleware).toBeDefined();
+      expect(middleware.config.tenantHeader).toBe('X-Custom-Tenant-ID');
+      expect(middleware.config.tenantQueryParam).toBe('custom-tenant');
+      expect(middleware.config.enableBasicValidation).toBe(false);
     });
 
-    it('应该处理注册错误', async () => {
-      const mockFastify = {
-        addHook: jest
-          .fn()
-          .mockRejectedValue(new Error('Hook registration failed')),
+    it('应该合并基础配置', () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        priority: 2,
+        enabled: true,
+        path: '/api',
       };
 
-      await expect(middleware.register(mockFastify as any)).rejects.toThrow(
-        'Hook registration failed'
-      );
+      middleware = new TenantExtractionMiddleware(config);
+
+      expect(middleware).toBeDefined();
+      expect(middleware.config.priority).toBe(2);
+      expect(middleware.config.enabled).toBe(true);
+      expect(middleware.config.path).toBe('/api');
     });
   });
 
-  describe('中间件状态', () => {
+  describe('extractTenantId', () => {
     beforeEach(() => {
-      middleware = new TenantMiddleware(mockConfig);
-    });
-
-    it('应该返回中间件状态', async () => {
-      const status = await middleware.getStatus();
-
-      expect(status).toBeDefined();
-      expect(status.name).toBe('tenant');
-      expect(status.isRegistered).toBeDefined();
-      expect(status.isHealthy).toBeDefined();
-    });
-  });
-
-  describe('租户验证', () => {
-    beforeEach(() => {
-      middleware = new TenantMiddleware(mockConfig);
-    });
-
-    it('应该验证租户ID', async () => {
-      const isValid = await middleware.isTenantValid('valid-tenant');
-      expect(typeof isValid).toBe('boolean');
-    });
-
-    it('应该处理无效租户ID', async () => {
-      const isValid = await middleware.isTenantValid('invalid');
-      expect(typeof isValid).toBe('boolean');
-    });
-  });
-
-  describe('租户配置', () => {
-    beforeEach(() => {
-      middleware = new TenantMiddleware(mockConfig);
-    });
-
-    it('应该返回租户配置', () => {
-      const config = middleware.getTenantConfig();
-
-      expect(config).toBeDefined();
-      expect(config.tenantHeader).toBe('X-Tenant-ID');
-      expect(config.tenantQueryParam).toBe('tenant');
-      expect(config.validateTenant).toBe(true);
-    });
-  });
-
-  describe('中间件函数', () => {
-    beforeEach(() => {
-      middleware = new TenantMiddleware(mockConfig);
-    });
-
-    it('应该处理请求头中的租户ID', async () => {
-      const mockRequest = {
-        headers: {
-          'x-tenant-id': 'test-tenant',
-        },
-        url: '/api/test',
-        method: 'GET',
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantHeader: 'X-Tenant-ID',
+        tenantQueryParam: 'tenant',
       };
-      const mockReply = {
-        header: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+
+      middleware = new TenantExtractionMiddleware(config);
+    });
+
+    it('应该从请求头提取租户ID', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-123',
       };
-      const mockDone = jest.fn();
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-123');
+    });
+
+    it('应该从查询参数提取租户ID', async () => {
+      mockRequest.query = {
+        tenant: 'tenant-456',
+      };
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-456');
+    });
+
+    it('应该优先使用请求头的租户ID', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-123',
+      };
+      mockRequest.query = {
+        tenant: 'tenant-456',
+      };
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-123');
+    });
+
+    it('应该在找不到租户ID时返回null', async () => {
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBeNull();
+    });
+
+    it('应该处理大小写不敏感的请求头', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-789',
+      };
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-789');
+    });
+
+    it('应该处理自定义租户头名称', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantHeader: 'X-Custom-Tenant-ID',
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+
+      mockRequest.headers = {
+        'x-custom-tenant-id': 'tenant-custom',
+      };
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-custom');
+    });
+
+    it('应该处理自定义查询参数名称', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantQueryParam: 'custom-tenant',
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+
+      mockRequest.query = {
+        'custom-tenant': 'tenant-query',
+      };
+
+      const tenantId = await (middleware as any).extractTenantId(mockRequest);
+
+      expect(tenantId).toBe('tenant-query');
+    });
+  });
+
+  describe('isValidTenantIdFormat', () => {
+    beforeEach(() => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+    });
+
+    it('应该验证有效的租户ID格式', () => {
+      const validTenantIds = [
+        'tenant-123',
+        'tenant_456',
+        'tenant789',
+        't123',
+        'a'.repeat(50), // 最大长度
+      ];
+
+      validTenantIds.forEach((tenantId) => {
+        expect((middleware as any).isValidTenantIdFormat(tenantId)).toBe(true);
+      });
+    });
+
+    it('应该拒绝无效的租户ID格式', () => {
+      const invalidTenantIds = [
+        '', // 空字符串
+        'a'.repeat(51), // 超过最大长度
+        'tenant@123', // 包含特殊字符
+        'tenant#123',
+        'tenant$123',
+        'tenant%123',
+        'tenant^123',
+        'tenant&123',
+        'tenant*123',
+        'tenant+123',
+        'tenant=123',
+        'tenant|123',
+        'tenant\\123',
+        'tenant"123',
+        "tenant'123",
+        'tenant<123',
+        'tenant>123',
+        'tenant,123',
+        'tenant;123',
+        'tenant:123',
+        'tenant?123',
+        'tenant/123',
+        'tenant 123', // 包含空格
+        'tenant\t123', // 包含制表符
+        'tenant\n123', // 包含换行符
+        'tenant\r123', // 包含回车符
+        'ab', // 太短
+      ];
+
+      invalidTenantIds.forEach((tenantId) => {
+        expect((middleware as any).isValidTenantIdFormat(tenantId)).toBe(false);
+      });
+    });
+
+    it('应该处理null和undefined', () => {
+      expect((middleware as any).isValidTenantIdFormat(null)).toBe(false);
+      expect((middleware as any).isValidTenantIdFormat(undefined)).toBe(false);
+    });
+  });
+
+  describe('middleware', () => {
+    beforeEach(() => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        enableBasicValidation: true,
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+    });
+
+    it('应该成功处理有效的租户ID', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-123',
+      };
 
       await middleware.middleware(
-        mockRequest as any,
-        mockReply as any,
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
         mockDone
       );
 
+      expect((mockRequest as any).tenantId).toBe('tenant-123');
       expect(mockReply.header).toHaveBeenCalledWith(
         'X-Tenant-ID',
-        'test-tenant'
+        'tenant-123'
+      );
+      expect(mockDone).toHaveBeenCalled();
+      expect(mockReply.status).not.toHaveBeenCalled();
+      expect(mockReply.send).not.toHaveBeenCalled();
+    });
+
+    it('应该在缺少租户ID时返回400错误', async () => {
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect(mockReply.status).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Tenant ID is required',
+        code: 'TENANT_ID_REQUIRED',
+      });
+      expect(mockDone).not.toHaveBeenCalled();
+    });
+
+    it('应该在租户ID格式无效时返回400错误', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'invalid@tenant',
+      };
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect(mockReply.status).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Invalid tenant ID format',
+        code: 'INVALID_TENANT_FORMAT',
+      });
+      expect(mockDone).not.toHaveBeenCalled();
+    });
+
+    it('应该在禁用验证时跳过格式检查', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        enableBasicValidation: false,
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+
+      mockRequest.headers = {
+        'x-tenant-id': 'invalid@tenant',
+      };
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect((mockRequest as any).tenantId).toBe('invalid@tenant');
+      expect(mockReply.header).toHaveBeenCalledWith(
+        'X-Tenant-ID',
+        'invalid@tenant'
+      );
+      expect(mockDone).toHaveBeenCalled();
+      expect(mockReply.status).not.toHaveBeenCalled();
+      expect(mockReply.send).not.toHaveBeenCalled();
+    });
+
+    it('应该处理提取租户ID时的错误', async () => {
+      // Mock extractTenantId to throw error
+      jest
+        .spyOn(middleware as any, 'extractTenantId')
+        .mockRejectedValue(new Error('提取失败'));
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect(mockReply.status).toHaveBeenCalledWith(500);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Tenant extraction failed',
+        code: 'TENANT_EXTRACTION_ERROR',
+      });
+      expect(mockDone).not.toHaveBeenCalled();
+    });
+
+    it('应该处理验证租户ID格式时的错误', async () => {
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-123',
+      };
+
+      // Mock isValidTenantIdFormat to throw error
+      jest
+        .spyOn(middleware as any, 'isValidTenantIdFormat')
+        .mockImplementation(() => {
+          throw new Error('验证失败');
+        });
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect(mockReply.status).toHaveBeenCalledWith(500);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Tenant extraction failed',
+        code: 'TENANT_EXTRACTION_ERROR',
+      });
+      expect(mockDone).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('集成测试', () => {
+    it('应该完整处理租户提取流程', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantHeader: 'X-Tenant-ID',
+        tenantQueryParam: 'tenant',
+        enableBasicValidation: true,
+      };
+
+      middleware = new TenantExtractionMiddleware(config);
+
+      // 测试请求头提取
+      mockRequest.headers = {
+        'x-tenant-id': 'tenant-123',
+      };
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect((mockRequest as any).tenantId).toBe('tenant-123');
+      expect(mockReply.header).toHaveBeenCalledWith(
+        'X-Tenant-ID',
+        'tenant-123'
+      );
+      expect(mockDone).toHaveBeenCalled();
+
+      // 重置mock
+      jest.clearAllMocks();
+      mockDone = jest.fn();
+
+      // 测试查询参数提取
+      mockRequest.headers = {};
+      mockRequest.query = {
+        tenant: 'tenant-456',
+      };
+
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect((mockRequest as any).tenantId).toBe('tenant-456');
+      expect(mockReply.header).toHaveBeenCalledWith(
+        'X-Tenant-ID',
+        'tenant-456'
       );
       expect(mockDone).toHaveBeenCalled();
     });
 
-    it('应该处理查询参数中的租户ID', async () => {
-      const mockRequest = {
-        headers: {},
-        query: { tenant: 'query-tenant' },
-        url: '/api/test',
-        method: 'GET',
+    it('应该处理复杂场景', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        tenantHeader: 'X-Custom-Tenant-ID',
+        tenantQueryParam: 'custom-tenant',
+        enableBasicValidation: true,
       };
-      const mockReply = {
-        header: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+
+      middleware = new TenantExtractionMiddleware(config);
+
+      // 同时提供请求头和查询参数，应该优先使用请求头
+      mockRequest.headers = {
+        'x-custom-tenant-id': 'header-tenant',
       };
-      const mockDone = jest.fn();
+      mockRequest.query = {
+        'custom-tenant': 'query-tenant',
+      };
 
       await middleware.middleware(
-        mockRequest as any,
-        mockReply as any,
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
         mockDone
       );
 
+      expect((mockRequest as any).tenantId).toBe('header-tenant');
       expect(mockReply.header).toHaveBeenCalledWith(
         'X-Tenant-ID',
-        'query-tenant'
+        'header-tenant'
       );
       expect(mockDone).toHaveBeenCalled();
     });
+  });
 
-    it('应该处理子域名租户ID', async () => {
-      const mockRequest = {
-        headers: {
-          host: 'tenant1.example.com',
-        },
-        url: '/api/test',
-        method: 'GET',
+  describe('边界条件测试', () => {
+    it('应该处理空字符串租户ID', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+        enableBasicValidation: true,
       };
-      const mockReply = {
-        header: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      const mockDone = jest.fn();
 
-      // 模拟中间件执行
-      try {
-        await middleware.middleware(
-          mockRequest as any,
-          mockReply as any,
-          mockDone
-        );
-      } catch (error) {
-        // 忽略模拟错误，专注于测试逻辑
-      }
+      middleware = new TenantExtractionMiddleware(config);
 
-      // 检查中间件是否被调用 - 由于中间件逻辑复杂，我们检查基本功能
-      expect(middleware).toBeDefined();
-      expect(middleware.middleware).toBeDefined();
-    });
-
-    it('应该处理缺少租户ID的情况', async () => {
-      const mockRequest = {
-        headers: {},
-        query: {},
-        url: '/api/test',
-        method: 'GET',
+      mockRequest.headers = {
+        'x-tenant-id': '',
       };
-      const mockReply = {
-        header: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      const mockDone = jest.fn();
 
       await middleware.middleware(
-        mockRequest as any,
-        mockReply as any,
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
         mockDone
       );
 
@@ -250,78 +507,52 @@ describe('TenantMiddleware', () => {
       });
     });
 
-    it('应该处理无效租户ID', async () => {
-      const mockRequest = {
-        headers: {
-          'x-tenant-id': 'invalid',
-        },
-        url: '/api/test',
-        method: 'GET',
+    it('应该处理null租户ID', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
       };
-      const mockReply = {
-        header: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      const mockDone = jest.fn();
 
-      // 模拟中间件执行
-      try {
-        await middleware.middleware(
-          mockRequest as any,
-          mockReply as any,
-          mockDone
-        );
-      } catch (error) {
-        // 忽略模拟错误，专注于测试逻辑
-      }
+      middleware = new TenantExtractionMiddleware(config);
 
-      // 检查中间件是否被调用
-      expect(mockDone).toHaveBeenCalled();
-    });
-  });
-});
+      // Mock extractTenantId to return null
+      jest.spyOn(middleware as any, 'extractTenantId').mockResolvedValue(null);
 
-describe('createTenantMiddleware', () => {
-  it('应该创建租户中间件', () => {
-    const middleware = createTenantMiddleware({
-      tenantHeader: 'X-Tenant-ID',
-      validateTenant: true,
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
+
+      expect(mockReply.status).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Tenant ID is required',
+        code: 'TENANT_ID_REQUIRED',
+      });
     });
 
-    expect(middleware).toBeInstanceOf(TenantMiddleware);
-    expect(middleware.name).toBe('tenant');
-  });
+    it('应该处理undefined租户ID', async () => {
+      const config: ITenantExtractionConfig = {
+        name: 'tenant',
+      };
 
-  it('应该使用默认配置', () => {
-    const middleware = createTenantMiddleware();
+      middleware = new TenantExtractionMiddleware(config);
 
-    expect(middleware).toBeInstanceOf(TenantMiddleware);
-    expect(middleware.name).toBe('tenant');
-  });
-});
+      // Mock extractTenantId to return undefined
+      jest
+        .spyOn(middleware as any, 'extractTenantId')
+        .mockResolvedValue(undefined);
 
-describe('DefaultTenantConfigs', () => {
-  it('应该包含开发环境配置', () => {
-    expect(DefaultTenantConfigs.development).toBeDefined();
-    expect(DefaultTenantConfigs.development.validateTenant).toBe(false);
-    expect(DefaultTenantConfigs.development.allowSubdomainTenant).toBe(true);
-  });
+      await middleware.middleware(
+        mockRequest as FastifyRequest,
+        mockReply as FastifyReply,
+        mockDone
+      );
 
-  it('应该包含生产环境配置', () => {
-    expect(DefaultTenantConfigs.production).toBeDefined();
-    expect(DefaultTenantConfigs.production.validateTenant).toBe(true);
-    expect(DefaultTenantConfigs.production.allowSubdomainTenant).toBe(true);
-  });
-
-  it('应该包含API服务配置', () => {
-    expect(DefaultTenantConfigs.apiService).toBeDefined();
-    expect(DefaultTenantConfigs.apiService.validateTenant).toBe(true);
-    expect(typeof DefaultTenantConfigs.apiService.validateTenantFn).toBe(
-      'function'
-    );
-    expect(typeof DefaultTenantConfigs.apiService.getTenantContextFn).toBe(
-      'function'
-    );
+      expect(mockReply.status).toHaveBeenCalledWith(400);
+      expect(mockReply.send).toHaveBeenCalledWith({
+        error: 'Tenant ID is required',
+        code: 'TENANT_ID_REQUIRED',
+      });
+    });
   });
 });

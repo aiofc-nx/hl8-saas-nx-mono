@@ -1,22 +1,44 @@
 /**
  * CORS插件
  *
- * @description 处理跨域资源共享（CORS）的Fastify插件
- * 支持灵活的CORS配置，包括域名白名单、HTTP方法、请求头等
+ * 处理跨域资源共享（CORS）的Fastify插件，支持灵活的CORS配置。
  *
- * ## CORS核心概念
+ * @description 此插件处理跨域资源共享（CORS）的Fastify插件。
+ * 支持灵活的CORS配置，包括域名白名单、HTTP方法、请求头等。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
  *
- * ### 🌐 **跨域问题**
+ * ## 业务规则
+ *
+ * ### 跨域问题规则
  * - 浏览器同源策略限制跨域请求
  * - 需要服务器明确允许跨域访问
  * - 涉及预检请求（Preflight Request）处理
+ * - 支持复杂跨域场景处理
  *
- * ### 🛡️ **安全考虑**
+ * ### 安全考虑规则
  * - 防止恶意网站访问敏感API
  * - 控制允许的域名、方法、请求头
  * - 支持凭据（Credentials）传递
+ * - 支持动态域名验证
  *
- * @since 1.0.0
+ * ### 配置规则
+ * - 支持多种域名配置方式
+ * - 支持HTTP方法和请求头配置
+ * - 支持预检请求缓存配置
+ * - 支持凭据传递配置
+ *
+ * @example
+ * ```typescript
+ * // 创建CORS插件
+ * const corsPlugin = new CorsPlugin({
+ *   origin: ['https://example.com', 'https://app.example.com'],
+ *   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+ *   credentials: true
+ * });
+ * 
+ * // 注册插件
+ * await fastify.register(corsPlugin.plugin);
+ * ```
  */
 
 import { FastifyInstance } from 'fastify';
@@ -59,7 +81,44 @@ export interface ICorsPluginConfig extends IFastifyPluginConfig {
 /**
  * CORS插件
  *
- * @description 基于@fastify/cors的企业级CORS插件实现
+ * 基于@fastify/cors的企业级CORS插件实现，支持灵活的跨域资源共享配置。
+ *
+ * @description 此插件是基于@fastify/cors的企业级CORS插件实现。
+ * 支持灵活的跨域资源共享配置，包括域名白名单、HTTP方法、请求头等。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
+ *
+ * ## 业务规则
+ *
+ * ### 插件功能规则
+ * - 支持多种域名配置方式
+ * - 支持HTTP方法和请求头配置
+ * - 支持预检请求缓存配置
+ * - 支持凭据传递配置
+ *
+ * ### 安全规则
+ * - 防止恶意网站访问敏感API
+ * - 控制允许的域名、方法、请求头
+ * - 支持动态域名验证
+ * - 支持凭据（Credentials）传递
+ *
+ * ### 配置规则
+ * - 支持灵活的配置选项
+ * - 支持环境变量配置
+ * - 支持动态配置更新
+ * - 支持配置验证和错误处理
+ *
+ * @example
+ * ```typescript
+ * // 创建CORS插件
+ * const corsPlugin = new CorsPlugin({
+ *   origin: ['https://example.com', 'https://app.example.com'],
+ *   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+ *   credentials: true
+ * });
+ * 
+ * // 注册插件
+ * await fastify.register(corsPlugin.plugin);
+ * ```
  */
 export class CorsPlugin extends CoreFastifyPlugin {
   private readonly corsConfig: ICorsPluginConfig;
@@ -95,7 +154,40 @@ export class CorsPlugin extends CoreFastifyPlugin {
   /**
    * 执行插件注册
    *
-   * @description 注册@fastify/cors插件到Fastify实例
+   * 注册@fastify/cors插件到Fastify实例，配置CORS选项和处理器。
+   *
+   * @description 此方法注册@fastify/cors插件到Fastify实例。
+   * 配置CORS选项和处理器，包括域名白名单、HTTP方法、请求头等。
+   * 支持动态导入和兼容性处理。
+   *
+   * ## 业务规则
+   *
+   * ### 插件注册规则
+   * - 动态导入@fastify/cors插件
+   * - 处理origin函数类型转换
+   * - 配置CORS选项和处理器
+   * - 支持Fastify v5和@fastify/cors v11兼容性
+   *
+   * ### 配置处理规则
+   * - 处理origin函数类型转换
+   * - 配置HTTP方法和请求头
+   * - 配置预检请求选项
+   * - 支持凭据传递配置
+   *
+   * ### 兼容性规则
+   * - 支持Fastify v5兼容性
+   * - 支持@fastify/cors v11兼容性
+   * - 处理类型转换和兼容性问题
+   * - 支持动态导入和模块加载
+   *
+   * @param fastify Fastify实例
+   *
+   * @example
+   * ```typescript
+   * // 注册CORS插件
+   * await corsPlugin.doRegister(fastify);
+   * console.log('CORS插件已注册');
+   * ```
    */
   protected async doRegister(fastify: FastifyInstance): Promise<void> {
     // 动态导入@fastify/cors插件

@@ -1,25 +1,50 @@
 /**
  * 企业级Fastify核心适配器
  *
- * @description 企业级Fastify功能的核心引擎，提供独立的Fastify服务器管理和企业级功能实现
+ * 企业级Fastify功能的核心引擎，提供独立的Fastify服务器管理和企业级功能实现。
  *
- * ## 核心特点
+ * @description 此适配器是企业级Fastify功能的核心引擎，提供独立的Fastify服务器管理。
+ * 不依赖NestJS，可独立运行，提供完整的服务器生命周期管理、插件管理、中间件管理等功能。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
  *
- * ### 🎯 **设计定位**
- * - **独立引擎**：不依赖NestJS，可独立运行的Fastify服务器管理器
- * - **功能核心**：所有企业级功能的实际实现者和管理者
- * - **内部使用**：主要被EnterpriseFastifyAdapter内部调用，不直接面向应用开发者
- * - **纯Fastify**：基于原生Fastify API，提供最佳性能和兼容性
+ * ## 业务规则
  *
- * ### 🏗️ **架构职责**
- * - **服务器生命周期**：完整管理Fastify实例的创建、启动、停止、清理
- * - **插件管理**：企业级插件的注册、卸载、健康检查、生命周期管理
- * - **中间件管理**：智能中间件注册、优先级排序、路径/方法过滤
- * - **路由管理**：动态路由注册、冲突检测、性能监控
- * - **监控系统**：实时性能指标收集、健康状态检查、系统资源监控
- * - **多租户支持**：租户上下文管理、数据隔离、安全策略
+ * ### 设计定位规则
+ * - 独立引擎：不依赖NestJS，可独立运行的Fastify服务器管理器
+ * - 功能核心：所有企业级功能的实际实现者和管理者
+ * - 内部使用：主要被EnterpriseFastifyAdapter内部调用
+ * - 纯Fastify：基于原生Fastify API，提供最佳性能和兼容性
  *
- * @since 1.0.0
+ * ### 架构职责规则
+ * - 服务器生命周期：完整管理Fastify实例的创建、启动、停止、清理
+ * - 插件管理：企业级插件的注册、卸载、健康检查、生命周期管理
+ * - 中间件管理：智能中间件注册、优先级排序、路径/方法过滤
+ * - 路由管理：动态路由注册、冲突检测、性能监控
+ * - 监控系统：实时性能指标收集、健康状态检查、系统资源监控
+ * - 多租户支持：租户上下文管理、数据隔离、安全策略
+ *
+ * ### 性能规则
+ * - 支持高并发请求处理
+ * - 内存使用优化
+ * - 响应时间最小化
+ * - 资源清理自动化
+ *
+ * @example
+ * ```typescript
+ * // 创建核心适配器
+ * const adapter = new CoreFastifyAdapter({
+ *   server: {
+ *     port: 3000,
+ *     host: '0.0.0.0'
+ *   },
+ *   plugins: [],
+ *   middleware: [],
+ *   routes: []
+ * });
+ *
+ * // 启动服务器
+ * await adapter.start();
+ * ```
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
@@ -55,7 +80,52 @@ import {
 /**
  * 企业级Fastify核心适配器
  *
- * @description 提供完整的Fastify服务器管理和企业级功能
+ * 提供完整的Fastify服务器管理和企业级功能，支持插件管理、中间件管理、路由管理等。
+ *
+ * @description 此适配器提供完整的Fastify服务器管理和企业级功能。
+ * 支持插件管理、中间件管理、路由管理、监控系统等功能。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
+ *
+ * ## 业务规则
+ *
+ * ### 服务器管理规则
+ * - 支持服务器启动、停止、重启
+ * - 支持配置验证和错误处理
+ * - 支持优雅关闭和资源清理
+ * - 支持健康检查和状态监控
+ *
+ * ### 插件管理规则
+ * - 支持插件注册和卸载
+ * - 支持插件生命周期管理
+ * - 支持插件健康检查
+ * - 支持插件依赖管理
+ *
+ * ### 中间件管理规则
+ * - 支持中间件注册和卸载
+ * - 支持中间件优先级排序
+ * - 支持路径和方法过滤
+ * - 支持中间件错误处理
+ *
+ * ### 路由管理规则
+ * - 支持动态路由注册
+ * - 支持路由冲突检测
+ * - 支持路由性能监控
+ * - 支持路由健康检查
+ *
+ * @example
+ * ```typescript
+ * // 创建适配器实例
+ * const adapter = new CoreFastifyAdapter(config);
+ *
+ * // 启动服务器
+ * await adapter.start();
+ *
+ * // 注册插件
+ * await adapter.registerPlugin(plugin);
+ *
+ * // 注册中间件
+ * await adapter.registerMiddleware(middleware);
+ * ```
  */
 export class CoreFastifyAdapter implements IFastifyAdapter {
   private readonly fastify: FastifyInstance;
@@ -80,7 +150,40 @@ export class CoreFastifyAdapter implements IFastifyAdapter {
   /**
    * 启动服务器
    *
-   * @description 启动Fastify服务器并初始化所有企业级功能
+   * 启动Fastify服务器并初始化所有企业级功能，包括插件、中间件、路由等。
+   *
+   * @description 此方法启动Fastify服务器并初始化所有企业级功能。
+   * 包括插件注册、中间件注册、路由注册、监控系统初始化等。
+   * 确保服务器能够正常处理请求并提供企业级功能。
+   *
+   * ## 业务规则
+   *
+   * ### 启动流程规则
+   * - 按顺序注册插件、中间件、路由
+   * - 验证所有配置的有效性
+   * - 初始化监控系统
+   * - 启动服务器监听端口
+   *
+   * ### 错误处理规则
+   * - 启动失败时记录详细错误信息
+   * - 清理已注册的资源
+   * - 抛出明确的异常信息
+   * - 支持启动重试机制
+   *
+   * ### 性能规则
+   * - 启动时间最小化
+   * - 内存使用优化
+   * - 资源占用最小化
+   * - 支持并发启动
+   *
+   * @throws {Error} 当服务器启动失败时抛出
+   *
+   * @example
+   * ```typescript
+   * // 启动服务器
+   * await adapter.start();
+   * console.log('服务器已启动');
+   * ```
    */
   async start(): Promise<void> {
     try {

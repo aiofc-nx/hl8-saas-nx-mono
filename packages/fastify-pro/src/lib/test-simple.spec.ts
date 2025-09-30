@@ -8,7 +8,7 @@
 
 import { EnterpriseFastifyAdapter } from './adapters/enterprise-fastify.adapter';
 import { CorsPlugin } from './plugins/cors.plugin';
-import { TenantMiddleware } from './middleware/tenant.middleware';
+import { TenantExtractionMiddleware } from './middleware/tenant.middleware';
 import { HealthCheckService } from './monitoring/health-check.service';
 
 describe('Fastify-Pro 简化测试', () => {
@@ -58,10 +58,10 @@ describe('Fastify-Pro 简化测试', () => {
 
   describe('租户中间件', () => {
     it('应该能够创建租户中间件', () => {
-      const middleware = new TenantMiddleware({
+      const middleware = new TenantExtractionMiddleware({
         name: 'tenant',
         tenantHeader: 'X-Tenant-ID',
-        validateTenant: true,
+        enableBasicValidation: true,
       });
 
       expect(middleware).toBeDefined();
@@ -69,7 +69,7 @@ describe('Fastify-Pro 简化测试', () => {
     });
 
     it('应该支持默认配置', () => {
-      const middleware = new TenantMiddleware({
+      const middleware = new TenantExtractionMiddleware({
         name: 'tenant',
       });
 
@@ -111,7 +111,7 @@ describe('Fastify-Pro 简化测试', () => {
     it('应该能够导入所有核心组件', () => {
       expect(EnterpriseFastifyAdapter).toBeDefined();
       expect(CorsPlugin).toBeDefined();
-      expect(TenantMiddleware).toBeDefined();
+      expect(TenantExtractionMiddleware).toBeDefined();
       expect(HealthCheckService).toBeDefined();
     });
   });

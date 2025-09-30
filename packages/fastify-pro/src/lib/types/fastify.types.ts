@@ -1,8 +1,43 @@
 /**
  * Fastify核心类型定义
  *
- * @description 定义Fastify集成的核心类型和接口
- * @since 1.0.0
+ * 定义Fastify集成的核心类型和接口，包括适配器、插件、中间件、路由等。
+ *
+ * @description 此文件定义Fastify集成的核心类型和接口。
+ * 包括适配器、插件、中间件、路由等核心组件的类型定义。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
+ *
+ * ## 业务规则
+ *
+ * ### 类型定义规则
+ * - 所有接口必须包含完整的类型定义
+ * - 支持泛型和类型约束
+ * - 支持可选属性和默认值
+ * - 支持类型继承和扩展
+ *
+ * ### 接口设计规则
+ * - 接口设计遵循单一职责原则
+ * - 支持接口继承和组合
+ * - 支持接口的向后兼容性
+ * - 支持接口的版本管理
+ *
+ * ### 类型安全规则
+ * - 所有类型必须经过TypeScript类型检查
+ * - 支持严格的类型约束
+ * - 支持类型推导和推断
+ * - 支持类型守卫和类型断言
+ *
+ * @example
+ * ```typescript
+ * // 使用适配器接口
+ * const adapter: IFastifyAdapter = new CoreFastifyAdapter(config);
+ * 
+ * // 使用插件接口
+ * const plugin: IFastifyPlugin = new CorsPlugin(options);
+ * 
+ * // 使用中间件接口
+ * const middleware: IFastifyMiddleware = new TenantExtractionMiddleware(config);
+ * ```
  */
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
@@ -10,7 +45,45 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 /**
  * Fastify适配器接口
  *
- * @description 定义Fastify适配器的核心功能接口
+ * 定义Fastify适配器的核心功能接口，包括服务器管理、插件管理、中间件管理等。
+ *
+ * @description 此接口定义Fastify适配器的核心功能接口。
+ * 包括服务器管理、插件管理、中间件管理、路由管理等核心功能。
+ * 专为SAAS平台设计，支持多租户架构和微服务架构。
+ *
+ * ## 业务规则
+ *
+ * ### 服务器管理规则
+ * - 支持服务器启动和停止
+ * - 支持健康状态检查
+ * - 支持性能指标收集
+ * - 支持优雅关闭和资源清理
+ *
+ * ### 插件管理规则
+ * - 支持插件注册和卸载
+ * - 支持插件生命周期管理
+ * - 支持插件健康检查
+ * - 支持插件依赖管理
+ *
+ * ### 中间件管理规则
+ * - 支持中间件注册和卸载
+ * - 支持中间件优先级排序
+ * - 支持中间件错误处理
+ * - 支持中间件性能监控
+ *
+ * @example
+ * ```typescript
+ * // 实现适配器接口
+ * class MyAdapter implements IFastifyAdapter {
+ *   async start(): Promise<void> {
+ *     // 启动服务器
+ *   }
+ *   
+ *   async stop(): Promise<void> {
+ *     // 停止服务器
+ *   }
+ * }
+ * ```
  */
 export interface IFastifyAdapter {
   /** 启动服务器 */
