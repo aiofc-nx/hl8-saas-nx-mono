@@ -2,7 +2,11 @@
   "name": "@org/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "nx-graph-output": "nx graph --file=nx-graph.html",
+    "nx-graph-web": "nx graph --web --watch",
+    "libs:fix": "pnpm dlx sherif@latest --fix"
+  },
   "private": true,
   "dependencies": {
     "pino-pretty": "^11.0.0"

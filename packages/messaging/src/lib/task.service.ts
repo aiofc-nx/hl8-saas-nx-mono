@@ -51,7 +51,7 @@ import {
  * @Injectable()
  * export class EmailService {
  *   constructor(private readonly taskService: TaskService) {}
- * 
+ *
  *   async sendWelcomeEmail(userId: string, email: string): Promise<void> {
  *     // 添加发送邮件任务 - 自动处理租户上下文
  *     await this.taskService.addTask('send-welcome-email', {
@@ -60,7 +60,7 @@ import {
  *       template: 'welcome'
  *     });
  *   }
- * 
+ *
  *   // 任务处理器 - 自动处理租户上下文
  *   @TaskHandler('send-welcome-email')
  *   async handleSendWelcomeEmail(taskData: WelcomeEmailTaskData): Promise<void> {

@@ -35,7 +35,7 @@
  *     // 插件注册逻辑
  *   }
  * }
- * 
+ *
  * // 注册插件
  * const plugin = new MyPlugin({
  *   name: 'my-plugin',
@@ -89,7 +89,7 @@ import {
  *     // 插件注册逻辑
  *   }
  * }
- * 
+ *
  * // 注册插件
  * const plugin = new MyPlugin({
  *   name: 'my-plugin',

@@ -1,21 +1,63 @@
-# HL8 SAAS平台消息队列模块设计方案
+# HL8 SAAS平台消息队列模块设计方案 (集成@hl8/multi-tenancy)
 
 ## 📋 文档概述
 
 ### 设计目标
 
-本文档阐述HL8 SAAS平台消息队列模块的完整设计方案，基于RabbitMQ、Redis Streams、Apache Kafka和nestjs-cls实现高性能、分布式、多租户的消息队列解决方案，为整个SAAS平台提供统一、可靠的消息传递和事件驱动服务。
+本文档阐述HL8 SAAS平台消息队列模块的完整设计方案，基于RabbitMQ、Redis Streams、Apache Kafka和@hl8/multi-tenancy实现高性能、分布式、企业级多租户的消息队列解决方案，为整个SAAS平台提供统一、可靠、安全的消息传递和事件驱动服务。
 
 ### 核心特性
 
 - **多消息队列支持**: RabbitMQ + Redis Streams + Apache Kafka
 - **事件驱动**: 完整的事件发布/订阅系统
 - **异步任务**: 异步任务处理和调度
-- **多租户**: 基于nestjs-cls的简化多租户消息隔离
+- **企业级多租户**: 集成@hl8/multi-tenancy的专业多租户支持
 - **类型安全**: 完整的TypeScript类型支持
 - **消息持久化**: 消息持久化和恢复机制
 - **重试机制**: 智能的消息重试和死信队列
 - **监控统计**: 完整的消息队列监控和性能统计
+- **安全隔离**: 严格的租户数据隔离和安全机制
+
+## 🎯 为什么使用@hl8/multi-tenancy
+
+### 主要优势
+
+1. **企业级多租户**: 专业的多租户基础设施，支持复杂的租户管理需求
+2. **高级隔离策略**: 支持多种租户隔离策略（key-prefix、namespace、database等）
+3. **安全机制**: 内置的安全检查和访问控制机制
+4. **审计日志**: 完整的租户操作审计和日志记录
+5. **上下文管理**: 基于AsyncLocalStorage的高性能上下文管理
+6. **NestJS集成**: 与NestJS依赖注入系统完美集成
+7. **类型安全**: 提供完整的TypeScript类型支持
+
+### 对比传统方案
+
+**传统方案** (复杂且易错):
+
+```typescript
+// 需要手动传递租户ID
+async publishMessage(tenantId: string, topic: string, message: any) {
+  const tenantTopic = `tenant:${tenantId}:${topic}`;
+  return this.messagingService.publish(tenantTopic, message);
+}
+
+// 调用时需要传递租户ID
+await messagingService.publishMessage('tenant-123', 'user.created', userData);
+```
+
+**使用@hl8/multi-tenancy** (简洁且安全):
+
+```typescript
+// 自动获取当前租户上下文
+async publishMessage(topic: string, message: any) {
+  const tenantId = this.tenantContextService.getTenant();
+  const tenantTopic = await this.tenantIsolationService.getTenantKey(topic, tenantId);
+  return this.messagingService.publish(tenantTopic, message);
+}
+
+// 调用时无需传递租户ID
+await messagingService.publishMessage('user.created', userData);
+```
 
 ## 🏗️ 架构设计
 
@@ -23,7 +65,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   消息队列模块架构                          │
+│                   消息队列模块架构 (集成@hl8/multi-tenancy)    │
 │                                                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────┐ │
 │  │   接口层    │ │   服务层    │ │   适配层    │ │  传输层  │ │
@@ -31,8 +73,8 @@
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────┘ │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │              nestjs-cls 上下文层                        │ │
-│  │            (Context Management)                        │ │
+│  │           @hl8/multi-tenancy 多租户基础设施              │ │
+│  │      (TenantContextService + TenantIsolationService)   │ │
 │  └─────────────────────────────────────────────────────────┘ │
 │                                                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────┐ │
@@ -52,10 +94,11 @@
 
 #### 2. 服务层 (Service Layer)
 
-- **MessagingService**: 核心消息队列服务
+- **MessagingService**: 集成multi-tenancy的核心消息队列服务
 - **EventService**: 事件发布/订阅服务
 - **TaskService**: 异步任务处理服务
-- **TenantMessagingService**: 多租户消息服务
+- **TenantContextService**: 租户上下文管理服务
+- **TenantIsolationService**: 租户隔离服务
 
 #### 3. 适配层 (Adapter Layer)
 
@@ -71,26 +114,26 @@
 - **Apache Kafka**: 高吞吐量消息流
 - **监控系统**: 消息队列监控和统计
 
-#### 5. 上下文层 (Context Layer)
+#### 5. 多租户层 (Multi-Tenancy Layer)
 
-- **ClsService**: 基于AsyncLocalStorage的上下文管理
-- **租户中间件**: 自动提取和设置租户上下文
-- **消息上下文**: 消息上下文传播
+- **TenantContextService**: 基于AsyncLocalStorage的上下文管理
+- **TenantIsolationService**: 租户隔离和键生成服务
+- **MultiLevelIsolationService**: 多级隔离策略服务
 
 ## 🔧 核心功能设计
 
-### 1. 基础消息队列功能
+### 1. 基础消息队列功能 (集成@hl8/multi-tenancy)
 
 #### 消息队列操作接口
 
 ```typescript
 interface IMessagingService {
-  // 发布/订阅操作
+  // 发布/订阅操作 - 自动处理租户上下文
   publish<T>(topic: string, message: T, options?: PublishOptions): Promise<void>;
   subscribe<T>(topic: string, handler: MessageHandler<T>): Promise<void>;
   unsubscribe(topic: string, handler?: MessageHandler<any>): Promise<void>;
   
-  // 队列操作
+  // 队列操作 - 自动处理租户上下文
   sendToQueue<T>(queue: string, message: T, options?: SendOptions): Promise<void>;
   consume<T>(queue: string, handler: MessageHandler<T>): Promise<void>;
   cancelConsumer(queue: string): Promise<void>;
@@ -106,6 +149,10 @@ interface IMessagingService {
   deleteQueue(queue: string): Promise<void>;
   purgeQueue(queue: string): Promise<void>;
   getQueueInfo(queue: string): Promise<QueueInfo>;
+  
+  // 租户上下文操作
+  getCurrentTenant(): string | null;
+  hasTenantContext(): boolean;
 }
 ```
 
@@ -113,7 +160,7 @@ interface IMessagingService {
 
 ```typescript
 interface IEventService {
-  // 事件操作
+  // 事件操作 - 自动处理租户上下文
   emit<T>(eventName: string, data: T, options?: EventOptions): Promise<void>;
   on<T>(eventName: string, handler: EventHandler<T>): Promise<void>;
   off(eventName: string, handler?: EventHandler<any>): Promise<void>;
@@ -124,7 +171,7 @@ interface IEventService {
   getEventListeners(eventName: string): EventHandler<any>[];
   removeAllListeners(eventName?: string): Promise<void>;
   
-  // 租户事件
+  // 租户事件 - 使用multi-tenancy服务
   emitTenantEvent<T>(tenantId: string, eventName: string, data: T): Promise<void>;
   onTenantEvent<T>(tenantId: string, eventName: string, handler: EventHandler<T>): Promise<void>;
   offTenantEvent(tenantId: string, eventName: string, handler?: EventHandler<any>): Promise<void>;
@@ -135,7 +182,7 @@ interface IEventService {
 
 ```typescript
 interface ITaskService {
-  // 任务操作
+  // 任务操作 - 自动处理租户上下文
   addTask<T>(taskName: string, data: T, options?: TaskOptions): Promise<void>;
   processTask<T>(taskName: string, handler: TaskHandler<T>): Promise<void>;
   cancelTask(taskId: string): Promise<void>;
@@ -159,7 +206,7 @@ interface ITaskService {
 
 ```typescript
 interface ITenantMessagingService extends IMessagingService {
-  // 租户消息操作
+  // 租户消息操作 - 使用multi-tenancy服务
   publishTenantMessage<T>(tenantId: string, topic: string, message: T): Promise<void>;
   subscribeTenantMessage<T>(tenantId: string, topic: string, handler: MessageHandler<T>): Promise<void>;
   unsubscribeTenantMessage(tenantId: string, topic: string, handler?: MessageHandler<any>): Promise<void>;
@@ -183,14 +230,14 @@ interface ITenantMessagingService extends IMessagingService {
 
 ```typescript
 interface ITenantIsolationStrategy {
-  // 命名空间策略
+  // 命名空间策略 - 使用multi-tenancy服务
   getTenantNamespace(tenantId: string): string;
-  getTenantQueueName(tenantId: string, queueName: string): string;
-  getTenantTopicName(tenantId: string, topicName: string): string;
+  getTenantQueueName(tenantId: string, queueName: string): Promise<string>;
+  getTenantTopicName(tenantId: string, topicName: string): Promise<string>;
   
   // 路由策略
   shouldIsolateTenant(tenantId: string): boolean;
-  getTenantRoutingKey(tenantId: string, routingKey: string): string;
+  getTenantRoutingKey(tenantId: string, routingKey: string): Promise<string>;
   
   // 配置策略
   getTenantConfig(tenantId: string): TenantMessagingConfig;
@@ -227,39 +274,6 @@ interface IMessagingAdapter {
 }
 ```
 
-#### RabbitMQ适配器
-
-```typescript
-interface IRabbitMQAdapter extends IMessagingAdapter {
-  // RabbitMQ特定操作
-  createExchange(exchange: string, type: ExchangeType, options?: ExchangeOptions): Promise<void>;
-  deleteExchange(exchange: string): Promise<void>;
-  bindQueue(queue: string, exchange: string, routingKey: string): Promise<void>;
-  unbindQueue(queue: string, exchange: string, routingKey: string): Promise<void>;
-  
-  // 消息确认
-  ackMessage(message: Message): Promise<void>;
-  nackMessage(message: Message, requeue?: boolean): Promise<void>;
-  rejectMessage(message: Message, requeue?: boolean): Promise<void>;
-}
-```
-
-#### Redis适配器
-
-```typescript
-interface IRedisAdapter extends IMessagingAdapter {
-  // Redis Streams操作
-  addToStream(stream: string, fields: Record<string, string>, id?: string): Promise<string>;
-  readFromStream(stream: string, options?: StreamReadOptions): Promise<StreamMessage[]>;
-  createConsumerGroup(stream: string, group: string): Promise<void>;
-  readFromConsumerGroup(stream: string, group: string, consumer: string, options?: ConsumerGroupReadOptions): Promise<ConsumerGroupMessage[]>;
-  
-  // 消息确认
-  ackStreamMessage(stream: string, group: string, id: string): Promise<void>;
-  pendingStreamMessages(stream: string, group: string): Promise<PendingMessage[]>;
-}
-```
-
 ### 4. 重试和死信队列
 
 #### 重试策略
@@ -274,7 +288,7 @@ interface IRetryStrategy {
   // 重试逻辑
   shouldRetry(error: Error, attempt: number): boolean;
   calculateRetryDelay(attempt: number): number;
-  getRetryQueueName(originalQueue: string, attempt: number): string;
+  getRetryQueueName(originalQueue: string, attempt: number): Promise<string>;
   
   // 重试管理
   scheduleRetry(message: Message, attempt: number): Promise<void>;
@@ -319,47 +333,13 @@ interface IMessagingMonitor {
   getLatencyStats(): Promise<LatencyStats>;
   getErrorStats(): Promise<ErrorStats>;
   
-  // 租户监控
+  // 租户监控 - 使用multi-tenancy服务
   getTenantStats(tenantId: string): Promise<TenantMessagingStats>;
   getAllTenantStats(): Promise<Map<string, TenantMessagingStats>>;
   
   // 健康检查
   healthCheck(): Promise<HealthStatus>;
   adapterHealthCheck(adapterType: MessagingAdapterType): Promise<HealthStatus>;
-}
-```
-
-#### 统计信息
-
-```typescript
-interface MessagingStats {
-  // 连接统计
-  totalConnections: number;
-  activeConnections: number;
-  failedConnections: number;
-  adapterStats: Map<MessagingAdapterType, AdapterStats>;
-  
-  // 消息统计
-  totalMessages: number;
-  publishedMessages: number;
-  consumedMessages: number;
-  failedMessages: number;
-  retriedMessages: number;
-  
-  // 队列统计
-  totalQueues: number;
-  activeQueues: number;
-  queueStats: Map<string, QueueStats>;
-  
-  // 租户统计
-  totalTenants: number;
-  activeTenants: number;
-  tenantStats: Map<string, TenantMessagingStats>;
-  
-  // 性能统计
-  averageLatency: number;
-  throughput: number;
-  errorRate: number;
 }
 ```
 
@@ -372,17 +352,15 @@ packages/messaging/
 ├── src/
 │   ├── index.ts                    # 主入口文件
 │   ├── lib/
-│   │   ├── messaging.module.ts     # NestJS模块
-│   │   ├── messaging.service.ts    # 消息队列服务
+│   │   ├── messaging.module.ts     # NestJS模块 (集成@hl8/multi-tenancy)
+│   │   ├── messaging.service.ts    # 消息队列服务 (集成@hl8/multi-tenancy)
 │   │   ├── event.service.ts        # 事件服务
 │   │   ├── task.service.ts         # 任务服务
-│   │   ├── tenant-messaging.service.ts # 多租户消息服务
 │   │   ├── types/
 │   │   │   ├── messaging.types.ts  # 消息队列类型定义
 │   │   │   ├── event.types.ts      # 事件类型定义
 │   │   │   ├── task.types.ts       # 任务类型定义
-│   │   │   ├── adapter.types.ts    # 适配器类型定义
-│   │   │   └── tenant.types.ts     # 租户类型定义
+│   │   │   └── adapter.types.ts    # 适配器类型定义
 │   │   ├── adapters/
 │   │   │   ├── base.adapter.ts     # 基础适配器
 │   │   │   ├── rabbitmq.adapter.ts # RabbitMQ适配器
@@ -398,9 +376,6 @@ packages/messaging/
 │   │   │   ├── routing.strategy.ts # 路由策略
 │   │   │   ├── tenant.strategy.ts  # 租户策略
 │   │   │   └── dead-letter.strategy.ts # 死信队列策略
-│   │   ├── middleware/
-│   │   │   ├── messaging.middleware.ts
-│   │   │   └── tenant-messaging.middleware.ts
 │   │   ├── utils/
 │   │   │   ├── serializer.util.ts
 │   │   │   ├── message-utils.util.ts
@@ -425,10 +400,10 @@ packages/messaging/
 
 ### 核心文件说明
 
-#### 1. messaging.module.ts
+#### 1. messaging.module.ts (集成@hl8/multi-tenancy)
 
 ```typescript
-import { ClsModule } from 'nestjs-cls';
+import { MultiTenancyModule, TenantContextService, TenantIsolationService } from '@hl8/multi-tenancy';
 
 @Module({})
 export class MessagingModule {
@@ -436,9 +411,37 @@ export class MessagingModule {
     return {
       module: MessagingModule,
       imports: [
-        ClsModule.forRoot({
-          middleware: { mount: true },
-          global: true,
+        // 集成 multi-tenancy 模块
+        MultiTenancyModule.forRoot(options.multiTenancy || {
+          context: {
+            enableAutoInjection: true,
+            contextTimeout: 30000,
+            enableAuditLog: true,
+            contextStorage: 'memory',
+            allowCrossTenantAccess: false,
+          },
+          isolation: {
+            strategy: 'key-prefix',
+            keyPrefix: options.keyPrefix || 'hl8:messaging:',
+            namespace: 'messaging-namespace',
+            enableIsolation: options.enableTenantIsolation !== false,
+            level: 'strict',
+          },
+          middleware: {
+            enableTenantMiddleware: true,
+            tenantHeader: 'X-Tenant-ID',
+            tenantQueryParam: 'tenant',
+            tenantSubdomain: true,
+            validationTimeout: 5000,
+            strictValidation: true,
+          },
+          security: {
+            enableSecurityCheck: true,
+            maxFailedAttempts: 5,
+            lockoutDuration: 300000,
+            enableAuditLog: true,
+            enableIpWhitelist: false,
+          },
         }),
       ],
       providers: [
@@ -449,7 +452,6 @@ export class MessagingModule {
         MessagingService,
         EventService,
         TaskService,
-        TenantMessagingService,
         RabbitMQAdapter,
         RedisAdapter,
         KafkaAdapter,
@@ -460,7 +462,8 @@ export class MessagingModule {
         MessagingService,
         EventService,
         TaskService,
-        TenantMessagingService,
+        TenantContextService,
+        TenantIsolationService,
         MessagingMonitor,
       ],
     };
@@ -468,39 +471,82 @@ export class MessagingModule {
 }
 ```
 
-#### 2. messaging.service.ts
+#### 2. messaging.service.ts (集成@hl8/multi-tenancy)
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { Injectable, Inject } from '@nestjs/common';
+import { TenantContextService, TenantIsolationService } from '@hl8/multi-tenancy';
 
 @Injectable()
 export class MessagingService implements IMessagingService {
   private adapters: Map<MessagingAdapterType, IMessagingAdapter> = new Map();
 
   constructor(
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
     private readonly adapterFactory: AdapterFactory,
+    @Inject(MESSAGING_MODULE_OPTIONS)
+    private readonly options: MessagingModuleOptions
   ) {}
 
   async publish<T>(topic: string, message: T, options?: PublishOptions): Promise<void> {
+    const tenantId = this.tenantContextService.getTenant();
+    
+    let finalTopic = topic;
+    if (tenantId && this.options.enableTenantIsolation !== false) {
+      // 使用多租户隔离服务生成租户感知的主题
+      finalTopic = await this.tenantIsolationService.getTenantKey(topic, tenantId);
+    }
+    
     const adapter = this.getAdapter(options?.adapter);
-    await adapter.publish(topic, message, options);
+    await adapter.publish(finalTopic, message, options);
   }
 
   async subscribe<T>(topic: string, handler: MessageHandler<T>): Promise<void> {
+    const tenantId = this.tenantContextService.getTenant();
+    
+    let finalTopic = topic;
+    if (tenantId && this.options.enableTenantIsolation !== false) {
+      // 使用多租户隔离服务生成租户感知的主题
+      finalTopic = await this.tenantIsolationService.getTenantKey(topic, tenantId);
+    }
+    
     const adapter = this.getDefaultAdapter();
-    await adapter.subscribe(topic, handler);
+    await adapter.subscribe(finalTopic, handler);
   }
 
   async sendToQueue<T>(queue: string, message: T, options?: SendOptions): Promise<void> {
+    const tenantId = this.tenantContextService.getTenant();
+    
+    let finalQueue = queue;
+    if (tenantId && this.options.enableTenantIsolation !== false) {
+      // 使用多租户隔离服务生成租户感知的队列
+      finalQueue = await this.tenantIsolationService.getTenantKey(queue, tenantId);
+    }
+    
     const adapter = this.getAdapter(options?.adapter);
-    await adapter.sendToQueue(queue, message, options);
+    await adapter.sendToQueue(finalQueue, message, options);
   }
 
   async consume<T>(queue: string, handler: MessageHandler<T>): Promise<void> {
+    const tenantId = this.tenantContextService.getTenant();
+    
+    let finalQueue = queue;
+    if (tenantId && this.options.enableTenantIsolation !== false) {
+      // 使用多租户隔离服务生成租户感知的队列
+      finalQueue = await this.tenantIsolationService.getTenantKey(queue, tenantId);
+    }
+    
     const adapter = this.getDefaultAdapter();
-    await adapter.consume(queue, handler);
+    await adapter.consume(finalQueue, handler);
+  }
+
+  getCurrentTenant(): string | null {
+    return this.tenantContextService.getTenant();
+  }
+
+  hasTenantContext(): boolean {
+    return this.tenantContextService.getTenant() !== null;
   }
 
   private getAdapter(type?: MessagingAdapterType): IMessagingAdapter {
@@ -522,7 +568,7 @@ export class MessagingService implements IMessagingService {
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { TenantContextService, TenantIsolationService } from '@hl8/multi-tenancy';
 
 @Injectable()
 export class EventService implements IEventService {
@@ -530,11 +576,12 @@ export class EventService implements IEventService {
 
   constructor(
     private readonly messagingService: MessagingService,
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
   ) {}
 
   async emit<T>(eventName: string, data: T, options?: EventOptions): Promise<void> {
-    const tenantId = this.cls.get('tenantId');
+    const tenantId = this.tenantContextService.getTenant();
     
     if (tenantId) {
       // 租户事件
@@ -591,115 +638,6 @@ export class EventService implements IEventService {
 }
 ```
 
-#### 4. event-handler.decorator.ts
-
-```typescript
-import { SetMetadata } from '@nestjs/common';
-
-export const EVENT_HANDLER_METADATA = 'event_handler';
-
-export function EventHandler(eventName: string, options?: EventHandlerOptions) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-    const method = descriptor.value;
-
-    descriptor.value = async function (...args: any[]) {
-      try {
-        const result = await method.apply(this, args);
-        return result;
-      } catch (error) {
-        console.error(`Error in event handler ${eventName}:`, error);
-        if (options?.throwOnError) {
-          throw error;
-        }
-      }
-    };
-
-    SetMetadata(EVENT_HANDLER_METADATA, {
-      eventName,
-      options,
-      target: target.constructor.name,
-      method: propertyName,
-    })(target, propertyName, descriptor);
-  };
-}
-```
-
-#### 5. rabbitmq.adapter.ts
-
-```typescript
-import { Injectable } from '@nestjs/common';
-import * as amqp from 'amqplib';
-
-@Injectable()
-export class RabbitMQAdapter implements IRabbitMQAdapter {
-  private connection: amqp.Connection;
-  private channel: amqp.Channel;
-
-  constructor(private readonly config: RabbitMQConfig) {}
-
-  async connect(): Promise<void> {
-    this.connection = await amqp.connect(this.config.url);
-    this.channel = await this.connection.createChannel();
-  }
-
-  async disconnect(): Promise<void> {
-    if (this.channel) {
-      await this.channel.close();
-    }
-    if (this.connection) {
-      await this.connection.close();
-    }
-  }
-
-  isConnected(): boolean {
-    return !!(this.connection && this.channel);
-  }
-
-  async publish<T>(topic: string, message: T, options?: PublishOptions): Promise<void> {
-    const exchange = options?.exchange || this.config.exchange;
-    const routingKey = options?.routingKey || topic;
-    
-    await this.channel.assertExchange(exchange, 'topic', { durable: true });
-    
-    const messageBuffer = Buffer.from(JSON.stringify(message));
-    const publishOptions: amqp.Options.Publish = {
-      persistent: options?.persistent !== false,
-      messageId: options?.messageId,
-      correlationId: options?.correlationId,
-      replyTo: options?.replyTo,
-    };
-
-    await this.channel.publish(exchange, routingKey, messageBuffer, publishOptions);
-  }
-
-  async subscribe<T>(topic: string, handler: MessageHandler<T>): Promise<void> {
-    const exchange = this.config.exchange;
-    const queue = `${this.config.queuePrefix}${topic}`;
-    
-    await this.channel.assertExchange(exchange, 'topic', { durable: true });
-    await this.channel.assertQueue(queue, { durable: true });
-    await this.channel.bindQueue(queue, exchange, topic);
-
-    await this.channel.consume(queue, async (msg) => {
-      if (msg) {
-        try {
-          const message = JSON.parse(msg.content.toString());
-          await handler(message);
-          this.channel.ack(msg);
-        } catch (error) {
-          console.error('Error processing message:', error);
-          this.channel.nack(msg, false, false);
-        }
-      }
-    });
-  }
-
-  getAdapterType(): MessagingAdapterType {
-    return MessagingAdapterType.RABBITMQ;
-  }
-}
-```
-
 ## 🔧 配置和选项
 
 ### 模块配置
@@ -718,14 +656,19 @@ interface MessagingModuleOptions {
   // Kafka配置
   kafka?: KafkaConfig;
   
-  // 多租户配置
-  tenant?: TenantMessagingConfig;
+  // 多租户配置 - 集成@hl8/multi-tenancy
+  multiTenancy?: IMultiTenancyModuleOptions;
   
   // 重试配置
   retry?: RetryConfig;
   
   // 监控配置
   monitoring?: MonitoringConfig;
+  
+  // 向后兼容配置
+  tenant?: TenantMessagingConfig;
+  enableTenantIsolation?: boolean;
+  keyPrefix?: string;
 }
 
 interface RabbitMQConfig {
@@ -790,6 +733,39 @@ interface RetryConfig {
         brokers: ['localhost:9092'],
         topicPrefix: 'hl8_',
       },
+      // 新增：多租户配置（推荐使用）
+      multiTenancy: {
+        context: {
+          enableAutoInjection: true,
+          contextTimeout: 30000,
+          enableAuditLog: true,
+          contextStorage: 'memory',
+          allowCrossTenantAccess: false
+        },
+        isolation: {
+          strategy: 'key-prefix',
+          keyPrefix: 'hl8:messaging:',
+          namespace: 'messaging-namespace',
+          enableIsolation: true,
+          level: 'strict'
+        },
+        middleware: {
+          enableTenantMiddleware: true,
+          tenantHeader: 'X-Tenant-ID',
+          tenantQueryParam: 'tenant',
+          tenantSubdomain: true,
+          validationTimeout: 5000,
+          strictValidation: true
+        },
+        security: {
+          enableSecurityCheck: true,
+          maxFailedAttempts: 5,
+          lockoutDuration: 300000,
+          enableAuditLog: true,
+          enableIpWhitelist: false
+        }
+      },
+      // 保留用于向后兼容
       tenant: {
         enableIsolation: true,
         tenantPrefix: 'tenant_',
@@ -825,20 +801,21 @@ export class UserService {
     private readonly eventService: EventService,
     private readonly taskService: TaskService,
     private readonly messagingService: MessagingService,
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
   ) {}
 
   async createUser(userData: UserData): Promise<User> {
     const user = await this.userRepository.create(userData);
     
-    // 发布事件
+    // 发布事件 - 自动处理租户上下文
     await this.eventService.emit('user.created', {
       userId: user.id,
       tenantId: user.tenantId,
       userData: user
     });
     
-    // 添加异步任务
+    // 添加异步任务 - 自动处理租户上下文
     await this.taskService.addTask('send-welcome-email', {
       userId: user.id,
       email: user.email
@@ -847,14 +824,14 @@ export class UserService {
     return user;
   }
 
-  // 事件处理器
+  // 事件处理器 - 自动处理租户上下文
   @EventHandler('user.created')
   async handleUserCreated(event: UserCreatedEvent): Promise<void> {
     console.log('User created:', event.userId);
     // 处理用户创建后的逻辑
   }
 
-  // 任务处理器
+  // 任务处理器 - 自动处理租户上下文
   @TaskHandler('send-welcome-email')
   async sendWelcomeEmail(taskData: WelcomeEmailTaskData): Promise<void> {
     await this.emailService.sendWelcomeEmail(taskData.userId, taskData.email);
@@ -869,32 +846,32 @@ export class UserService {
 @Injectable()
 export class TenantService {
   constructor(
-    private readonly tenantMessagingService: TenantMessagingService,
-    private readonly cls: ClsService,
+    private readonly messagingService: MessagingService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
   ) {}
 
   async createTenant(tenantData: TenantData): Promise<Tenant> {
     const tenant = await this.tenantRepository.create(tenantData);
     
-    // 创建租户消息队列
-    await this.tenantMessagingService.createTenantQueues(tenant.id);
-    
-    // 发布租户创建事件
-    await this.tenantMessagingService.publishTenantMessage(
-      tenant.id,
-      'tenant.created',
-      { tenantId: tenant.id, tenantData: tenant }
-    );
+    // 使用租户上下文服务运行租户相关操作
+    await this.tenantContextService.runWithTenant(tenant.id, async () => {
+      // 发布租户创建事件 - 自动处理租户上下文
+      await this.messagingService.publish('tenant.created', {
+        tenantId: tenant.id,
+        tenantData: tenant
+      });
+    });
     
     return tenant;
   }
 
   async deleteTenant(tenantId: string): Promise<void> {
-    // 清除租户消息
-    await this.tenantMessagingService.clearTenantMessages(tenantId);
-    
-    // 删除租户队列
-    await this.tenantMessagingService.deleteTenantQueues(tenantId);
+    // 使用租户上下文服务运行租户相关操作
+    await this.tenantContextService.runWithTenant(tenantId, async () => {
+      // 清除租户消息 - 使用隔离服务
+      await this.tenantIsolationService.clearTenantCache(tenantId);
+    });
     
     await this.tenantRepository.delete(tenantId);
   }
@@ -909,16 +886,16 @@ export class TenantService {
 export class NotificationService {
   constructor(
     private readonly messagingService: MessagingService,
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
   ) {}
 
   async sendNotification(notification: Notification): Promise<void> {
-    const tenantId = this.cls.get('tenantId');
+    const tenantId = this.tenantContextService.getTenant();
     
     if (tenantId) {
-      // 租户消息
+      // 租户消息 - 自动处理租户上下文
       await this.messagingService.sendToQueue(
-        `tenant.${tenantId}.notifications`,
+        'notifications',
         notification
       );
     } else {
@@ -938,41 +915,129 @@ export class NotificationService {
 }
 ```
 
-### 4. 中间件配置
+## 🔄 迁移指南
+
+### 从旧版本迁移
+
+如果您正在从使用nestjs-cls的旧版本迁移到使用@hl8/multi-tenancy的新版本，请参考以下迁移步骤：
+
+#### 1. 依赖更新
+
+```bash
+# 移除旧的依赖
+pnpm remove nestjs-cls
+
+# 添加新的依赖
+pnpm add @hl8/multi-tenancy
+```
+
+#### 2. 配置更新
+
+**旧配置**:
 
 ```typescript
-// app.module.ts
-@Module({
-  imports: [MessagingModule.forRoot(options)],
-})
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware, MessagingMiddleware)
-      .forRoutes('*');
+MessagingModule.forRoot({
+  // ... 其他配置
+  tenant: {
+    enableIsolation: true,
+    tenantPrefix: 'tenant_',
   }
-}
+})
 ```
+
+**新配置**:
+
+```typescript
+MessagingModule.forRoot({
+  // ... 其他配置
+  multiTenancy: {
+    context: {
+      enableAutoInjection: true,
+      contextTimeout: 30000,
+      enableAuditLog: true,
+    },
+    isolation: {
+      strategy: 'key-prefix',
+      keyPrefix: 'hl8:messaging:',
+      enableIsolation: true,
+    },
+    middleware: {
+      enableTenantMiddleware: true,
+      tenantHeader: 'X-Tenant-ID',
+    }
+  }
+})
+```
+
+#### 3. 服务注入更新
+
+**旧的服务注入**:
+
+```typescript
+constructor(
+  private readonly messagingService: MessagingService,
+  private readonly cls: ClsService,
+) {}
+```
+
+**新的服务注入**:
+
+```typescript
+constructor(
+  private readonly messagingService: MessagingService,
+  private readonly tenantContextService: TenantContextService,
+  private readonly tenantIsolationService: TenantIsolationService,
+) {}
+```
+
+#### 4. 上下文访问更新
+
+**旧的上下文访问**:
+
+```typescript
+const tenantId = this.cls.get('tenantId');
+```
+
+**新的上下文访问**:
+
+```typescript
+const tenantId = this.tenantContextService.getTenant();
+```
+
+#### 5. 向后兼容性
+
+新版本保持了向后兼容性：
+
+- 旧的`tenant`配置仍然有效
+- 旧的`enableTenantIsolation`配置仍然有效
+- 旧的API调用方式仍然有效
+
+### 最佳实践
+
+1. **逐步迁移**: 建议逐步迁移，先添加新的配置，然后逐步更新服务注入
+2. **测试验证**: 在迁移过程中，确保所有测试都能通过
+3. **监控观察**: 迁移后密切监控系统性能和行为
+4. **文档更新**: 更新相关的API文档和使用说明
 
 ## 📊 性能优化
 
-### 1. 连接池优化
+### 1. 多租户优化
 
-- **连接复用**: 高效的连接池管理
-- **租户连接**: 租户级别的连接管理
-- **连接监控**: 实时连接状态监控
+- **租户连接池**: 租户级别的连接管理
+- **消息隔离**: 高效的租户消息隔离策略
+- **批量操作**: 租户级别的批量消息处理
 
-### 2. 消息处理优化
+### 2. 上下文管理优化
+
+- **零开销**: AsyncLocalStorage性能优异
+- **内存效率**: 上下文自动清理
+- **并发安全**: 天然支持并发请求
+
+### 3. 消息处理优化
 
 - **批量处理**: 批量消息处理优化
 - **消息压缩**: 消息内容压缩
 - **序列化优化**: 高效的序列化算法
-
-### 3. 路由优化
-
-- **智能路由**: 基于消息内容的路由
-- **负载均衡**: 消息负载均衡分发
-- **优先级队列**: 消息优先级处理
 
 ## 🔒 安全考虑
 
@@ -988,59 +1053,68 @@ export class AppModule implements NestModule {
 - **队列隔离**: 租户队列独立管理
 - **权限控制**: 租户级别的权限验证
 
+### 3. 上下文安全
+
+- **上下文验证**: 确保租户上下文存在
+- **上下文清理**: 防止上下文泄露
+- **错误处理**: 优雅的上下文错误处理
+
 ## 📈 监控和运维
 
-### 1. 性能监控
+### 1. 多租户监控
+
+- **租户消息统计**: 每个租户的消息使用情况
+- **租户性能监控**: 租户级别的性能指标
+- **租户健康检查**: 包含租户状态的健康检查
+
+### 2. 消息队列监控
 
 - **消息统计**: 消息发送和接收统计
 - **队列监控**: 队列长度和处理速度
-- **租户监控**: 租户级别的消息统计
-
-### 2. 健康检查
-
-- **连接状态**: 消息队列连接健康状态
-- **适配器状态**: 各适配器的运行状态
-- **租户状态**: 租户消息队列状态
+- **适配器监控**: 各适配器的运行状态
 
 ## 🚀 实施计划
 
-### 第一阶段：基础功能
+### 第一阶段：基础集成
 
-- 消息队列适配器集成
-- 基础消息发布/订阅
-- 事件服务实现
+- 集成@hl8/multi-tenancy
+- 实现基础消息队列服务
+- 实现租户消息隔离
 
-### 第二阶段：多租户支持
+### 第二阶段：高级功能
 
-- 租户消息隔离
-- 租户队列管理
-- 租户事件处理
+- 实现事件服务和任务服务
+- 实现消息适配器
+- 完善类型定义
 
-### 第三阶段：高级功能
+### 第三阶段：监控和优化
 
-- 异步任务处理
-- 重试和死信队列
-- 消息监控统计
+- 实现监控和统计
+- 性能优化
+- 安全加固
 
 ### 第四阶段：生产就绪
 
-- 性能优化
-- 安全加固
+- 完善测试覆盖
+- 文档完善
 - 运维工具
 
 ## 📝 总结
 
-HL8 SAAS平台消息队列模块采用现代化的设计理念，基于RabbitMQ、Redis Streams、Apache Kafka和nestjs-cls实现高性能、分布式、多租户的消息队列解决方案。
+集成@hl8/multi-tenancy的消息队列模块设计方案为HL8 SAAS平台提供了一个企业级、高效、安全的多租户消息队列解决方案。通过专业的多租户基础设施，提供了完整的租户管理、消息隔离、安全机制和审计功能。
 
-该设计方案的核心优势：
+该方案的核心优势：
 
+- **企业级多租户**: 专业的多租户基础设施，支持复杂的租户管理需求
+- **高级隔离策略**: 支持多种租户隔离策略（key-prefix、namespace、database等）
+- **安全机制**: 内置的安全检查和访问控制机制
+- **审计日志**: 完整的租户操作审计和日志记录
 - **多消息队列支持**: RabbitMQ + Redis Streams + Apache Kafka
 - **事件驱动**: 完整的事件发布/订阅系统
 - **异步任务**: 异步任务处理和调度
-- **多租户**: 基于nestjs-cls的简化多租户消息隔离
 - **类型安全**: 完整的TypeScript类型支持
 - **消息持久化**: 消息持久化和恢复机制
 - **重试机制**: 智能的消息重试和死信队列
 - **监控统计**: 完整的消息队列监控和性能统计
 
-这个方案为SAAS平台的消息传递需求提供了完整的解决方案，支持企业级应用的高可用、高性能、高安全性要求。
+这个方案为SAAS平台的消息传递需求提供了企业级的最佳解决方案，支持企业级应用的高可用、高性能、高安全性要求。

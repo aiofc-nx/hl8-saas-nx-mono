@@ -51,12 +51,12 @@ import {
  * @Injectable()
  * export class HealthController {
  *   constructor(private readonly messagingMonitor: MessagingMonitor) {}
- * 
+ *
  *   @Get('health')
  *   async getHealth(): Promise<HealthStatus> {
  *     return await this.messagingMonitor.healthCheck();
  *   }
- * 
+ *
  *   @Get('stats')
  *   async getStats(): Promise<MessageStats> {
  *     return await this.messagingMonitor.getMessageStats();

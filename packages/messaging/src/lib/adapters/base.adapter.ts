@@ -48,7 +48,7 @@ import {
  *     super(MessagingAdapterType.RABBITMQ);
  *     this.config = config;
  *   }
- * 
+ *
  *   async connect(): Promise<void> {
  *     // RabbitMQ连接逻辑
  *   }

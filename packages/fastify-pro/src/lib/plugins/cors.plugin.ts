@@ -35,7 +35,7 @@
  *   methods: ['GET', 'POST', 'PUT', 'DELETE'],
  *   credentials: true
  * });
- * 
+ *
  * // 注册插件
  * await fastify.register(corsPlugin.plugin);
  * ```
@@ -115,7 +115,7 @@ export interface ICorsPluginConfig extends IFastifyPluginConfig {
  *   methods: ['GET', 'POST', 'PUT', 'DELETE'],
  *   credentials: true
  * });
- * 
+ *
  * // 注册插件
  * await fastify.register(corsPlugin.plugin);
  * ```

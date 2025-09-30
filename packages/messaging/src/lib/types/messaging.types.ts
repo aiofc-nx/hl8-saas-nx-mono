@@ -27,7 +27,7 @@ import { IMultiTenancyModuleOptions } from '@hl8/multi-tenancy';
  * ```typescript
  * // 使用RabbitMQ适配器
  * const adapter = MessagingAdapterType.RABBITMQ;
- * 
+ *
  * // 使用Redis适配器
  * const adapter = MessagingAdapterType.REDIS;
  * ```

@@ -35,7 +35,7 @@
  *     // 中间件逻辑
  *   };
  * }
- * 
+ *
  * // 注册中间件
  * const middleware = new MyMiddleware({
  *   name: 'my-middleware',
@@ -89,7 +89,7 @@ import {
  *     // 中间件逻辑
  *   };
  * }
- * 
+ *
  * // 注册中间件
  * const middleware = new MyMiddleware({
  *   name: 'my-middleware',

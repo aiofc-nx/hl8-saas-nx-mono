@@ -63,10 +63,10 @@ import {
  * @Injectable()
  * export class UserService {
  *   constructor(private readonly messagingService: MessagingService) {}
- * 
+ *
  *   async createUser(userData: UserData): Promise<User> {
  *     const user = await this.userRepository.create(userData);
- * 
+ *
  *     // 发布用户创建事件 - 自动处理租户上下文
  *     await this.messagingService.publish('user.created', {
  *       userId: user.id,

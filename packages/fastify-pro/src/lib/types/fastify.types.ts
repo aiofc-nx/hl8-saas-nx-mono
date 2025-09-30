@@ -31,10 +31,10 @@
  * ```typescript
  * // 使用适配器接口
  * const adapter: IFastifyAdapter = new CoreFastifyAdapter(config);
- * 
+ *
  * // 使用插件接口
  * const plugin: IFastifyPlugin = new CorsPlugin(options);
- * 
+ *
  * // 使用中间件接口
  * const middleware: IFastifyMiddleware = new TenantExtractionMiddleware(config);
  * ```
@@ -78,7 +78,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
  *   async start(): Promise<void> {
  *     // 启动服务器
  *   }
- *   
+ *
  *   async stop(): Promise<void> {
  *     // 停止服务器
  *   }

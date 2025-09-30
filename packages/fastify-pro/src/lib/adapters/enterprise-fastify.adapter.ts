@@ -39,7 +39,7 @@
  *     enableMultiTenant: true
  *   }
  * });
- * 
+ *
  * // 在NestJS应用中使用
  * const app = await NestFactory.create(AppModule, adapter);
  * ```
@@ -116,7 +116,7 @@ export interface IEnterpriseFastifyOptions {
  *     enableMultiTenant: true
  *   }
  * });
- * 
+ *
  * // 在NestJS应用中使用
  * const app = await NestFactory.create(AppModule, adapter);
  * ```

@@ -1,30 +1,33 @@
-# HL8 SAAS平台缓存模块设计方案 (集成nestjs-cls)
+# HL8 SAAS平台缓存模块设计方案 (集成@hl8/multi-tenancy)
 
 ## 📋 文档概述
 
 ### 设计目标
 
-本文档阐述HL8 SAAS平台缓存模块的完整设计方案，基于Redis和nestjs-cls实现高性能、分布式、多租户的缓存解决方案。通过集成nestjs-cls，大大简化多租户上下文管理，提升开发效率和代码质量。
+本文档阐述HL8 SAAS平台缓存模块的完整设计方案，基于Redis和@hl8/multi-tenancy实现高性能、分布式、多租户的缓存解决方案。通过集成专业的multi-tenancy模块，提供企业级的多租户上下文管理和数据隔离。
 
 ### 核心特性
 
 - **高性能**: 基于Redis的高性能缓存
 - **分布式**: 支持分布式缓存部署
-- **多租户**: 基于nestjs-cls的简化多租户支持
+- **多租户**: 集成@hl8/multi-tenancy的专业多租户支持
 - **类型安全**: 完整的TypeScript类型支持
 - **策略管理**: 灵活的缓存策略配置
 - **监控统计**: 完整的缓存监控和统计
 - **上下文透明**: 自动的租户上下文传播
+- **企业级安全**: 严格的租户数据隔离和安全机制
 
-## 🎯 为什么使用nestjs-cls
+## 🎯 为什么使用@hl8/multi-tenancy
 
 ### 主要优势
 
-1. **简化上下文管理**: 自动处理异步上下文传播，无需手动传递租户ID
-2. **类型安全**: 提供完整的TypeScript类型支持
-3. **NestJS集成**: 与NestJS依赖注入系统完美集成
-4. **性能优化**: 基于AsyncLocalStorage的高性能实现
-5. **开发体验**: 大大简化多租户代码的编写
+1. **企业级多租户**: 专业的多租户基础设施，支持复杂的租户管理需求
+2. **高级隔离策略**: 支持多种租户隔离策略（key-prefix、namespace、database等）
+3. **安全机制**: 内置的安全检查和访问控制机制
+4. **审计日志**: 完整的租户操作审计和日志记录
+5. **上下文管理**: 基于AsyncLocalStorage的高性能上下文管理
+6. **NestJS集成**: 与NestJS依赖注入系统完美集成
+7. **类型安全**: 提供完整的TypeScript类型支持
 
 ### 对比传统方案
 
@@ -41,13 +44,13 @@ async getUser(tenantId: string, userId: string) {
 const user = await userService.getUser('tenant-123', 'user-456');
 ```
 
-**使用nestjs-cls** (简洁且安全):
+**使用@hl8/multi-tenancy** (简洁且安全):
 
 ```typescript
 // 自动获取当前租户上下文
 async getUser(userId: string) {
-  const tenantId = this.cls.get('tenantId');
-  const cacheKey = `tenant:${tenantId}:user:${userId}`;
+  const tenantId = this.tenantContextService.getTenant();
+  const cacheKey = await this.tenantIsolationService.getTenantKey(`user:${userId}`, tenantId);
   return this.cacheService.get(cacheKey);
 }
 
@@ -61,7 +64,7 @@ const user = await userService.getUser('user-456');
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   缓存模块架构 (集成nestjs-cls)                │
+│                   缓存模块架构 (集成@hl8/multi-tenancy)        │
 │                                                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────┐ │
 │  │   接口层    │ │   服务层    │ │   策略层    │ │  存储层  │ │
@@ -69,8 +72,8 @@ const user = await userService.getUser('user-456');
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────┘ │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┐ │
-│  │              nestjs-cls 上下文层                        │ │
-│  │            (Context Management)                        │ │
+│  │           @hl8/multi-tenancy 多租户基础设施              │ │
+│  │      (TenantContextService + TenantIsolationService)   │ │
 │  └─────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -85,9 +88,10 @@ const user = await userService.getUser('user-456');
 
 #### 2. 服务层 (Service Layer)
 
-- **CacheService**: 集成CLS的核心缓存服务
-- **CacheManager**: 缓存管理器
-- **ClsService**: 上下文管理服务
+- **CacheService**: 集成multi-tenancy的核心缓存服务
+- **RedisService**: Redis客户端服务
+- **TenantContextService**: 租户上下文管理服务
+- **TenantIsolationService**: 租户隔离服务
 
 #### 3. 策略层 (Strategy Layer)
 
@@ -102,15 +106,15 @@ const user = await userService.getUser('user-456');
 - **连接管理**: 连接池和健康检查
 - **序列化**: 数据序列化和反序列化
 
-#### 5. 上下文层 (Context Layer)
+#### 5. 监控层 (Monitoring Layer)
 
-- **ClsService**: 基于AsyncLocalStorage的上下文管理
-- **租户中间件**: 自动提取和设置租户上下文
-- **上下文传播**: 异步操作中的上下文传递
+- **CacheMonitorService**: 缓存监控服务
+- **CacheStatsService**: 缓存统计服务
+- **HealthCheckService**: 健康检查服务
 
 ## 🔧 核心功能设计
 
-### 1. 基础缓存功能 (集成nestjs-cls)
+### 1. 基础缓存功能 (集成@hl8/multi-tenancy)
 
 #### 键值操作
 
@@ -151,34 +155,43 @@ interface ICacheStrategy {
 }
 ```
 
-### 2. 上下文管理
+### 2. 多租户管理
 
-#### CLS集成
+#### 租户上下文服务
 
 ```typescript
-interface IContextManager {
-  setTenant(tenantId: string): void;
+interface ITenantContextService {
   getTenant(): string | null;
-  setUser(userId: string): void;
+  setTenant(tenantId: string): void;
   getUser(): string | null;
+  setUser(userId: string): void;
   setRequestId(requestId: string): void;
   getRequestId(): string | null;
+  hasTenantContext(): boolean;
+  hasUserContext(): boolean;
+  hasRequestContext(): boolean;
   clear(): void;
 }
 ```
 
-#### 租户隔离
+#### 租户隔离服务
 
 ```typescript
-interface ITenantIsolation {
-  getTenantKey(key: string): string;
-  clearTenantCache(): Promise<void>;
-  getTenantStats(): Promise<TenantCacheStats>;
-  listTenantKeys(): Promise<string[]>;
+interface ITenantIsolationService {
+  getTenantKey(key: string, tenantId?: string): Promise<string>;
+  getTenantKeys(keys: string[], tenantId?: string): Promise<string[]>;
+  getCurrentTenant(): string | null;
+  clearTenantCache(tenantId?: string): Promise<void>;
+  getTenantStats(tenantId?: string): Promise<TenantCacheStats>;
+  listTenantKeys(tenantId?: string): Promise<string[]>;
+  getTenantNamespace(tenantId?: string): string;
+  isolateData<T>(data: T, tenantId?: string): Promise<T>;
+  extractTenantData<T>(data: T, tenantId?: string): Promise<T>;
+  validateTenantAccess(tenantId: string): Promise<boolean>;
 }
 ```
 
-### 3. 缓存装饰器 (集成CLS)
+### 3. 缓存装饰器 (集成@hl8/multi-tenancy)
 
 #### 缓存装饰器
 
@@ -262,29 +275,16 @@ packages/cache/
 ├── src/
 │   ├── index.ts                    # 主入口文件
 │   ├── lib/
-│   │   ├── cache.module.ts         # NestJS模块 (集成CLS)
-│   │   ├── cache.service.ts        # 缓存服务 (集成CLS)
+│   │   ├── cache.module.ts         # NestJS模块 (集成@hl8/multi-tenancy)
+│   │   ├── cache.service.ts        # 缓存服务 (集成@hl8/multi-tenancy)
 │   │   ├── redis.service.ts        # Redis服务
-│   │   ├── cache.manager.ts        # 缓存管理器
-│   │   ├── context.service.ts      # 上下文管理服务
 │   │   ├── types/
 │   │   │   ├── cache.types.ts      # 缓存类型定义
-│   │   │   ├── redis.types.ts      # Redis类型定义
-│   │   │   ├── tenant.types.ts     # 租户类型定义
-│   │   │   └── context.types.ts    # 上下文类型定义
-│   │   ├── strategies/
-│   │   │   ├── base.strategy.ts    # 基础策略
-│   │   │   ├── ttl.strategy.ts     # TTL策略
-│   │   │   ├── lru.strategy.ts     # LRU策略
-│   │   │   ├── lfu.strategy.ts     # LFU策略
-│   │   │   └── custom.strategy.ts  # 自定义策略
+│   │   │   └── redis.types.ts      # Redis类型定义
 │   │   ├── decorators/
 │   │   │   ├── cacheable.decorator.ts
 │   │   │   ├── cache-evict.decorator.ts
 │   │   │   └── cache-put.decorator.ts
-│   │   ├── middleware/
-│   │   │   ├── tenant.middleware.ts
-│   │   │   └── context.middleware.ts
 │   │   ├── utils/
 │   │   │   ├── key-generator.util.ts
 │   │   │   ├── serializer.util.ts
@@ -295,20 +295,18 @@ packages/cache/
 │   │       └── health-check.service.ts
 │   └── __tests__/
 │       ├── cache.service.spec.ts
-│       ├── context.service.spec.ts
-│       └── decorators/
-│           ├── cacheable.decorator.spec.ts
-│           └── cache-evict.decorator.spec.ts
+│       └── utils/
+│           └── serializer.util.spec.ts
 ├── package.json
 └── README.md
 ```
 
 ### 核心文件说明
 
-#### 1. cache.module.ts (集成CLS)
+#### 1. cache.module.ts (集成@hl8/multi-tenancy)
 
 ```typescript
-import { ClsModule } from 'nestjs-cls';
+import { MultiTenancyModule, TenantContextService, TenantIsolationService } from '@hl8/multi-tenancy';
 
 @Module({})
 export class CacheModule {
@@ -316,9 +314,37 @@ export class CacheModule {
     return {
       module: CacheModule,
       imports: [
-        ClsModule.forRoot({
-          middleware: { mount: true },
-          global: true,
+        // 集成 multi-tenancy 模块
+        MultiTenancyModule.forRoot(options.multiTenancy || {
+          context: {
+            enableAutoInjection: true,
+            contextTimeout: 30000,
+            enableAuditLog: true,
+            contextStorage: 'memory',
+            allowCrossTenantAccess: false,
+          },
+          isolation: {
+            strategy: 'key-prefix',
+            keyPrefix: options.keyPrefix || 'hl8:cache:',
+            namespace: 'cache-namespace',
+            enableIsolation: options.enableTenantIsolation !== false,
+            level: 'strict',
+          },
+          middleware: {
+            enableTenantMiddleware: true,
+            tenantHeader: 'X-Tenant-ID',
+            tenantQueryParam: 'tenant',
+            tenantSubdomain: true,
+            validationTimeout: 5000,
+            strictValidation: true,
+          },
+          security: {
+            enableSecurityCheck: true,
+            maxFailedAttempts: 5,
+            lockoutDuration: 300000,
+            enableAuditLog: true,
+            enableIpWhitelist: false,
+          },
         }),
       ],
       providers: [
@@ -328,197 +354,193 @@ export class CacheModule {
         },
         RedisService,
         CacheService,
-        CacheManager,
-        ContextService,
+        CacheMonitorService,
+        CacheStatsService,
+        HealthCheckService,
       ],
-      exports: [CacheService, CacheManager, ContextService],
+      exports: [
+        CacheService,
+        TenantContextService,
+        TenantIsolationService,
+        CacheMonitorService,
+        CacheStatsService,
+        HealthCheckService,
+      ],
     };
   }
 }
 ```
 
-#### 2. cache.service.ts (集成CLS)
+#### 2. cache.service.ts (集成@hl8/multi-tenancy)
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { Injectable, Inject } from '@nestjs/common';
+import { TenantContextService, TenantIsolationService } from '@hl8/multi-tenancy';
 
 @Injectable()
 export class CacheService implements ICacheService {
   constructor(
     private readonly redisService: RedisService,
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
+    @Inject(CACHE_MODULE_OPTIONS)
+    private readonly options: CacheModuleOptions
   ) {}
 
   // 自动处理租户上下文
-  private getTenantKey(key: string): string {
-    const tenantId = this.cls.get('tenantId');
-    if (!tenantId) {
-      throw new Error('No tenant context found');
+  private async getTenantKey(key: string, tenantId?: string): Promise<string> {
+    try {
+      const currentTenantId = tenantId || this.tenantContextService.getTenant();
+      
+      if (currentTenantId) {
+        return await this.tenantIsolationService.getTenantKey(key, currentTenantId);
+      }
+      
+      // 如果没有租户上下文，使用默认键前缀
+      const keyPrefix = this.options.keyPrefix || 'hl8:cache:';
+      return `${keyPrefix}${key}`;
+    } catch (error) {
+      // 回退到简单的键前缀方式
+      const keyPrefix = this.options.keyPrefix || 'hl8:cache:';
+      return `${keyPrefix}${key}`;
     }
-    return `tenant:${tenantId}:${key}`;
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const tenantKey = this.getTenantKey(key);
+    const tenantKey = await this.getTenantKey(key);
     return this.redisService.get(tenantKey);
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
-    const tenantKey = this.getTenantKey(key);
+    const tenantKey = await this.getTenantKey(key);
     return this.redisService.set(tenantKey, value, ttl);
   }
 
   async delete(key: string): Promise<void> {
-    const tenantKey = this.getTenantKey(key);
+    const tenantKey = await this.getTenantKey(key);
     return this.redisService.delete(tenantKey);
   }
 
   // 批量操作也自动处理租户上下文
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
-    const tenantKeys = keys.map(key => this.getTenantKey(key));
+    const tenantKeys = await Promise.all(keys.map(key => this.getTenantKey(key)));
     return this.redisService.mget(tenantKeys);
   }
 
   async mset<T>(pairs: Array<{key: string, value: T, ttl?: number}>): Promise<void> {
-    const tenantPairs = pairs.map(({key, value, ttl}) => ({
-      key: this.getTenantKey(key),
+    const tenantPairs = await Promise.all(pairs.map(async ({key, value, ttl}) => ({
+      key: await this.getTenantKey(key),
       value,
       ttl
-    }));
+    })));
     return this.redisService.mset(tenantPairs);
   }
 
   getCurrentTenant(): string | null {
-    return this.cls.get('tenantId');
+    return this.tenantContextService.getTenant();
   }
 
   hasTenantContext(): boolean {
-    return !!this.cls.get('tenantId');
+    return this.tenantContextService.getTenant() !== null;
   }
 }
 ```
 
-#### 3. context.service.ts
+#### 3. redis.service.ts
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Redis } from 'ioredis';
 
 @Injectable()
-export class ContextService implements IContextManager {
-  constructor(private readonly cls: ClsService) {}
+export class RedisService implements OnModuleInit, OnModuleDestroy {
+  private redis: Redis;
 
-  setTenant(tenantId: string): void {
-    this.cls.set('tenantId', tenantId);
+  constructor(@Inject(CACHE_MODULE_OPTIONS) private options: CacheModuleOptions) {}
+
+  async onModuleInit() {
+    this.redis = new Redis({
+      host: this.options.redis.host,
+      port: this.options.redis.port,
+      password: this.options.redis.password,
+      db: this.options.redis.db || 0,
+      retryDelayOnFailover: this.options.redis.retryDelayOnFailover || 100,
+      maxRetriesPerRequest: this.options.redis.maxRetriesPerRequest || 3,
+      lazyConnect: this.options.redis.lazyConnect || true,
+    });
+
+    // 测试连接
+    await this.redis.ping();
   }
 
-  getTenant(): string | null {
-    return this.cls.get('tenantId');
-  }
-
-  setUser(userId: string): void {
-    this.cls.set('userId', userId);
-  }
-
-  getUser(): string | null {
-    return this.cls.get('userId');
-  }
-
-  setRequestId(requestId: string): void {
-    this.cls.set('requestId', requestId);
-  }
-
-  getRequestId(): string | null {
-    return this.cls.get('requestId');
-  }
-
-  clear(): void {
-    this.cls.clear();
-  }
-}
-```
-
-#### 4. tenant.middleware.ts
-
-```typescript
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { ClsService } from 'nestjs-cls';
-
-@Injectable()
-export class TenantMiddleware implements NestMiddleware {
-  constructor(private readonly cls: ClsService) {}
-
-  use(req: Request, res: Response, next: NextFunction) {
-    // 从请求中提取租户ID
-    const tenantId = req.headers['x-tenant-id'] || 
-                    req.params.tenantId || 
-                    req.query.tenantId;
-    
-    if (tenantId) {
-      // 设置到CLS上下文中
-      this.cls.set('tenantId', tenantId);
+  async onModuleDestroy() {
+    if (this.redis) {
+      await this.redis.quit();
     }
-
-    // 设置请求ID用于日志追踪
-    const requestId = req.headers['x-request-id'] || 
-                     req.headers['x-correlation-id'] ||
-                     this.generateRequestId();
-    
-    this.cls.set('requestId', requestId);
-
-    next();
   }
 
-  private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  async get<T>(key: string): Promise<T | null> {
+    const value = await this.redis.get(key);
+    return value ? JSON.parse(value) : null;
   }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    const serializedValue = JSON.stringify(value);
+    if (ttl) {
+      await this.redis.setex(key, ttl, serializedValue);
+    } else {
+      await this.redis.set(key, serializedValue);
+    }
+  }
+
+  async delete(key: string): Promise<number> {
+    return this.redis.del(key);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const result = await this.redis.exists(key);
+    return result === 1;
+  }
+
+  // 其他Redis操作方法...
 }
 ```
 
-#### 5. cacheable.decorator.ts (集成CLS)
+#### 4. cacheable.decorator.ts
 
 ```typescript
-import { ClsService } from 'nestjs-cls';
+import { SetMetadata } from '@nestjs/common';
+import { CacheableOptions } from '../types/cache.types';
 
-export function Cacheable(keyPrefix: string, ttl?: number, options?: CacheableOptions) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-    const method = descriptor.value;
+export const CACHEABLE_METADATA = 'cacheable';
 
-    descriptor.value = async function (...args: any[]) {
-      const cls = this.cls as ClsService;
-      const tenantId = cls.get('tenantId');
-      
-      if (!tenantId) {
-        throw new Error('No tenant context found');
-      }
+/**
+ * 缓存方法结果装饰器
+ *
+ * @description 自动缓存方法的返回值，支持租户上下文
+ *
+ * @param keyPrefix 缓存键前缀
+ * @param ttl 缓存过期时间（秒）
+ * @param options 缓存选项
+ */
+export function Cacheable(
+  keyPrefix: string,
+  ttl?: number,
+  options?: CacheableOptions
+) {
+  return function (
+    target: any,
+    propertyName: string,
+    descriptor: PropertyDescriptor
+  ) {
+    // 设置元数据，由拦截器处理实际的缓存逻辑
+    SetMetadata(CACHEABLE_METADATA, {
+      keyPrefix,
+      ttl,
+      ...options,
+    })(target, propertyName, descriptor);
 
-      const cacheKey = `tenant:${tenantId}:${keyPrefix}:${JSON.stringify(args)}`;
-      
-      // 尝试从缓存获取
-      const cached = await this.cacheService.get(cacheKey);
-      if (cached) {
-        return cached;
-      }
-
-      // 执行原方法
-      const result = await method.apply(this, args);
-      
-      // 检查缓存条件
-      if (options?.condition && !options.condition(result)) {
-        return result;
-      }
-      
-      if (options?.unless && options.unless(result)) {
-        return result;
-      }
-      
-      // 缓存结果
-      await this.cacheService.set(cacheKey, result, ttl);
-      
-      return result;
-    };
+    return descriptor;
   };
 }
 ```
@@ -532,10 +554,11 @@ interface CacheModuleOptions {
   redis: RedisConfig;
   defaultTTL?: number;
   keyPrefix?: string;
-  enableTenantIsolation?: boolean;
+  enableTenantIsolation?: boolean; // 保留用于向后兼容
   strategy?: CacheStrategyConfig;
   monitoring?: MonitoringConfig;
-  cls?: ClsConfig;
+  cls?: ClsConfig; // 保留用于向后兼容
+  multiTenancy?: IMultiTenancyModuleOptions; // 新增多租户配置
 }
 
 interface ClsConfig {
@@ -575,7 +598,7 @@ interface RedisConfig {
       },
       defaultTTL: 3600,
       keyPrefix: 'hl8:cache:',
-      enableTenantIsolation: true,
+      enableTenantIsolation: true, // 保留用于向后兼容
       strategy: {
         type: 'ttl',
         options: { defaultTTL: 3600 }
@@ -589,6 +612,38 @@ interface RedisConfig {
         global: true,
         middleware: { mount: true, generateId: true },
         interceptor: { mount: true }
+      },
+      // 新增：多租户配置（推荐使用）
+      multiTenancy: {
+        context: {
+          enableAutoInjection: true,
+          contextTimeout: 30000,
+          enableAuditLog: true,
+          contextStorage: 'memory',
+          allowCrossTenantAccess: false
+        },
+        isolation: {
+          strategy: 'key-prefix',
+          keyPrefix: 'hl8:cache:',
+          namespace: 'cache-namespace',
+          enableIsolation: true,
+          level: 'strict'
+        },
+        middleware: {
+          enableTenantMiddleware: true,
+          tenantHeader: 'X-Tenant-ID',
+          tenantQueryParam: 'tenant',
+          tenantSubdomain: true,
+          validationTimeout: 5000,
+          strictValidation: true
+        },
+        security: {
+          enableSecurityCheck: true,
+          maxFailedAttempts: 5,
+          lockoutDuration: 300000,
+          enableAuditLog: true,
+          enableIpWhitelist: false
+        }
       }
     })
   ]
@@ -606,7 +661,8 @@ export class AppModule {}
 export class UserService {
   constructor(
     private readonly cacheService: CacheService,
-    private readonly cls: ClsService,
+    private readonly tenantContextService: TenantContextService,
+    private readonly tenantIsolationService: TenantIsolationService,
   ) {}
 
   // 使用装饰器 - 自动处理租户上下文
@@ -642,6 +698,13 @@ export class UserService {
     await this.cacheService.delete(`user:${userId}`);
     await this.cacheService.delete(`user:profile:${userId}`);
   }
+
+  // 高级用法：手动控制租户上下文
+  async getUserWithTenant(tenantId: string, userId: string): Promise<User> {
+    return this.tenantContextService.runWithTenant(tenantId, async () => {
+      return this.getUser(userId);
+    });
+  }
 }
 ```
 
@@ -650,15 +713,23 @@ export class UserService {
 ```typescript
 // app.module.ts
 @Module({
-  imports: [CacheModule.forRoot(options)],
+  imports: [
+    CacheModule.forRoot({
+      // ... 其他配置
+      multiTenancy: {
+        middleware: {
+          enableTenantMiddleware: true,
+          tenantHeader: 'X-Tenant-ID',
+          tenantQueryParam: 'tenant',
+          tenantSubdomain: true,
+          validationTimeout: 5000,
+          strictValidation: true
+        }
+      }
+    })
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .forRoutes('*');
-  }
-}
+export class AppModule {}
 ```
 
 ### 3. 测试示例
@@ -667,20 +738,27 @@ export class AppModule implements NestModule {
 // user.service.spec.ts
 describe('UserService', () => {
   let service: UserService;
-  let clsService: ClsService;
+  let tenantContextService: TenantContextService;
+  let tenantIsolationService: TenantIsolationService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService, CacheService, ClsService],
+      providers: [
+        UserService, 
+        CacheService, 
+        TenantContextService,
+        TenantIsolationService
+      ],
     }).compile();
 
     service = module.get<UserService>(UserService);
-    clsService = module.get<ClsService>(ClsService);
+    tenantContextService = module.get<TenantContextService>(TenantContextService);
+    tenantIsolationService = module.get<TenantIsolationService>(TenantIsolationService);
   });
 
   it('should cache user data with tenant context', async () => {
     // 设置租户上下文
-    clsService.set('tenantId', 'tenant-123');
+    tenantContextService.setTenant('tenant-123');
     
     // 执行测试
     const user = await service.getUser('user-456');
@@ -765,16 +843,145 @@ describe('UserService', () => {
 - 文档完善
 - 运维工具
 
+## 🔄 迁移指南
+
+### 从旧版本迁移
+
+如果您正在从使用nestjs-cls的旧版本迁移到使用@hl8/multi-tenancy的新版本，请参考以下迁移步骤：
+
+#### 1. 依赖更新
+
+```bash
+# 移除旧的依赖
+pnpm remove nestjs-cls
+
+# 添加新的依赖
+pnpm add @hl8/multi-tenancy
+```
+
+#### 2. 配置更新
+
+**旧配置**:
+
+```typescript
+CacheModule.forRoot({
+  // ... 其他配置
+  cls: {
+    global: true,
+    middleware: { mount: true, generateId: true },
+    interceptor: { mount: true }
+  }
+})
+```
+
+**新配置**:
+
+```typescript
+CacheModule.forRoot({
+  // ... 其他配置
+  cls: {
+    global: true,
+    middleware: { mount: true, generateId: true },
+    interceptor: { mount: true }
+  },
+  multiTenancy: {
+    context: {
+      enableAutoInjection: true,
+      contextTimeout: 30000,
+      enableAuditLog: true,
+      contextStorage: 'memory',
+      allowCrossTenantAccess: false
+    },
+    isolation: {
+      strategy: 'key-prefix',
+      keyPrefix: 'hl8:cache:',
+      namespace: 'cache-namespace',
+      enableIsolation: true,
+      level: 'strict'
+    },
+    middleware: {
+      enableTenantMiddleware: true,
+      tenantHeader: 'X-Tenant-ID',
+      tenantQueryParam: 'tenant',
+      tenantSubdomain: true,
+      validationTimeout: 5000,
+      strictValidation: true
+    },
+    security: {
+      enableSecurityCheck: true,
+      maxFailedAttempts: 5,
+      lockoutDuration: 300000,
+      enableAuditLog: true,
+      enableIpWhitelist: false
+    }
+  }
+})
+```
+
+#### 3. 服务注入更新
+
+**旧的服务注入**:
+
+```typescript
+constructor(
+  private readonly cacheService: CacheService,
+  private readonly cls: ClsService,
+) {}
+```
+
+**新的服务注入**:
+
+```typescript
+constructor(
+  private readonly cacheService: CacheService,
+  private readonly tenantContextService: TenantContextService,
+  private readonly tenantIsolationService: TenantIsolationService,
+) {}
+```
+
+#### 4. 上下文访问更新
+
+**旧的上下文访问**:
+
+```typescript
+const tenantId = this.cls.get('tenantId');
+```
+
+**新的上下文访问**:
+
+```typescript
+const tenantId = this.tenantContextService.getTenant();
+```
+
+#### 5. 向后兼容性
+
+新版本保持了向后兼容性：
+
+- 旧的`enableTenantIsolation`配置仍然有效
+- 旧的`cls`配置仍然有效
+- 旧的API调用方式仍然有效
+
+### 最佳实践
+
+1. **逐步迁移**: 建议逐步迁移，先添加新的配置，然后逐步更新服务注入
+2. **测试验证**: 在迁移过程中，确保所有测试都能通过
+3. **监控观察**: 迁移后密切监控系统性能和行为
+4. **文档更新**: 更新相关的API文档和使用说明
+
 ## 📝 总结
 
-集成nestjs-cls的缓存模块设计方案为HL8 SAAS平台提供了一个简化、高效、安全的多租户缓存解决方案。通过AsyncLocalStorage的透明上下文管理，大大简化了多租户应用的开发复杂度，提升了代码的可维护性和开发效率。
+集成@hl8/multi-tenancy的缓存模块设计方案为HL8 SAAS平台提供了一个企业级、高效、安全的多租户缓存解决方案。通过专业的多租户基础设施，提供了完整的租户管理、数据隔离、安全机制和审计功能。
 
 该方案的核心优势：
 
+- **企业级多租户**: 专业的多租户基础设施，支持复杂的租户管理需求
+- **高级隔离策略**: 支持多种租户隔离策略（key-prefix、namespace、database等）
+- **安全机制**: 内置的安全检查和访问控制机制
+- **审计日志**: 完整的租户操作审计和日志记录
 - **开发效率**: 自动的租户上下文管理，减少样板代码
 - **类型安全**: 完整的TypeScript类型支持
 - **性能优异**: 基于AsyncLocalStorage的高性能实现
 - **易于测试**: 可以轻松模拟和验证租户上下文
 - **生产就绪**: 完善的监控、安全和运维支持
 
-这个方案为SAAS平台的多租户缓存需求提供了最佳的解决方案。
+这个方案为SAAS平台的多租户缓存需求提供了企业级的最佳解决方案。

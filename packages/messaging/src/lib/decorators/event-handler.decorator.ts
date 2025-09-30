@@ -40,7 +40,7 @@ import 'reflect-metadata';
  *   async handleUserCreated(event: UserCreatedEvent): Promise<void> {
  *     console.log('用户创建事件:', event.userId);
  *   }
- * 
+ *
  *   @EventHandler('user.updated')
  *   async handleUserUpdated(event: UserUpdatedEvent): Promise<void> {
  *     console.log('用户更新事件:', event.userId);

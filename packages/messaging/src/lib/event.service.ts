@@ -46,19 +46,19 @@ import {
  * @Injectable()
  * export class UserService {
  *   constructor(private readonly eventService: EventService) {}
- * 
+ *
  *   async createUser(userData: UserData): Promise<User> {
  *     const user = await this.userRepository.create(userData);
- * 
+ *
  *     // 发布用户创建事件 - 自动处理租户上下文
  *     await this.eventService.emit('user.created', {
  *       userId: user.id,
  *       userData: user
  *     });
- * 
+ *
  *     return user;
  *   }
- * 
+ *
  *   // 事件处理器 - 自动处理租户上下文
  *   @EventHandler('user.created')
  *   async handleUserCreated(event: UserCreatedEvent): Promise<void> {

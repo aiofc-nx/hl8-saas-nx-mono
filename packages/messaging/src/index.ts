@@ -32,10 +32,10 @@
  * ```typescript
  * // 导入核心服务
  * import { MessagingService, EventService, TaskService } from '@hl8/messaging';
- * 
+ *
  * // 导入适配器
  * import { RabbitMQAdapter, RedisAdapter, KafkaAdapter } from '@hl8/messaging';
- * 
+ *
  * // 导入装饰器
  * import { EventHandler, TaskHandler } from '@hl8/messaging';
  * ```
