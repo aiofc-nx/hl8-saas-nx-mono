@@ -1,0 +1,19 @@
+{
+  "name": "messaging",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/messaging/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/messaging",
+        "main": "packages/messaging/src/index.ts",
+        "tsConfig": "packages/messaging/tsconfig.lib.json",
+        "assets": ["packages/messaging/*.md"]
+      }
+    }
+  }
+}
