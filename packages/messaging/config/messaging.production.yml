@@ -1,0 +1,93 @@
+# 生产环境消息队列配置
+# 生产环境使用完整的配置，注重性能和可靠性
+
+# 基础配置
+adapter: rabbitmq                    # 生产环境使用RabbitMQ
+keyPrefix: "prod:messaging:"
+enableTenantIsolation: true         # 生产环境启用租户隔离
+documentationUrl: "https://docs.hl8.com/messaging/errors"
+
+# RabbitMQ配置 - 生产环境优化
+rabbitmq:
+  url: "${RABBITMQ_URL}"            # 从环境变量获取连接URL
+  exchange: "hl8_saas_prod"        # 生产环境专用交换机
+  queuePrefix: "prod_hl8_"         # 生产环境队列前缀
+  heartbeat: 60                    # 较长的心跳间隔
+  options:
+    connectionTimeout: 60000        # 较长的连接超时时间
+    frameMax: 0x2000               # 更大的帧大小
+    channelMax: 1000               # 限制通道数量
+    locale: "en_US"
+
+# 缓存配置 - 生产环境完整启用
+cache:
+  enableMessageDeduplication: true   # 生产环境启用所有缓存功能
+  enableConsumerStateCache: true     # 启用消费者状态缓存
+  enableStatsCache: true            # 启用统计缓存
+  enableDeadLetterCache: true       # 启用死信缓存
+  enableTenantConfigCache: true     # 启用租户配置缓存
+  keyPrefix: "prod:messaging:cache:"
+  cacheTTL:
+    messageDedup: 600               # 生产环境使用较长的TTL
+    consumerState: 7200             # 2小时
+    stats: 300                      # 5分钟
+    deadLetter: 172800              # 48小时
+    tenantConfig: 7200              # 2小时
+  redis:
+    host: "${REDIS_HOST}"           # 从环境变量获取
+    port: "${REDIS_PORT}"
+    db: 2
+    password: "${REDIS_PASSWORD}"   # 从环境变量获取密码
+    options:
+      retryDelayOnFailover: 200
+      maxRetriesPerRequest: 5
+      lazyConnect: false            # 生产环境立即连接
+      keepAlive: 60000
+
+# 多租户配置 - 生产环境严格模式
+multiTenancy:
+  context:
+    enableAutoInjection: true       # 启用自动注入
+    contextTimeout: 60000           # 较长的上下文超时
+    enableAuditLog: true            # 启用审计日志
+    contextStorage: "redis"         # 使用Redis存储上下文
+    allowCrossTenantAccess: false   # 严格禁止跨租户访问
+  isolation:
+    strategy: "key-prefix"
+    keyPrefix: "prod:messaging:"
+    namespace: "prod-messaging"
+    enableIsolation: true           # 启用严格隔离
+    level: "strict"                 # 严格隔离级别
+  middleware:
+    enableTenantMiddleware: true    # 启用租户中间件
+    tenantHeader: "X-Tenant-ID"
+    tenantQueryParam: "tenant"
+    tenantSubdomain: true           # 支持子域名识别
+    validationTimeout: 10000        # 较长的验证超时
+    strictValidation: true          # 严格验证模式
+  security:
+    enableSecurityCheck: true       # 启用安全检查
+    maxFailedAttempts: 3            # 较少的失败尝试次数
+    lockoutDuration: 600000         # 较长的锁定时间（10分钟）
+    enableAuditLog: true            # 启用安全审计
+    enableIpWhitelist: true         # 启用IP白名单
+
+# 监控配置 - 生产环境完整监控
+monitoring:
+  enableStats: true                 # 启用统计
+  enableHealthCheck: true           # 启用健康检查
+  statsInterval: 30000              # 更频繁的统计收集
+
+# 重试配置 - 生产环境可靠性优先
+retry:
+  maxRetries: 5                     # 更多的重试次数
+  retryDelay: 2000                  # 较长的重试延迟
+  backoff: "exponential"            # 指数退避策略
+  enableDeadLetterQueue: true       # 启用死信队列
+
+# 租户配置 - 生产环境管理
+tenant:
+  enableIsolation: true             # 启用租户隔离
+  tenantPrefix: "prod:tenant:"
+  autoCreateTenantQueues: true     # 自动创建租户队列
+  tenantQueueLimit: 1000            # 更多的队列限制

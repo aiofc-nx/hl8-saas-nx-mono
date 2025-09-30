@@ -7,4 +7,7 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/packages/messaging',
+  moduleNameMapper: {
+    '^chalk$': 'jest',
+  },
 };

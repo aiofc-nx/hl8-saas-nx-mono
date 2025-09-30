@@ -1,0 +1,71 @@
+# 开发环境消息队列配置
+# 开发环境使用简化的配置，便于调试和测试
+
+# 基础配置
+adapter: memory                      # 开发环境使用内存适配器，无需外部依赖
+keyPrefix: "dev:messaging:"
+enableTenantIsolation: false        # 开发环境禁用租户隔离，简化调试
+documentationUrl: "http://localhost:3000/docs/messaging/errors"
+
+# 监控配置 - 开发环境简化
+monitoring:
+  enableStats: false                # 开发环境禁用统计，减少资源消耗
+  enableHealthCheck: false          # 开发环境禁用健康检查
+  statsInterval: 60000
+
+# 缓存配置 - 开发环境禁用大部分缓存功能
+cache:
+  enableMessageDeduplication: false # 开发环境禁用消息去重
+  enableConsumerStateCache: false   # 开发环境禁用消费者状态缓存
+  enableStatsCache: false          # 开发环境禁用统计缓存
+  enableDeadLetterCache: false     # 开发环境禁用死信缓存
+  enableTenantConfigCache: false   # 开发环境禁用租户配置缓存
+  keyPrefix: "dev:messaging:cache:"
+  cacheTTL:
+    messageDedup: 60                # 开发环境使用较短的TTL
+    consumerState: 300
+    stats: 30
+    deadLetter: 3600
+    tenantConfig: 300
+
+# 多租户配置 - 开发环境简化
+multiTenancy:
+  context:
+    enableAutoInjection: false      # 开发环境禁用自动注入
+    contextTimeout: 10000           # 较短的超时时间
+    enableAuditLog: false           # 开发环境禁用审计日志
+    contextStorage: "memory"
+    allowCrossTenantAccess: true    # 开发环境允许跨租户访问
+  isolation:
+    strategy: "key-prefix"
+    keyPrefix: "dev:messaging:"
+    namespace: "dev-messaging"
+    enableIsolation: false          # 开发环境禁用隔离
+    level: "loose"                  # 宽松的隔离级别
+  middleware:
+    enableTenantMiddleware: false   # 开发环境禁用租户中间件
+    tenantHeader: "X-Tenant-ID"
+    tenantQueryParam: "tenant"
+    tenantSubdomain: false          # 开发环境禁用子域名支持
+    validationTimeout: 1000         # 较短的验证超时
+    strictValidation: false         # 开发环境使用宽松验证
+  security:
+    enableSecurityCheck: false      # 开发环境禁用安全检查
+    maxFailedAttempts: 10           # 更多的失败尝试次数
+    lockoutDuration: 60000          # 较短的锁定时间
+    enableAuditLog: false           # 开发环境禁用安全审计
+    enableIpWhitelist: false
+
+# 重试配置 - 开发环境简化
+retry:
+  maxRetries: 1                     # 开发环境减少重试次数
+  retryDelay: 500                   # 较短的重试延迟
+  backoff: "fixed"                  # 固定延迟策略
+  enableDeadLetterQueue: false      # 开发环境禁用死信队列
+
+# 租户配置 - 开发环境简化
+tenant:
+  enableIsolation: false            # 开发环境禁用租户隔离
+  tenantPrefix: "dev:tenant:"
+  autoCreateTenantQueues: false     # 开发环境禁用自动创建
+  tenantQueueLimit: 10              # 较少的队列限制

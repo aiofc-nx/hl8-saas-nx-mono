@@ -1,0 +1,136 @@
+# HL8 SAAS平台消息队列配置示例
+# 这个配置文件展示了消息队列模块的完整配置选项
+
+# 基础配置
+adapter: rabbitmq                    # 消息队列适配器: rabbitmq, redis, kafka, memory
+keyPrefix: "hl8:messaging:"          # 键前缀，用于租户隔离
+enableTenantIsolation: true          # 启用租户隔离
+documentationUrl: "https://docs.hl8.com/messaging/errors"  # 异常文档URL
+
+# RabbitMQ配置
+rabbitmq:
+  url: "amqp://localhost:5672"       # RabbitMQ连接URL
+  exchange: "hl8_saas"              # 默认交换机名称
+  queuePrefix: "hl8_"               # 队列名称前缀
+  heartbeat: 30                     # 心跳间隔（秒）
+  options:
+    connectionTimeout: 30000         # 连接超时时间（毫秒）
+    frameMax: 0x1000                # 最大帧大小
+    channelMax: 0                   # 最大通道数（0表示无限制）
+    locale: "en_US"                 # 区域设置
+
+# Redis配置（用于Redis Streams和Pub/Sub）
+redis:
+  host: "localhost"                  # Redis主机
+  port: 6379                        # Redis端口
+  db: 1                             # Redis数据库编号
+  password: ""                      # Redis密码（可选）
+  streamPrefix: "hl8:messaging:stream:"  # 流名称前缀
+  options:
+    retryDelayOnFailover: 100       # 故障转移重试延迟
+    maxRetriesPerRequest: 3         # 每个请求的最大重试次数
+    lazyConnect: true               # 延迟连接
+    keepAlive: 30000                # 保持连接时间
+
+# Kafka配置
+kafka:
+  clientId: "hl8-messaging-client"  # 客户端ID
+  brokers:                          # Kafka代理列表
+    - "localhost:9092"
+    - "localhost:9093"
+  topicPrefix: "hl8:messaging:"     # 主题名称前缀
+  options:
+    requestTimeout: 30000           # 请求超时时间
+    retry:
+      initialRetryTime: 100         # 初始重试时间
+      maxRetryTime: 30000           # 最大重试时间
+      retries: 5                    # 重试次数
+    connectionTimeout: 3000         # 连接超时时间
+    authenticationTimeout: 1000     # 认证超时时间
+    reauthenticationThreshold: 10000 # 重新认证阈值
+
+# 缓存配置
+cache:
+  # 缓存功能开关
+  enableMessageDeduplication: true   # 启用消息去重缓存
+  enableConsumerStateCache: true     # 启用消费者状态缓存
+  enableStatsCache: true            # 启用统计信息缓存
+  enableDeadLetterCache: true       # 启用死信队列缓存
+  enableTenantConfigCache: true     # 启用租户配置缓存
+  
+  # 缓存键前缀
+  keyPrefix: "hl8:messaging:cache:"
+  
+  # 缓存TTL配置（秒）
+  cacheTTL:
+    messageDedup: 300               # 消息去重缓存：5分钟
+    consumerState: 3600             # 消费者状态缓存：1小时
+    stats: 60                       # 统计信息缓存：1分钟
+    deadLetter: 86400               # 死信队列缓存：24小时
+    tenantConfig: 3600              # 租户配置缓存：1小时
+  
+  # 缓存Redis配置
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 2                           # 使用不同的数据库避免冲突
+    password: ""
+    options:
+      retryDelayOnFailover: 100
+      maxRetriesPerRequest: 3
+      lazyConnect: true
+
+# 多租户配置
+multiTenancy:
+  # 上下文配置
+  context:
+    enableAutoInjection: true       # 启用自动注入
+    contextTimeout: 30000           # 上下文超时时间（毫秒）
+    enableAuditLog: true            # 启用审计日志
+    contextStorage: "memory"        # 上下文存储方式：memory, redis
+    allowCrossTenantAccess: false   # 允许跨租户访问
+  
+  # 隔离配置
+  isolation:
+    strategy: "key-prefix"          # 隔离策略：key-prefix, namespace, database
+    keyPrefix: "hl8:messaging:"     # 隔离键前缀
+    namespace: "messaging-namespace" # 命名空间
+    enableIsolation: true           # 启用隔离
+    level: "strict"                 # 隔离级别：strict, moderate, loose
+  
+  # 中间件配置
+  middleware:
+    enableTenantMiddleware: true    # 启用租户中间件
+    tenantHeader: "X-Tenant-ID"     # 租户ID请求头
+    tenantQueryParam: "tenant"      # 租户ID查询参数
+    tenantSubdomain: true           # 支持子域名租户识别
+    validationTimeout: 5000         # 验证超时时间
+    strictValidation: true          # 严格验证模式
+  
+  # 安全配置
+  security:
+    enableSecurityCheck: true       # 启用安全检查
+    maxFailedAttempts: 5            # 最大失败尝试次数
+    lockoutDuration: 300000         # 锁定持续时间（毫秒）
+    enableAuditLog: true            # 启用安全审计日志
+    enableIpWhitelist: false        # 启用IP白名单
+
+# 监控配置
+monitoring:
+  enableStats: true                 # 启用统计功能
+  enableHealthCheck: true           # 启用健康检查
+  statsInterval: 60000              # 统计收集间隔（毫秒）
+
+# 重试配置
+retry:
+  maxRetries: 3                     # 最大重试次数
+  retryDelay: 1000                  # 重试延迟（毫秒）
+  backoff: "exponential"            # 退避策略：linear, exponential, fixed
+  enableDeadLetterQueue: true       # 启用死信队列
+
+# 租户配置（向后兼容）
+tenant:
+  enableIsolation: true             # 启用租户隔离
+  tenantPrefix: "tenant:"           # 租户前缀
+  autoCreateTenantQueues: true      # 自动创建租户队列
+  tenantQueueLimit: 100             # 租户队列数量限制
