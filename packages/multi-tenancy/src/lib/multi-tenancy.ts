@@ -1,18 +1,66 @@
 /**
  * 多租户模块
  *
- * 多租户基础设施层的核心模块
- * 提供租户上下文管理、数据隔离、中间件、装饰器等功能
+ * 多租户基础设施层的核心模块，提供租户上下文管理、数据隔离、中间件、装饰器等功能。
  *
- * @fileoverview 多租户模块实现
- * @author HL8 Team
- * @since 1.0.0
+ * @description 此模块是多租户架构的核心实现，提供完整的租户管理功能。
+ * 支持租户上下文管理、数据隔离、中间件、装饰器、守卫系统等核心功能。
+ * 专为SAAS平台设计，支持多租户架构的完整生命周期管理。
+ *
+ * ## 业务规则
+ *
+ * ### 模块初始化规则
+ * - 模块配置必须完整且有效
+ * - 所有依赖服务必须正确初始化
+ * - 支持同步和异步配置方式
+ * - 配置验证失败时抛出明确异常
+ *
+ * ### 租户隔离规则
+ * - 租户数据必须完全隔离
+ * - 支持多种隔离策略（键前缀、命名空间、数据库等）
+ * - 隔离策略切换必须无缝
+ * - 支持批量操作以提高性能
+ *
+ * ### 上下文管理规则
+ * - 租户上下文在整个请求生命周期内保持一致性
+ * - 上下文传递必须是透明的
+ * - 支持异步操作的上下文传播
+ * - 上下文超时必须自动清理
+ *
+ * ### 安全控制规则
+ * - 支持基于角色的访问控制
+ * - 提供细粒度的权限检查
+ * - 支持实时安全验证
+ * - 完整的审计日志记录
+ *
+ * @example
+ * ```typescript
+ * // 基础配置
+ * @Module({
+ *   imports: [
+ *     MultiTenancyModule.forRoot({
+ *       context: {
+ *         enableAutoInjection: true,
+ *         contextTimeout: 30000,
+ *         enableAuditLog: true
+ *       },
+ *       isolation: {
+ *         strategy: 'key-prefix',
+ *         keyPrefix: 'tenant:',
+ *         enableIsolation: true
+ *       }
+ *     })
+ *   ]
+ * })
+ * export class AppModule {}
+ * ```
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 import { ExceptionModule } from '@hl8/common';
 import { TypedConfigModule, fileLoader, dotenvLoader } from '@hl8/config';
+import { PinoLogger } from '@hl8/logger';
 import { TenantContextService } from './services/tenant-context.service';
 import { TenantIsolationService } from './services/tenant-isolation.service';
 import { MultiLevelIsolationService } from './services/multi-level-isolation.service';
@@ -32,151 +80,58 @@ import {
 /**
  * 多租户模块
  *
- * 提供多租户基础设施功能的核心模块
+ * 提供多租户基础设施功能的核心模块，支持租户上下文管理、数据隔离等功能。
  *
- * @description 多租户模块是多租户架构的基础设施层
- * 提供租户上下文管理、数据隔离、中间件、装饰器等核心功能
- * 支持多种配置选项和策略实现
+ * @description 此模块是多租户架构的基础设施层，提供租户上下文管理、数据隔离、
+ * 中间件、装饰器等核心功能。支持多种配置选项和策略实现，专为SAAS平台设计。
  *
- * ## 功能特性
+ * ## 业务规则
  *
- * ### 租户上下文管理
+ * ### 租户上下文管理规则
  * - 基于nestjs-cls的透明上下文传递
  * - 支持异步操作的上下文传播
  * - 自动的上下文生命周期管理
  * - 完整的上下文验证和审计
  *
- * ### 数据隔离
+ * ### 数据隔离规则
  * - 支持多种隔离策略（键前缀、命名空间、数据库等）
  * - 自动的租户键生成和数据隔离
  * - 透明的数据提取和验证
  * - 高性能的批量操作支持
  *
- * ### 中间件系统
+ * ### 中间件系统规则
  * - 自动的租户识别和验证
  * - 灵活的租户ID提取方式
  * - 完整的错误处理和日志记录
  * - 可配置的验证超时和重试
  *
- * ### 装饰器系统
+ * ### 装饰器系统规则
  * - 声明式的租户功能注入
  * - 自动的租户上下文绑定
  * - 透明的数据隔离处理
  * - 灵活的权限控制集成
  *
- * ### 守卫系统
+ * ### 守卫系统规则
  * - 基于角色的访问控制
  * - 细粒度的权限检查
  * - 实时的安全验证
  * - 完整的审计日志记录
  *
- * ## 配置选项
- *
- * ### 上下文配置
- * - enableAutoInjection: 是否启用自动注入
- * - contextTimeout: 上下文超时时间
- * - enableAuditLog: 是否启用审计日志
- * - contextStorage: 上下文存储方式
- * - allowCrossTenantAccess: 是否允许跨租户访问
- *
- * ### 隔离配置
- * - strategy: 隔离策略类型
- * - keyPrefix: 键前缀
- * - namespace: 命名空间
- * - enableIsolation: 是否启用隔离
- * - level: 隔离级别
- *
- * ### 中间件配置
- * - enableTenantMiddleware: 是否启用租户中间件
- * - tenantHeader: 租户ID请求头名称
- * - tenantQueryParam: 租户ID查询参数名称
- * - tenantSubdomain: 是否支持子域名提取
- * - validationTimeout: 验证超时时间
- * - strictValidation: 是否启用严格验证
- *
- * ### 安全配置
- * - enableSecurityCheck: 是否启用安全检查
- * - maxFailedAttempts: 最大失败尝试次数
- * - lockoutDuration: 锁定持续时间
- * - enableAuditLog: 是否启用审计日志
- * - enableIpWhitelist: 是否启用IP白名单
- * - ipWhitelist: IP白名单
- *
  * @example
  * ```typescript
- * // 基础使用
+ * // 基础配置
  * @Module({
  *   imports: [
  *     MultiTenancyModule.forRoot({
  *       context: {
  *         enableAutoInjection: true,
  *         contextTimeout: 30000,
- *         enableAuditLog: true,
- *         contextStorage: 'memory',
- *         allowCrossTenantAccess: false
+ *         enableAuditLog: true
  *       },
  *       isolation: {
  *         strategy: 'key-prefix',
  *         keyPrefix: 'tenant:',
- *         namespace: 'tenant-namespace',
- *         enableIsolation: true,
- *         level: 'strict'
- *       },
- *       middleware: {
- *         enableTenantMiddleware: true,
- *         tenantHeader: 'X-Tenant-ID',
- *         tenantQueryParam: 'tenant',
- *         tenantSubdomain: true,
- *         validationTimeout: 5000,
- *         strictValidation: true
- *       },
- *       security: {
- *         enableSecurityCheck: true,
- *         maxFailedAttempts: 5,
- *         lockoutDuration: 300000,
- *         enableAuditLog: true,
- *         enableIpWhitelist: false
- *       }
- *     })
- *   ]
- * })
- * export class AppModule {}
- * ```
- *
- * @example
- * ```typescript
- * // 高级使用（自定义策略）
- * @Module({
- *   imports: [
- *     MultiTenancyModule.forRoot({
- *       context: {
- *         enableAutoInjection: true,
- *         contextTimeout: 30000,
- *         enableAuditLog: true,
- *         contextStorage: 'redis',
- *         allowCrossTenantAccess: true
- *       },
- *       isolation: {
- *         strategy: 'namespace',
- *         namespace: 'tenant-namespace',
- *         enableIsolation: true,
- *         level: 'strict'
- *       },
- *       middleware: {
- *         enableTenantMiddleware: true,
- *         tenantHeader: 'X-Tenant-ID',
- *         tenantQueryParam: 'tenant',
- *         tenantSubdomain: false,
- *         validationTimeout: 10000,
- *         strictValidation: false
- *       },
- *       security: {
- *         enableSecurityCheck: true,
- *         maxFailedAttempts: 3,
- *         lockoutDuration: 600000,
- *         enableAuditLog: true,
- *         enableIpWhitelist: true,
- *         ipWhitelist: ['192.168.1.0/24', '10.0.0.0/8']
+ *         enableIsolation: true
  *       }
  *     })
  *   ]
@@ -189,19 +144,63 @@ export class MultiTenancyModule {
   /**
    * 创建多租户模块
    *
-   * 使用指定的配置选项创建多租户模块实例
+   * 使用指定的配置选项创建多租户模块实例，支持完整的配置选项和自定义策略。
    *
-   * @description 创建配置化的多租户模块
-   * 支持完整的配置选项和自定义策略
+   * @description 此方法创建配置化的多租户模块，支持租户上下文管理、数据隔离、
+   * 中间件、装饰器等核心功能。提供完整的配置选项和自定义策略支持。
+   *
+   * ## 业务规则
+   *
+   * ### 配置验证规则
+   * - 所有必填配置项必须提供
+   * - 配置值必须符合预定义的格式
+   * - 配置冲突时使用优先级规则
+   * - 配置验证失败时抛出明确异常
+   *
+   * ### 模块初始化规则
+   * - 所有依赖服务必须正确初始化
+   * - 服务提供者必须正确注册
+   * - 模块导入必须完整
+   * - 全局模块必须正确配置
+   *
+   * ### 服务注册规则
+   * - 租户上下文服务必须注册
+   * - 租户隔离服务必须注册
+   * - 多层级隔离服务必须注册
+   * - 日志服务必须注册
    *
    * @param options 多租户模块配置选项
-   * @returns 动态模块
+   * @returns 动态模块配置
+   *
+   * @throws {TenantConfigInvalidException} 当配置无效时抛出
+   *
+   * @example
+   * ```typescript
+   * // 基础配置
+   * MultiTenancyModule.forRoot({
+   *   context: {
+   *     enableAutoInjection: true,
+   *     contextTimeout: 30000,
+   *     enableAuditLog: true
+   *   },
+   *   isolation: {
+   *     strategy: 'key-prefix',
+   *     keyPrefix: 'tenant:',
+   *     enableIsolation: true
+   *   }
+   * })
+   * ```
    */
   static forRoot(options: IMultiTenancyModuleOptions): DynamicModule {
     const providers: Provider[] = [
       {
         provide: MULTI_TENANCY_MODULE_OPTIONS,
         useValue: options,
+      },
+      PinoLogger,
+      {
+        provide: 'LOGGER_PROVIDER',
+        useExisting: PinoLogger,
       },
       TenantContextService,
       TenantIsolationService,
@@ -224,11 +223,11 @@ export class MultiTenancyModule {
             },
           },
         }),
-        ExceptionModule.forRoot({
-          documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
-          logLevel: 'error',
-          enableStackTrace: true,
-        }),
+        // ExceptionModule.forRoot({
+        //   documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
+        //   logLevel: 'error',
+        //   enableStackTrace: true,
+        // }),
       ],
       providers,
       exports: [
@@ -244,11 +243,35 @@ export class MultiTenancyModule {
   /**
    * 使用 @hl8/config 模块配置多租户模块
    *
-   * @description 集成 @hl8/config 模块，提供类型安全的配置管理
-   * 支持配置文件加载、环境变量覆盖和配置验证
+   * 集成 @hl8/config 模块，提供类型安全的配置管理和配置验证。
+   *
+   * @description 此方法集成 @hl8/config 模块，提供类型安全的配置管理。
+   * 支持配置文件加载、环境变量覆盖和配置验证，确保配置的正确性和一致性。
+   *
+   * ## 业务规则
+   *
+   * ### 配置加载规则
+   * - 支持YAML、JSON等配置文件格式
+   * - 环境变量可以覆盖配置文件设置
+   * - 配置加载失败时使用默认配置
+   * - 配置验证失败时抛出明确异常
+   *
+   * ### 配置验证规则
+   * - 所有配置项必须通过类型验证
+   * - 必填配置项不能为空
+   * - 配置值必须符合预定义的格式
+   * - 配置冲突时使用优先级规则
+   *
+   * ### 模块集成规则
+   * - 自动集成 @hl8/config 模块
+   * - 支持配置服务提供者
+   * - 支持配置验证器
+   * - 支持默认配置提供者
    *
    * @param options 配置选项
    * @returns 动态模块配置
+   *
+   * @throws {TenantConfigInvalidException} 当配置无效时抛出
    *
    * @example
    * ```typescript
@@ -291,6 +314,11 @@ export class MultiTenancyModule {
         },
         inject: [MultiTenancyConfigService],
       },
+      PinoLogger,
+      {
+        provide: 'LOGGER_PROVIDER',
+        useExisting: PinoLogger,
+      },
       TenantContextService,
       TenantIsolationService,
       MultiLevelIsolationService,
@@ -312,11 +340,11 @@ export class MultiTenancyModule {
             },
           },
         }),
-        ExceptionModule.forRoot({
-          documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
-          logLevel: 'error',
-          enableStackTrace: true,
-        }),
+        // ExceptionModule.forRoot({
+        //   documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
+        //   logLevel: 'error',
+        //   enableStackTrace: true,
+        // }),
         // 集成 @hl8/config 模块
         ...(options.configPath
           ? [
@@ -345,58 +373,54 @@ export class MultiTenancyModule {
   /**
    * 创建多租户模块（异步）
    *
-   * 使用异步配置创建多租户模块实例
+   * 使用异步配置创建多租户模块实例，支持从外部源加载配置。
    *
-   * @description 支持异步配置加载，适用于需要从外部源加载配置的场景
-   * 如从数据库、配置文件、环境变量等加载配置
+   * @description 此方法支持异步配置加载，适用于需要从外部源加载配置的场景。
+   * 如从数据库、配置文件、环境变量等加载配置，提供灵活的配置管理方式。
+   *
+   * ## 业务规则
+   *
+   * ### 异步配置规则
+   * - 配置工厂函数必须返回有效的配置对象
+   * - 异步配置加载失败时使用默认配置
+   * - 配置加载超时时间可配置
+   * - 配置验证失败时抛出明确异常
+   *
+   * ### 依赖注入规则
+   * - 支持注入其他服务（如ConfigService）
+   * - 依赖服务必须正确注册
+   * - 依赖注入失败时抛出明确异常
+   * - 支持循环依赖检测
+   *
+   * ### 配置工厂规则
+   * - 配置工厂函数必须返回Promise或同步值
+   * - 配置工厂函数可以访问注入的依赖
+   * - 配置工厂函数异常时使用默认配置
+   * - 配置工厂函数支持缓存机制
    *
    * @param optionsFactory 配置工厂函数
-   * @returns 动态模块
+   * @returns 动态模块配置
+   *
+   * @throws {TenantConfigInvalidException} 当配置无效时抛出
    *
    * @example
    * ```typescript
-   * @Module({
-   *   imports: [
-   *     MultiTenancyModule.forRootAsync({
-   *       useFactory: async (configService: ConfigService) => {
-   *         return {
-   *           context: {
-   *             enableAutoInjection: true,
-   *             contextTimeout: configService.get('TENANT_CONTEXT_TIMEOUT', 30000),
-   *             enableAuditLog: configService.get('TENANT_AUDIT_LOG', true),
-   *             contextStorage: configService.get('TENANT_CONTEXT_STORAGE', 'memory'),
-   *             allowCrossTenantAccess: configService.get('TENANT_CROSS_ACCESS', false)
-   *           },
-   *           isolation: {
-   *             strategy: configService.get('TENANT_ISOLATION_STRATEGY', 'key-prefix'),
-   *             keyPrefix: configService.get('TENANT_KEY_PREFIX', 'tenant:'),
-   *             namespace: configService.get('TENANT_NAMESPACE', 'tenant-namespace'),
-   *             enableIsolation: configService.get('TENANT_ISOLATION_ENABLED', true),
-   *             level: configService.get('TENANT_ISOLATION_LEVEL', 'strict')
-   *           },
-   *           middleware: {
-   *             enableTenantMiddleware: configService.get('TENANT_MIDDLEWARE_ENABLED', true),
-   *             tenantHeader: configService.get('TENANT_HEADER', 'X-Tenant-ID'),
-   *             tenantQueryParam: configService.get('TENANT_QUERY_PARAM', 'tenant'),
-   *             tenantSubdomain: configService.get('TENANT_SUBDOMAIN', true),
-   *             validationTimeout: configService.get('TENANT_VALIDATION_TIMEOUT', 5000),
-   *             strictValidation: configService.get('TENANT_STRICT_VALIDATION', true)
-   *           },
-   *           security: {
-   *             enableSecurityCheck: configService.get('TENANT_SECURITY_ENABLED', true),
-   *             maxFailedAttempts: configService.get('TENANT_MAX_FAILED_ATTEMPTS', 5),
-   *             lockoutDuration: configService.get('TENANT_LOCKOUT_DURATION', 300000),
-   *             enableAuditLog: configService.get('TENANT_SECURITY_AUDIT', true),
-   *             enableIpWhitelist: configService.get('TENANT_IP_WHITELIST_ENABLED', false),
-   *             ipWhitelist: configService.get('TENANT_IP_WHITELIST', [])
-   *           }
-   *         };
+   * // 异步配置示例
+   * MultiTenancyModule.forRootAsync({
+   *   useFactory: async (configService: ConfigService) => {
+   *     return {
+   *       context: {
+   *         enableAutoInjection: true,
+   *         contextTimeout: configService.get('TENANT_CONTEXT_TIMEOUT', 30000)
    *       },
-   *       inject: [ConfigService]
-   *     })
-   *   ]
+   *       isolation: {
+   *         strategy: configService.get('TENANT_ISOLATION_STRATEGY', 'key-prefix'),
+   *         keyPrefix: configService.get('TENANT_KEY_PREFIX', 'tenant:')
+   *       }
+   *     };
+   *   },
+   *   inject: [ConfigService]
    * })
-   * export class AppModule {}
    * ```
    */
   static forRootAsync(options: {
@@ -410,6 +434,11 @@ export class MultiTenancyModule {
         provide: MULTI_TENANCY_MODULE_OPTIONS,
         useFactory: options.useFactory,
         inject: (options.inject as Array<string | symbol>) || [],
+      },
+      PinoLogger,
+      {
+        provide: 'LOGGER_PROVIDER',
+        useExisting: PinoLogger,
       },
       TenantContextService,
       TenantIsolationService,
@@ -432,11 +461,11 @@ export class MultiTenancyModule {
             },
           },
         }),
-        ExceptionModule.forRoot({
-          documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
-          logLevel: 'error',
-          enableStackTrace: true,
-        }),
+        // ExceptionModule.forRoot({
+        //   documentationUrl: 'https://docs.hl8.com/errors/multi-tenancy',
+        //   logLevel: 'error',
+        //   enableStackTrace: true,
+        // }),
       ],
       providers,
       exports: [

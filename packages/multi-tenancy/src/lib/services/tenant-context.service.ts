@@ -115,9 +115,39 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
   /**
    * 模块初始化
    *
-   * 初始化租户上下文服务
+   * 初始化租户上下文服务，设置上下文超时、启用审计日志等初始化操作。
    *
-   * @description 设置上下文超时、启用审计日志等初始化操作
+   * @description 此方法在模块初始化时调用，负责设置上下文超时、启用审计日志等初始化操作。
+   * 确保租户上下文服务能够正常工作，提供完整的上下文管理功能。
+   *
+   * ## 业务规则
+   *
+   * ### 初始化规则
+   * - 上下文超时时间必须大于0
+   * - 审计日志配置必须正确设置
+   * - 初始化失败时必须抛出异常
+   * - 初始化过程必须记录日志
+   *
+   * ### 配置验证规则
+   * - 上下文配置必须有效
+   * - 超时时间必须在合理范围内
+   * - 审计日志配置必须正确
+   * - 配置验证失败时抛出异常
+   *
+   * ### 错误处理规则
+   * - 初始化失败时记录错误日志
+   * - 配置错误时抛出明确异常
+   * - 服务不可用时抛出异常
+   * - 支持初始化重试机制
+   *
+   * @throws {TenantConfigInvalidException} 当配置无效时抛出
+   * @throws {Error} 当初始化失败时抛出
+   *
+   * @example
+   * ```typescript
+   * // 模块初始化会自动调用此方法
+   * await tenantContextService.onModuleInit();
+   * ```
    */
   async onModuleInit(): Promise<void> {
     try {
@@ -145,9 +175,36 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
   /**
    * 模块销毁
    *
-   * 清理租户上下文服务资源
+   * 清理租户上下文服务资源，包括清理缓存、关闭连接等清理操作。
    *
-   * @description 清理缓存、关闭连接等清理操作
+   * @description 此方法在模块销毁时调用，负责清理租户上下文服务资源。
+   * 包括清理所有活跃的上下文、关闭连接、释放资源等清理操作。
+   *
+   * ## 业务规则
+   *
+   * ### 资源清理规则
+   * - 清理所有活跃的上下文
+   * - 关闭所有相关连接
+   * - 释放所有占用的资源
+   * - 清理过程必须记录日志
+   *
+   * ### 上下文清理规则
+   * - 清理所有租户上下文
+   * - 清理所有用户上下文
+   * - 清理所有请求上下文
+   * - 清理所有会话上下文
+   *
+   * ### 错误处理规则
+   * - 清理失败时记录错误日志
+   * - 清理过程异常时继续执行
+   * - 支持部分清理成功
+   * - 清理完成后记录成功日志
+   *
+   * @example
+   * ```typescript
+   * // 模块销毁会自动调用此方法
+   * await tenantContextService.onModuleDestroy();
+   * ```
    */
   async onModuleDestroy(): Promise<void> {
     try {
@@ -167,13 +224,35 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
   /**
    * 设置租户上下文
    *
-   * 设置当前请求的租户上下文信息
+   * 设置当前请求的租户上下文信息，包含租户ID、用户ID等信息。
    *
-   * @description 创建或更新租户上下文，包含租户ID、用户ID等信息
-   * 上下文信息会在整个请求生命周期内保持有效
+   * @description 此方法创建或更新租户上下文，包含租户ID、用户ID等信息。
+   * 上下文信息会在整个请求生命周期内保持有效，支持透明传递。
+   *
+   * ## 业务规则
+   *
+   * ### 上下文设置规则
+   * - 租户ID是必填字段，不能为空
+   * - 用户ID是可选的，可以为空
+   * - 请求ID会自动生成，如果未提供
+   * - 时间戳会自动设置为当前时间
+   *
+   * ### 上下文验证规则
+   * - 租户ID格式必须符合预定义规范
+   * - 用户ID格式必须符合预定义规范
+   * - 请求ID格式必须符合预定义规范
+   * - 上下文信息必须完整且有效
+   *
+   * ### 上下文存储规则
+   * - 上下文信息存储在CLS中
+   * - 支持快速访问各个字段
+   * - 上下文信息在整个请求生命周期内保持有效
+   * - 支持上下文信息的更新和修改
    *
    * @param context 租户上下文信息
    * @returns 设置是否成功
+   *
+   * @throws {TenantContextInvalidException} 当上下文无效时抛出
    *
    * @example
    * ```typescript
@@ -253,10 +332,30 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
   /**
    * 获取租户ID
    *
-   * 获取当前请求的租户ID
+   * 获取当前请求的租户ID，这是最常用的操作。
    *
-   * @description 快速获取当前租户ID，这是最常用的操作
-   * 如果租户ID不存在则返回null
+   * @description 此方法快速获取当前租户ID，这是最常用的操作。
+   * 如果租户ID不存在则返回null，支持透明获取无需手动传递参数。
+   *
+   * ## 业务规则
+   *
+   * ### 租户ID获取规则
+   * - 从CLS中获取租户ID
+   * - 租户ID不存在时返回null
+   * - 获取失败时记录错误日志
+   * - 支持快速访问和缓存
+   *
+   * ### 错误处理规则
+   * - 获取失败时记录错误日志
+   * - 异常情况下返回null
+   * - 支持错误重试机制
+   * - 错误信息包含详细上下文
+   *
+   * ### 性能规则
+   * - 支持高频调用
+   * - 获取延迟小于1ms
+   * - 支持并发访问
+   * - 内存占用最小化
    *
    * @returns 租户ID或null
    *
@@ -538,7 +637,7 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
   getCustomContext<T = unknown>(key: string): T | null {
     try {
       const value = this.cls.get<T>(`custom:${key}`);
-      return value as T | null;
+      return (value ?? null) as T | null;
     } catch (error) {
       this.logger.error('获取自定义上下文失败', {
         key,
