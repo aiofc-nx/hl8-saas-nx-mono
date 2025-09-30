@@ -120,7 +120,7 @@ export interface IFastifyRoute {
   readonly handler: (
     request: FastifyRequest,
     reply: FastifyReply
-  ) => Promise<any> | any;
+  ) => Promise<unknown> | unknown;
 
   /** 路由配置 */
   readonly config: IFastifyRouteConfig;
@@ -137,7 +137,7 @@ export interface IFastifyPluginConfig {
   name: string;
 
   /** 插件选项 */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 
   /** 插件优先级 */
   priority?: number;
@@ -172,7 +172,7 @@ export interface IFastifyMiddlewareConfig {
   method?: string | string[];
 
   /** 中间件选项 */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 
   /** 中间件描述 */
   description?: string;
@@ -192,7 +192,7 @@ export interface IFastifyRouteConfig {
   tags?: string[];
 
   /** 路由选项 */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 
   /** 路由前缀 */
   prefix?: string;
@@ -224,7 +224,7 @@ export interface IFastifyPluginStatus {
   error?: string;
 
   /** 性能指标 */
-  metrics?: Record<string, any>;
+  metrics?: Record<string, unknown>;
 }
 
 /**
@@ -247,7 +247,7 @@ export interface IFastifyMiddlewareStatus {
   error?: string;
 
   /** 性能指标 */
-  metrics?: Record<string, any>;
+  metrics?: Record<string, unknown>;
 }
 
 /**
@@ -305,7 +305,13 @@ export interface IFastifyEnterpriseConfig {
     enableHelmet: boolean;
     enableCORS: boolean;
     enableRateLimit: boolean;
-    rateLimitOptions?: any;
+    rateLimitOptions?: {
+      max?: number;
+      timeWindow?: string | number;
+      skipOnError?: boolean;
+      keyGenerator?: (request: unknown) => string;
+      errorResponseBuilder?: (request: unknown, context: unknown) => unknown;
+    };
   };
 
   /** 日志配置 */
@@ -315,8 +321,8 @@ export interface IFastifyEnterpriseConfig {
     redact?: string[];
   };
 
-  /** 多租户配置 */
-  multiTenant?: {
+  /** 租户提取配置 */
+  tenantExtraction?: {
     enabled: boolean;
     tenantHeader: string;
     tenantQueryParam: string;

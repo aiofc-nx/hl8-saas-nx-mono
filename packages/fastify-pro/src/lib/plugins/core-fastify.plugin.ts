@@ -42,7 +42,7 @@ export abstract class CoreFastifyPlugin implements IFastifyPlugin {
 
   constructor(config: IFastifyPluginConfig) {
     this.name = config.name;
-    this.version = config.options?.['version'] || '1.0.0';
+    this.version = (config.options?.['version'] as string) || '1.0.0';
     this.priority = config.priority || 0;
     this.enabled = config.enabled !== false;
     this.config = config;

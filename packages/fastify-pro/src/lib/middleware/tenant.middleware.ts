@@ -1,19 +1,19 @@
 /**
- * 多租户中间件
+ * 租户提取中间件
  *
- * @description 处理多租户架构的租户上下文管理、数据隔离和安全策略
+ * @description 处理HTTP层面的租户ID提取和基础验证，与@hl8/multi-tenancy模块集成
  *
- * ## 多租户核心概念
+ * ## 功能职责
  *
- * ### 🏢 **租户隔离**
- * - 数据完全隔离：每个租户的数据独立存储
- * - 配置隔离：每个租户有独立的配置环境
- * - 用户隔离：租户用户只能访问本租户资源
+ * ### 🚀 **HTTP层处理**
+ * - 租户ID提取：从请求头、查询参数等提取租户ID
+ * - 基础验证：验证租户ID格式
+ * - 请求上下文设置：将租户ID设置到请求对象
  *
- * ### 🔐 **安全策略**
- * - 租户验证：验证租户ID的有效性
- * - 权限控制：基于租户的权限管理
- * - 数据访问控制：确保数据访问的租户隔离
+ * ### 🔗 **集成设计**
+ * - 与@hl8/multi-tenancy模块集成
+ * - 专注于HTTP层面的租户处理
+ * - 业务逻辑委托给Multi-Tenancy模块
  *
  * @since 1.0.0
  */
@@ -23,66 +23,28 @@ import { CoreFastifyMiddleware } from './core-fastify.middleware';
 import { IFastifyMiddlewareConfig } from '../types/fastify.types';
 
 /**
- * 租户上下文接口
+ * 租户提取中间件配置
  */
-export interface ITenantContext {
-  /** 租户ID */
-  tenantId: string;
-
-  /** 租户代码 */
-  tenantCode: string;
-
-  /** 租户名称 */
-  tenantName?: string;
-
-  /** 租户类型 */
-  tenantType?: 'enterprise' | 'community' | 'team' | 'personal';
-
-  /** 租户状态 */
-  status?: 'active' | 'inactive' | 'suspended';
-
-  /** 创建时间 */
-  createdAt: Date;
-
-  /** 配置信息 */
-  config?: Record<string, any>;
-}
-
-/**
- * 租户中间件配置
- */
-export interface ITenantMiddlewareConfig extends IFastifyMiddlewareConfig {
+export interface ITenantExtractionConfig extends IFastifyMiddlewareConfig {
   /** 租户标识头名称 */
   tenantHeader?: string;
 
   /** 租户查询参数名称 */
   tenantQueryParam?: string;
 
-  /** 是否验证租户 */
-  validateTenant?: boolean;
-
-  /** 租户验证函数 */
-  validateTenantFn?: (tenantId: string) => Promise<boolean>;
-
-  /** 租户上下文获取函数 */
-  getTenantContextFn?: (tenantId: string) => Promise<ITenantContext>;
-
-  /** 默认租户ID */
-  defaultTenantId?: string;
-
-  /** 是否允许子域名租户解析 */
-  allowSubdomainTenant?: boolean;
+  /** 是否启用基础验证 */
+  enableBasicValidation?: boolean;
 }
 
 /**
- * 多租户中间件
+ * 租户提取中间件
  *
- * @description 处理多租户架构的租户上下文管理
+ * @description 处理HTTP层面的租户ID提取和基础验证
  */
-export class TenantMiddleware extends CoreFastifyMiddleware {
-  private readonly tenantConfig: ITenantMiddlewareConfig;
+export class TenantExtractionMiddleware extends CoreFastifyMiddleware {
+  public override readonly config: ITenantExtractionConfig;
 
-  constructor(config: ITenantMiddlewareConfig) {
+  constructor(config: ITenantExtractionConfig) {
     super({
       priority: 1,
       enabled: true,
@@ -90,11 +52,10 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
       ...config,
     });
 
-    this.tenantConfig = {
+    this.config = {
       tenantHeader: 'X-Tenant-ID',
       tenantQueryParam: 'tenant',
-      validateTenant: true,
-      allowSubdomainTenant: true,
+      enableBasicValidation: true,
       ...config,
     };
   }
@@ -102,7 +63,7 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
   /**
    * 中间件函数
    *
-   * @description 处理租户上下文提取和验证
+   * @description 处理租户ID提取和基础验证
    */
   middleware = async (
     request: FastifyRequest,
@@ -114,50 +75,37 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
       const tenantId = await this.extractTenantId(request);
 
       if (!tenantId) {
-        // 如果没有租户ID且不允许默认租户，返回错误
-        if (!this.tenantConfig.defaultTenantId) {
-          reply.status(400).send({
-            error: 'Tenant ID is required',
-            code: 'TENANT_ID_REQUIRED',
-          });
-          return;
-        }
-
-        // 使用默认租户ID
-        request.tenantId = this.tenantConfig.defaultTenantId;
-        request.tenantContext = await this.getDefaultTenantContext();
-        done();
+        reply.status(400).send({
+          error: 'Tenant ID is required',
+          code: 'TENANT_ID_REQUIRED',
+        });
         return;
       }
 
-      // 验证租户
-      if (this.tenantConfig.validateTenant) {
-        const isValid = await this.validateTenant(tenantId);
-        if (!isValid) {
-          reply.status(403).send({
-            error: 'Invalid tenant ID',
-            code: 'INVALID_TENANT',
-          });
-          return;
-        }
+      // 基础验证
+      if (
+        this.config.enableBasicValidation &&
+        !this.isValidTenantIdFormat(tenantId)
+      ) {
+        reply.status(400).send({
+          error: 'Invalid tenant ID format',
+          code: 'INVALID_TENANT_FORMAT',
+        });
+        return;
       }
 
-      // 获取租户上下文
-      const tenantContext = await this.getTenantContext(tenantId);
-
-      // 设置租户上下文到请求对象
+      // 设置租户ID到请求对象
       request.tenantId = tenantId;
-      request.tenantContext = tenantContext;
 
       // 设置响应头
       reply.header('X-Tenant-ID', tenantId);
 
       done();
     } catch (error) {
-      console.error('租户中间件错误:', error);
+      console.error('Tenant extraction middleware error:', error);
       reply.status(500).send({
-        error: 'Tenant processing failed',
-        code: 'TENANT_ERROR',
+        error: 'Tenant extraction failed',
+        code: 'TENANT_EXTRACTION_ERROR',
       });
     }
   };
@@ -172,66 +120,19 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
   ): Promise<string | null> {
     // 1. 从请求头获取
     const headerTenantId =
-      request.headers[
-        this.tenantConfig.tenantHeader?.toLowerCase() || 'x-tenant-id'
-      ];
+      request.headers[this.config.tenantHeader?.toLowerCase() || 'x-tenant-id'];
     if (headerTenantId && typeof headerTenantId === 'string') {
       return headerTenantId;
     }
 
     // 2. 从查询参数获取
-    const query = request.query as Record<string, any>;
-    const queryTenantId = query[this.tenantConfig.tenantQueryParam || 'tenant'];
+    const query = request.query as Record<string, unknown>;
+    const queryTenantId = query[this.config.tenantQueryParam || 'tenant'];
     if (queryTenantId && typeof queryTenantId === 'string') {
       return queryTenantId;
     }
 
-    // 3. 从子域名获取
-    if (this.tenantConfig.allowSubdomainTenant) {
-      const subdomainTenantId = this.extractTenantFromSubdomain(request);
-      if (subdomainTenantId) {
-        return subdomainTenantId;
-      }
-    }
-
     return null;
-  }
-
-  /**
-   * 从子域名提取租户ID
-   *
-   * @description 支持子域名租户解析，如 tenant1.yourdomain.com
-   */
-  private extractTenantFromSubdomain(request: FastifyRequest): string | null {
-    const host = request.headers.host;
-    if (!host) return null;
-
-    // 解析子域名
-    const parts = host.split('.');
-    if (parts.length >= 3) {
-      const subdomain = parts[0];
-      // 排除常见的非租户子域名
-      const excludeSubdomains = ['www', 'api', 'admin', 'app', 'portal'];
-      if (!excludeSubdomains.includes(subdomain)) {
-        return subdomain;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * 验证租户
-   *
-   * @description 验证租户ID的有效性
-   */
-  private async validateTenant(tenantId: string): Promise<boolean> {
-    if (this.tenantConfig.validateTenantFn) {
-      return await this.tenantConfig.validateTenantFn(tenantId);
-    }
-
-    // 默认验证逻辑：检查租户ID格式
-    return this.isValidTenantId(tenantId);
   }
 
   /**
@@ -239,7 +140,7 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
    *
    * @description 验证租户ID的格式是否正确
    */
-  private isValidTenantId(tenantId: string): boolean {
+  private isValidTenantIdFormat(tenantId: string): boolean {
     // 租户ID应该是非空字符串，长度在3-50之间
     if (!tenantId || typeof tenantId !== 'string') return false;
     if (tenantId.length < 3 || tenantId.length > 50) return false;
@@ -250,74 +151,25 @@ export class TenantMiddleware extends CoreFastifyMiddleware {
   }
 
   /**
-   * 获取租户上下文
+   * 获取中间件配置
    *
-   * @description 获取租户的完整上下文信息
+   * @description 获取当前中间件的配置信息
    */
-  private async getTenantContext(tenantId: string): Promise<ITenantContext> {
-    if (this.tenantConfig.getTenantContextFn) {
-      return await this.tenantConfig.getTenantContextFn(tenantId);
-    }
-
-    // 默认实现：创建基础租户上下文
-    return {
-      tenantId,
-      tenantCode: tenantId,
-      tenantName: `Tenant ${tenantId}`,
-      tenantType: 'enterprise',
-      status: 'active',
-      createdAt: new Date(),
-      config: {},
-    };
-  }
-
-  /**
-   * 获取默认租户上下文
-   *
-   * @description 获取默认租户的上下文信息
-   */
-  private async getDefaultTenantContext(): Promise<ITenantContext> {
-    const defaultTenantId = this.tenantConfig.defaultTenantId || 'default';
-    return {
-      tenantId: defaultTenantId,
-      tenantCode: defaultTenantId,
-      tenantName: 'Default Tenant',
-      tenantType: 'personal',
-      status: 'active',
-      createdAt: new Date(),
-      config: {},
-    };
-  }
-
-  /**
-   * 获取租户配置
-   *
-   * @description 获取当前租户中间件的配置信息
-   */
-  getTenantConfig(): ITenantMiddlewareConfig {
-    return { ...this.tenantConfig };
-  }
-
-  /**
-   * 检查租户是否有效
-   *
-   * @description 验证租户ID是否有效
-   */
-  async isTenantValid(tenantId: string): Promise<boolean> {
-    return await this.validateTenant(tenantId);
+  getConfig(): ITenantExtractionConfig {
+    return { ...this.config };
   }
 }
 
 /**
- * 租户中间件工厂函数
+ * 租户提取中间件工厂函数
  *
- * @description 创建租户中间件的便捷函数
+ * @description 创建租户提取中间件的便捷函数
  */
-export function createTenantMiddleware(
-  config: Partial<ITenantMiddlewareConfig> = {}
-): TenantMiddleware {
-  return new TenantMiddleware({
-    name: 'tenant',
+export function createTenantExtractionMiddleware(
+  config: Partial<ITenantExtractionConfig> = {}
+): TenantExtractionMiddleware {
+  return new TenantExtractionMiddleware({
+    name: 'tenant-extraction',
     priority: 1,
     enabled: true,
     path: '/api',
@@ -326,47 +178,29 @@ export function createTenantMiddleware(
 }
 
 /**
- * 默认租户配置
+ * 默认租户提取配置
  *
- * @description 提供常用的租户配置预设
+ * @description 提供常用的租户提取配置预设
  */
-export const DefaultTenantConfigs = {
+export const DefaultTenantExtractionConfigs = {
   /** 开发环境配置 - 宽松验证 */
   development: {
-    validateTenant: false,
-    allowSubdomainTenant: true,
-    defaultTenantId: 'dev-tenant',
+    enableBasicValidation: false,
+    tenantHeader: 'X-Tenant-ID',
+    tenantQueryParam: 'tenant',
   },
 
   /** 生产环境配置 - 严格验证 */
   production: {
-    validateTenant: true,
-    allowSubdomainTenant: true,
+    enableBasicValidation: true,
     tenantHeader: 'X-Tenant-ID',
     tenantQueryParam: 'tenant',
   },
 
-  /** API服务配置 - 支持多种租户识别方式 */
+  /** API服务配置 */
   apiService: {
-    validateTenant: true,
-    allowSubdomainTenant: true,
+    enableBasicValidation: true,
     tenantHeader: 'X-Tenant-ID',
     tenantQueryParam: 'tenant',
-    validateTenantFn: async (tenantId: string) => {
-      // 这里可以集成数据库验证
-      return tenantId.length >= 3;
-    },
-    getTenantContextFn: async (tenantId: string) => {
-      // 这里可以集成数据库查询
-      return {
-        tenantId,
-        tenantCode: tenantId,
-        tenantName: `Tenant ${tenantId}`,
-        tenantType: 'enterprise',
-        status: 'active',
-        createdAt: new Date(),
-        config: {},
-      };
-    },
   },
 } as const;

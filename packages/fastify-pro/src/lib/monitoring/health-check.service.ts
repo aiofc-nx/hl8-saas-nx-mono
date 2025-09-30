@@ -71,7 +71,7 @@ export interface IComponentHealth {
   error?: string;
 
   /** 详细信息 */
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**

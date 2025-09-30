@@ -15,8 +15,10 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 // import { FastifyModule as NestFastifyModule } from '@nestjs/platform-fastify';
 import { EnterpriseFastifyAdapter } from '../adapters/enterprise-fastify.adapter';
+import { TenantExtractionMiddleware } from '../middleware/tenant.middleware';
 import { HealthCheckService } from '../monitoring/health-check.service';
 // import { IFastifyEnterpriseConfig } from '../types/fastify.types';
 
@@ -28,7 +30,7 @@ export interface IFastifyProModuleConfig {
   enterprise?: {
     enableHealthCheck?: boolean;
     enablePerformanceMonitoring?: boolean;
-    enableMultiTenant?: boolean;
+    enableTenantExtraction?: boolean;
     tenantHeader?: string;
     corsOptions?: {
       origin?: boolean | string | string[];
@@ -39,9 +41,9 @@ export interface IFastifyProModuleConfig {
   /** 模块选项 */
   module?: {
     global?: boolean;
-    imports?: any[];
+    imports?: Array<DynamicModule>;
     providers?: Provider[];
-    exports?: any[];
+    exports?: Array<Provider | string | symbol>;
   };
 }
 
@@ -59,7 +61,7 @@ export class FastifyProModule {
    */
   static forRoot(config?: IFastifyProModuleConfig): DynamicModule {
     const providers: Provider[] = [];
-    const exports: any[] = [];
+    const exports: Array<Provider | string | symbol> = [];
 
     // 添加企业级适配器
     providers.push({
@@ -75,8 +77,8 @@ export class FastifyProModule {
     if (config?.enterprise?.enableHealthCheck) {
       providers.push({
         provide: HealthCheckService,
-        useFactory: (fastify: any) => {
-          return new HealthCheckService(fastify);
+        useFactory: (fastify: unknown) => {
+          return new HealthCheckService(fastify as any);
         },
         inject: ['FASTIFY_INSTANCE'],
       });
@@ -103,10 +105,10 @@ export class FastifyProModule {
    */
   static forRootAsync(options: {
     useFactory: (
-      ...args: any[]
+      ...args: unknown[]
     ) => Promise<IFastifyProModuleConfig> | IFastifyProModuleConfig;
-    inject?: any[];
-    imports?: any[];
+    inject?: Array<string | symbol>;
+    imports?: Array<DynamicModule>;
   }): DynamicModule {
     const providers: Provider[] = [
       {
@@ -141,18 +143,18 @@ export class FastifyProModule {
   static forFeature(features: {
     healthCheck?: boolean;
     performanceMonitoring?: boolean;
-    multiTenant?: boolean;
+    tenantExtraction?: boolean;
     cors?: boolean;
   }): DynamicModule {
     const providers: Provider[] = [];
-    const exports: any[] = [];
+    const exports: Array<Provider | string | symbol> = [];
 
     // 健康检查功能
     if (features.healthCheck) {
       providers.push({
         provide: HealthCheckService,
-        useFactory: (fastify: any) => {
-          return new HealthCheckService(fastify);
+        useFactory: (fastify: unknown) => {
+          return new HealthCheckService(fastify as any);
         },
         inject: ['FASTIFY_INSTANCE'],
       });
@@ -171,16 +173,23 @@ export class FastifyProModule {
       exports.push('PERFORMANCE_MONITOR');
     }
 
-    // 多租户功能
-    if (features.multiTenant) {
+    // 租户提取功能
+    if (features.tenantExtraction) {
       providers.push({
-        provide: 'TENANT_SERVICE',
-        useFactory: () => {
-          // 这里可以添加租户服务
-          return {};
+        provide: 'TENANT_EXTRACTION_MIDDLEWARE',
+        useFactory: (moduleRef: ModuleRef) => {
+          const configService = moduleRef.get('FASTIFY_PRO_CONFIG', {
+            strict: false,
+          });
+          return new TenantExtractionMiddleware({
+            name: 'tenant-extraction',
+            tenantHeader:
+              configService?.enterprise?.tenantHeader || 'X-Tenant-ID',
+          });
         },
+        inject: ['FASTIFY_PRO_CONFIG'],
       });
-      exports.push('TENANT_SERVICE');
+      exports.push('TENANT_EXTRACTION_MIDDLEWARE');
     }
 
     // CORS功能
@@ -225,7 +234,7 @@ export const DefaultFastifyProConfigs = {
     enterprise: {
       enableHealthCheck: true,
       enablePerformanceMonitoring: true,
-      enableMultiTenant: false,
+      enableTenantExtraction: false,
       corsOptions: {
         origin: true,
         credentials: true,
@@ -241,7 +250,7 @@ export const DefaultFastifyProConfigs = {
     enterprise: {
       enableHealthCheck: true,
       enablePerformanceMonitoring: true,
-      enableMultiTenant: true,
+      enableTenantExtraction: true,
       tenantHeader: 'X-Tenant-ID',
       corsOptions: {
         origin: ['https://yourdomain.com'],
@@ -258,7 +267,7 @@ export const DefaultFastifyProConfigs = {
     enterprise: {
       enableHealthCheck: true,
       enablePerformanceMonitoring: true,
-      enableMultiTenant: true,
+      enableTenantExtraction: true,
       tenantHeader: 'X-Tenant-ID',
       corsOptions: {
         origin: (origin: string) => {

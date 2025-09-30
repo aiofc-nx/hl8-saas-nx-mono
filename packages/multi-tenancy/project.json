@@ -1,0 +1,19 @@
+{
+  "name": "multi-tenancy",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/multi-tenancy/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/multi-tenancy",
+        "main": "packages/multi-tenancy/src/index.ts",
+        "tsConfig": "packages/multi-tenancy/tsconfig.lib.json",
+        "assets": ["packages/multi-tenancy/*.md"]
+      }
+    }
+  }
+}

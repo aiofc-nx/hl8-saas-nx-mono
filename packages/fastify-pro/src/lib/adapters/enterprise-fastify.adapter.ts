@@ -43,7 +43,11 @@ export interface IEnterpriseFastifyOptions {
       origin?: boolean | string | string[];
       credentials?: boolean;
     };
-    logger?: any;
+    logger?: {
+      level?: string;
+      prettyPrint?: boolean;
+      serializers?: Record<string, unknown>;
+    };
   };
 }
 
@@ -84,7 +88,8 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
         );
 
         // 将enterpriseCore赋值给readonly字段需要类型断言
-        (this as any).enterpriseCore = enterpriseCore;
+        (this as unknown as { enterpriseCore: unknown }).enterpriseCore =
+          enterpriseCore;
 
         console.log('✅ 企业级Fastify功能已初始化');
       }
@@ -157,18 +162,16 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
         level: 'info' as const,
         prettyPrint: true,
       },
-      multiTenant: {
-        enabled: this.enterpriseConfig.enableMultiTenant || false,
-        tenantHeader: this.enterpriseConfig.tenantHeader || 'X-Tenant-ID',
-        tenantQueryParam: 'tenant',
-      },
     };
   }
 
   /**
    * 重写listen方法，添加企业级启动逻辑
    */
-  override async listen(port: string | number, ...args: any[]): Promise<any> {
+  override async listen(
+    port: string | number,
+    ...args: unknown[]
+  ): Promise<unknown> {
     // 启动企业级功能
     if (this.enterpriseCore) {
       try {
@@ -183,13 +186,13 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
     }
 
     // 调用父类listen方法
-    return super.listen(port, ...args);
+    return super.listen(port, ...(args as [string, () => void]));
   }
 
   /**
    * 重写close方法，添加企业级清理逻辑
    */
-  override async close(): Promise<any> {
+  override async close(): Promise<undefined> {
     // 停止企业级功能
     if (this.enterpriseCore) {
       try {
@@ -201,7 +204,8 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
     }
 
     // 调用父类close方法
-    return super.close();
+    await super.close();
+    return undefined;
   }
 
   /**

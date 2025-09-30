@@ -16,7 +16,7 @@ import { HealthCheckService } from '../monitoring/health-check.service';
 // 模拟NestJS装饰器
 jest.mock('@nestjs/common', () => ({
   ...jest.requireActual('@nestjs/common'),
-  Module: () => (target: any) => target,
+  Module: () => (target: unknown) => target,
 }));
 
 describe('FastifyProModule', () => {

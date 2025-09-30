@@ -29,7 +29,14 @@ declare module 'fastify' {
   interface FastifyRequest {
     startTime?: number;
     tenantId?: string;
-    tenantContext?: any;
+    tenantContext?: {
+      tenantId: string;
+      organizationId?: string;
+      departmentId?: string;
+      userId?: string;
+      isolationLevel?: 'tenant' | 'organization' | 'department' | 'user';
+      metadata?: Record<string, unknown>;
+    };
     errors?: Array<{
       middleware: string;
       error: string;

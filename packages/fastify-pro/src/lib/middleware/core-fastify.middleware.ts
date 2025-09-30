@@ -248,7 +248,11 @@ export abstract class CoreFastifyMiddleware implements IFastifyMiddleware {
    */
   protected async doRegister(
     fastify: FastifyInstance,
-    middleware: any
+    middleware: (
+      request: FastifyRequest,
+      reply: FastifyReply,
+      done: () => void
+    ) => Promise<void> | void
   ): Promise<void> {
     // 默认使用preHandler钩子
     await fastify.addHook('preHandler', middleware);

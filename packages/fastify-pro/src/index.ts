@@ -27,3 +27,6 @@ export * from './lib/types/fastify.types';
 
 // NestJS模块
 export * from './lib/modules/fastify-pro.module';
+
+// 示例
+export * from './examples/fastify-pro-multi-tenancy-integration.example';

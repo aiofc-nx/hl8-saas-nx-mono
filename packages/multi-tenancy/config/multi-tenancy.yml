@@ -1,0 +1,106 @@
+# 多租户模块配置文件
+# 支持环境变量覆盖，格式：${ENV_VAR_NAME:-default_value}
+
+context:
+  # 是否启用自动注入
+  enableAutoInjection: ${TENANT_AUTO_INJECTION:-true}
+  # 上下文超时时间（毫秒）
+  contextTimeout: ${TENANT_CONTEXT_TIMEOUT:-30000}
+  # 是否启用审计日志
+  enableAuditLog: ${TENANT_AUDIT_LOG:-true}
+  # 上下文存储方式
+  contextStorage: ${TENANT_CONTEXT_STORAGE:-memory}
+  # 是否允许跨租户访问
+  allowCrossTenantAccess: ${TENANT_CROSS_ACCESS:-false}
+
+isolation:
+  # 隔离策略
+  strategy: ${TENANT_ISOLATION_STRATEGY:-key-prefix}
+  # 键前缀
+  keyPrefix: ${TENANT_KEY_PREFIX:-tenant:}
+  # 命名空间
+  namespace: ${TENANT_NAMESPACE:-tenant-namespace}
+  # 是否启用隔离
+  enableIsolation: ${TENANT_ISOLATION_ENABLED:-true}
+  # 隔离级别
+  level: ${TENANT_ISOLATION_LEVEL:-strict}
+
+middleware:
+  # 是否启用租户中间件
+  enableTenantMiddleware: ${TENANT_MIDDLEWARE_ENABLED:-true}
+  # 租户ID请求头名称
+  tenantHeader: ${TENANT_HEADER:-X-Tenant-ID}
+  # 租户ID查询参数名称
+  tenantQueryParam: ${TENANT_QUERY_PARAM:-tenant}
+  # 是否支持子域名提取
+  tenantSubdomain: ${TENANT_SUBDOMAIN:-true}
+  # 验证超时时间（毫秒）
+  validationTimeout: ${TENANT_VALIDATION_TIMEOUT:-5000}
+  # 是否启用严格验证
+  strictValidation: ${TENANT_STRICT_VALIDATION:-true}
+
+security:
+  # 是否启用安全检查
+  enableSecurityCheck: ${TENANT_SECURITY_ENABLED:-true}
+  # 最大失败尝试次数
+  maxFailedAttempts: ${TENANT_MAX_FAILED_ATTEMPTS:-5}
+  # 锁定持续时间（毫秒）
+  lockoutDuration: ${TENANT_LOCKOUT_DURATION:-300000}
+  # 是否启用审计日志
+  enableAuditLog: ${TENANT_SECURITY_AUDIT:-true}
+  # 是否启用IP白名单
+  enableIpWhitelist: ${TENANT_IP_WHITELIST_ENABLED:-false}
+  # IP白名单
+  ipWhitelist: ${TENANT_IP_WHITELIST:-[]}
+
+multiLevel:
+  # 是否启用多层级隔离
+  enableMultiLevelIsolation: ${MULTI_LEVEL_ISOLATION_ENABLED:-true}
+  # 默认隔离级别
+  defaultIsolationLevel: ${MULTI_LEVEL_DEFAULT_LEVEL:-tenant}
+  # 键前缀
+  keyPrefix: ${MULTI_LEVEL_KEY_PREFIX:-multi:}
+  # 命名空间前缀
+  namespacePrefix: ${MULTI_LEVEL_NAMESPACE_PREFIX:-ml_}
+  # 各级别配置
+  levels:
+    tenant:
+      # 隔离策略
+      strategy: ${MULTI_LEVEL_TENANT_STRATEGY:-key-prefix}
+      # 键前缀
+      keyPrefix: ${MULTI_LEVEL_TENANT_KEY_PREFIX:-tenant:}
+      # 是否启用隔离
+      enableIsolation: ${MULTI_LEVEL_TENANT_ISOLATION:-true}
+      # 最大键长度
+      maxKeyLength: ${MULTI_LEVEL_TENANT_MAX_KEY_LENGTH:-256}
+    organization:
+      # 隔离策略
+      strategy: ${MULTI_LEVEL_ORG_STRATEGY:-key-prefix}
+      # 键前缀
+      keyPrefix: ${MULTI_LEVEL_ORG_KEY_PREFIX:-org:}
+      # 是否启用隔离
+      enableIsolation: ${MULTI_LEVEL_ORG_ISOLATION:-true}
+      # 最大键长度
+      maxKeyLength: ${MULTI_LEVEL_ORG_MAX_KEY_LENGTH:-256}
+    department:
+      # 隔离策略
+      strategy: ${MULTI_LEVEL_DEPT_STRATEGY:-key-prefix}
+      # 键前缀
+      keyPrefix: ${MULTI_LEVEL_DEPT_KEY_PREFIX:-dept:}
+      # 是否启用隔离
+      enableIsolation: ${MULTI_LEVEL_DEPT_ISOLATION:-true}
+      # 最大键长度
+      maxKeyLength: ${MULTI_LEVEL_DEPT_MAX_KEY_LENGTH:-256}
+    user:
+      # 隔离策略
+      strategy: ${MULTI_LEVEL_USER_STRATEGY:-key-prefix}
+      # 键前缀
+      keyPrefix: ${MULTI_LEVEL_USER_KEY_PREFIX:-user:}
+      # 是否启用隔离
+      enableIsolation: ${MULTI_LEVEL_USER_ISOLATION:-true}
+      # 最大键长度
+      maxKeyLength: ${MULTI_LEVEL_USER_MAX_KEY_LENGTH:-256}
+  # 是否启用层级验证
+  enableHierarchyValidation: ${MULTI_LEVEL_HIERARCHY_VALIDATION:-true}
+  # 是否启用权限检查
+  enablePermissionCheck: ${MULTI_LEVEL_PERMISSION_CHECK:-true}
