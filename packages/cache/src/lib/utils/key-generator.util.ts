@@ -211,7 +211,7 @@ export function environmentKeyGenerator(
  */
 export function combineKeyGenerators(
   generators: CacheKeyGenerator[],
-  separator: string = ':'
+  separator = ':'
 ): CacheKeyGenerator {
   return (args: any[]) => {
     return generators.map((generator) => generator(args)).join(separator);
@@ -242,7 +242,7 @@ export const KeyGeneratorFactory = {
   /**
    * 创建基于ID的键生成器
    */
-  createIdKeyGenerator: (idField: string = 'id'): CacheKeyGenerator => {
+  createIdKeyGenerator: (idField = 'id'): CacheKeyGenerator => {
     return objectPropsKeyGenerator([idField]);
   },
 

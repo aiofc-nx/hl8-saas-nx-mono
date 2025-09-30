@@ -11,12 +11,8 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import { CacheMonitorService } from './cache-monitor.service';
 import { RedisService } from '../redis.service';
-import { ContextService } from '../context.service';
-import {
-  CacheHealthCheck,
-  HealthStatus,
-  HealthCheck,
-} from '../types/cache.types';
+import { TenantContextService } from '@hl8/multi-tenancy';
+import { HealthCheck } from '../types/cache.types';
 
 /**
  * 健康检查配置
@@ -71,7 +67,7 @@ export class HealthCheckService {
   constructor(
     private readonly monitorService: CacheMonitorService,
     private readonly redisService: RedisService,
-    private readonly contextService: ContextService,
+    private readonly tenantContextService: TenantContextService,
     private readonly logger: PinoLogger
   ) {
     this.logger.setContext({ requestId: 'health-check-service' });
@@ -252,8 +248,8 @@ export class HealthCheckService {
     const startTime = Date.now();
 
     try {
-      const hasContext = this.contextService.hasTenantContext();
-      const currentTenant = this.contextService.getTenant();
+      const hasContext = this.tenantContextService.getTenant() !== null;
+      const currentTenant = this.tenantContextService.getTenant();
 
       return {
         name: 'context',

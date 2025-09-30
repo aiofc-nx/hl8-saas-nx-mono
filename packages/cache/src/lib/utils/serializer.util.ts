@@ -78,7 +78,7 @@ export class SafeJsonSerializer implements Serializer {
   private readonly maxDepth: number;
   private readonly circularRefMarker: string;
 
-  constructor(maxDepth: number = 10, circularRefMarker: string = '[Circular]') {
+  constructor(maxDepth = 10, circularRefMarker = '[Circular]') {
     this.maxDepth = maxDepth;
     this.circularRefMarker = circularRefMarker;
   }

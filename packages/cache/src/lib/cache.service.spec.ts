@@ -9,16 +9,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from './cache.service';
 import { RedisService } from './redis.service';
-import { ContextService } from './context.service';
+import {
+  TenantContextService,
+  TenantIsolationService,
+} from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
 
 describe('CacheService', () => {
   let service: CacheService;
   let redisService: jest.Mocked<RedisService>;
-  let contextService: jest.Mocked<ContextService>;
-  let logger: jest.Mocked<PinoLogger>;
+  let tenantContextService: jest.Mocked<TenantContextService>;
+  let tenantIsolationService: jest.Mocked<TenantIsolationService>;
 
   beforeEach(async () => {
+    // 默认的 tenantIsolationService mock
+    const defaultTenantIsolationMock = {
+      getTenantKey: jest.fn().mockImplementation((key: string) => {
+        const tenantId = 'tenant-1'; // 默认租户ID
+        return Promise.resolve(`test:tenant:${tenantId}:${key}`);
+      }),
+      getTenantKeys: jest.fn(),
+      getCurrentTenant: jest.fn(),
+      clearTenantCache: jest.fn(),
+      getTenantStats: jest.fn(),
+      listTenantKeys: jest.fn(),
+      getTenantNamespace: jest.fn(),
+      isolateData: jest.fn(),
+      extractTenantData: jest.fn(),
+      validateTenantAccess: jest.fn(),
+    };
+
     const mockRedisService = {
       get: jest.fn(),
       set: jest.fn(),
@@ -35,9 +55,8 @@ describe('CacheService', () => {
       getConnectionInfo: jest.fn(),
     };
 
-    const mockContextService = {
+    const mockTenantContextService = {
       getTenant: jest.fn(),
-      hasTenantContext: jest.fn(),
       setTenant: jest.fn(),
       getUser: jest.fn(),
       setUser: jest.fn(),
@@ -58,6 +77,8 @@ describe('CacheService', () => {
       validateContext: jest.fn(),
     };
 
+    const mockTenantIsolationService = defaultTenantIsolationMock;
+
     const mockLogger = {
       setContext: jest.fn(),
       info: jest.fn(),
@@ -74,8 +95,12 @@ describe('CacheService', () => {
           useValue: mockRedisService,
         },
         {
-          provide: ContextService,
-          useValue: mockContextService,
+          provide: TenantContextService,
+          useValue: mockTenantContextService,
+        },
+        {
+          provide: TenantIsolationService,
+          useValue: mockTenantIsolationService,
         },
         {
           provide: PinoLogger,
@@ -98,8 +123,8 @@ describe('CacheService', () => {
 
     service = module.get<CacheService>(CacheService);
     redisService = module.get(RedisService);
-    contextService = module.get(ContextService);
-    logger = module.get(PinoLogger);
+    tenantContextService = module.get(TenantContextService);
+    tenantIsolationService = module.get(TenantIsolationService);
   });
 
   it('should be defined', () => {
@@ -111,7 +136,10 @@ describe('CacheService', () => {
       const testKey = 'test-key';
       const testValue = { data: 'test' };
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.get.mockResolvedValue(testValue);
 
       const result = await service.get(testKey);
@@ -125,7 +153,10 @@ describe('CacheService', () => {
     it('should return null when key does not exist', async () => {
       const testKey = 'non-existent-key';
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.get.mockResolvedValue(null);
 
       const result = await service.get(testKey);
@@ -137,7 +168,10 @@ describe('CacheService', () => {
       const testKey = 'test-key';
       const testValue = { data: 'test' };
 
-      contextService.getTenant.mockReturnValue('tenant-2');
+      tenantContextService.getTenant.mockReturnValue('tenant-2');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-2:test-key'
+      );
       redisService.get.mockResolvedValue(testValue);
 
       await service.get(testKey);
@@ -154,7 +188,10 @@ describe('CacheService', () => {
       const testValue = { data: 'test' };
       const ttl = 1800;
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.set.mockResolvedValue(undefined);
 
       await service.set(testKey, testValue, ttl);
@@ -170,7 +207,10 @@ describe('CacheService', () => {
       const testKey = 'test-key';
       const testValue = { data: 'test' };
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.set.mockResolvedValue(undefined);
 
       await service.set(testKey, testValue);
@@ -187,7 +227,10 @@ describe('CacheService', () => {
     it('should delete cache value with tenant isolation', async () => {
       const testKey = 'test-key';
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.delete.mockResolvedValue(undefined);
 
       await service.delete(testKey);
@@ -202,7 +245,10 @@ describe('CacheService', () => {
     it('should check if key exists with tenant isolation', async () => {
       const testKey = 'test-key';
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:test-key'
+      );
       redisService.exists.mockResolvedValue(true);
 
       const result = await service.exists(testKey);
@@ -219,7 +265,16 @@ describe('CacheService', () => {
       const testKeys = ['key1', 'key2'];
       const testValues = [{ data: 'test1' }, { data: 'test2' }];
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key2'
+      );
       redisService.mget.mockResolvedValue(testValues);
 
       const result = await service.mget(testKeys);
@@ -239,7 +294,16 @@ describe('CacheService', () => {
         { key: 'key2', value: { data: 'test2' } },
       ];
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key2'
+      );
       redisService.mset.mockResolvedValue(undefined);
 
       await service.mset(testPairs);
@@ -263,7 +327,16 @@ describe('CacheService', () => {
     it('should delete multiple values with tenant isolation', async () => {
       const testKeys = ['key1', 'key2'];
 
-      contextService.getTenant.mockReturnValue('tenant-1');
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key1'
+      );
+      tenantIsolationService.getTenantKey.mockResolvedValueOnce(
+        'test:tenant:tenant-1:key2'
+      );
       redisService.mdelete.mockResolvedValue(undefined);
 
       await service.mdelete(testKeys);
@@ -278,23 +351,23 @@ describe('CacheService', () => {
   describe('getCurrentTenant', () => {
     it('should return current tenant from context', () => {
       const testTenant = 'tenant-1';
-      contextService.getTenant.mockReturnValue(testTenant);
+      tenantContextService.getTenant.mockReturnValue(testTenant);
 
       const result = service.getCurrentTenant();
 
       expect(result).toBe(testTenant);
-      expect(contextService.getTenant).toHaveBeenCalled();
+      expect(tenantContextService.getTenant).toHaveBeenCalled();
     });
   });
 
   describe('hasTenantContext', () => {
     it('should check if tenant context exists', () => {
-      contextService.hasTenantContext.mockReturnValue(true);
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
 
       const result = service.hasTenantContext();
 
       expect(result).toBe(true);
-      expect(contextService.hasTenantContext).toHaveBeenCalled();
+      expect(tenantContextService.getTenant).toHaveBeenCalled();
     });
   });
 
@@ -317,6 +390,9 @@ describe('CacheService', () => {
       const tenantId = 'tenant-1';
       const mockKeys = ['key1', 'key2'];
 
+      tenantIsolationService.getTenantKey.mockResolvedValue(
+        'test:tenant:tenant-1:*'
+      );
       redisService.keys.mockResolvedValue(mockKeys);
       redisService.mdelete.mockResolvedValue(undefined);
 
@@ -330,7 +406,7 @@ describe('CacheService', () => {
   describe('getHealthStatus', () => {
     it('should return health status', async () => {
       redisService.isHealthy.mockReturnValue(true);
-      contextService.hasTenantContext.mockReturnValue(true);
+      tenantContextService.getTenant.mockReturnValue('tenant-1');
 
       const healthStatus = await service.getHealthStatus();
 

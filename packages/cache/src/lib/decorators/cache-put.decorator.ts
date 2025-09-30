@@ -8,7 +8,6 @@
  */
 
 import { SetMetadata } from '@nestjs/common';
-import { CacheableOptions } from '../types/cache.types';
 
 export const CACHE_PUT_METADATA = 'cache_put';
 

@@ -136,7 +136,7 @@ export class CacheStatsService {
         (sum, entry) => sum + entry.stats.totalKeys,
         0
       );
-      const totalRequests = totalHits + totalMisses;
+      // const totalRequests = totalHits + totalMisses; // 暂时未使用
 
       const hitRates = relevantStats.map((entry) => entry.stats.hitRate);
       const averageHitRate =

@@ -8,7 +8,6 @@
  */
 
 import { SetMetadata } from '@nestjs/common';
-import { CacheableOptions } from '../types/cache.types';
 
 export const CACHE_EVICT_METADATA = 'cache_evict';
 

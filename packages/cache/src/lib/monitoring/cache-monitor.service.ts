@@ -11,7 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '../cache.service';
 import { RedisService } from '../redis.service';
-import { ContextService } from '../context.service';
+import { TenantContextService } from '@hl8/multi-tenancy';
 import {
   CacheStats,
   TenantCacheStats,
@@ -47,7 +47,7 @@ export class CacheMonitorService {
   constructor(
     private readonly cacheService: CacheService,
     private readonly redisService: RedisService,
-    private readonly contextService: ContextService,
+    private readonly tenantContextService: TenantContextService,
     private readonly logger: PinoLogger
   ) {
     this.logger.setContext({ requestId: 'cache-monitor-service' });
@@ -196,10 +196,10 @@ export class CacheMonitorService {
 
       // 检查Redis连接
       const redisConnected = this.redisService.isHealthy();
-      const connectionInfo = this.redisService.getConnectionInfo();
 
       // 检查租户上下文
-      const tenantContextAvailable = this.contextService.hasTenantContext();
+      const tenantContextAvailable =
+        this.tenantContextService.getTenant() !== null;
 
       // 测试缓存操作
       let testSuccess = false;

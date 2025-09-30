@@ -7,6 +7,8 @@
  * @since 1.0.0
  */
 
+import { IMultiTenancyModuleOptions } from '@hl8/multi-tenancy';
+
 /**
  * 缓存服务接口
  *
@@ -82,10 +84,11 @@ export interface CacheModuleOptions {
   redis: RedisConfig;
   defaultTTL?: number;
   keyPrefix?: string;
-  enableTenantIsolation?: boolean;
+  enableTenantIsolation?: boolean; // 保留用于向后兼容
   strategy?: CacheStrategyConfig;
   monitoring?: MonitoringConfig;
   cls?: ClsConfig;
+  multiTenancy?: IMultiTenancyModuleOptions; // 新增多租户配置
 }
 
 /**
