@@ -1,0 +1,35 @@
+{
+  "name": "@hl8/cache",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "description": "HL8 SAAS平台缓存模块 - 基于Redis和nestjs-cls的高性能、多租户缓存解决方案",
+  "keywords": [
+    "nestjs",
+    "cache",
+    "redis",
+    "nestjs-cls",
+    "multi-tenant",
+    "enterprise",
+    "performance"
+  ],
+  "dependencies": {
+    "@hl8/logger": "workspace:*",
+    "@hl8/common": "workspace:*",
+    "@hl8/utils": "workspace:*",
+    "@hl8/config": "workspace:*",
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "nestjs-cls": "^5.0.0",
+    "redis": "^4.6.0",
+    "ioredis": "^5.3.0",
+    "reflect-metadata": "^0.2.2",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/redis": "^4.0.0",
+    "@types/node": "^24.5.2"
+  }
+}

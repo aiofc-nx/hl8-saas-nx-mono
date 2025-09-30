@@ -15,10 +15,15 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@hl8/cache": ["packages/cache/src/index.ts"],
       "@hl8/common": ["packages/common/src/index.ts"],
       "@hl8/config": ["packages/config/src/index.ts"],
+      "@hl8/core": ["packages/core/src/index.ts"],
+      "@hl8/database": ["packages/database/src/index.ts"],
       "@hl8/fastify-pro": ["packages/fastify-pro/src/index.ts"],
       "@hl8/logger": ["packages/logger/src/index.ts"],
+      "@hl8/messaging": ["packages/messaging/src/index.ts"],
+      "@hl8/multi-tenancy": ["packages/multi-tenancy/src/index.ts"],
       "@hl8/utils": ["packages/utils/src/index.ts"]
     }
   },

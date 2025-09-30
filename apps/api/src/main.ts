@@ -82,7 +82,6 @@ async function bootstrap() {
         logger: {
           level: 'info',
           prettyPrint: true,
-          singleLine: false,
         },
       },
     }) as any

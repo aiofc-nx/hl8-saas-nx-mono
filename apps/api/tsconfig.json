@@ -4,16 +4,16 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/common"
+      "path": "../../packages/logger"
     },
     {
       "path": "../../packages/fastify-pro"
     },
     {
-      "path": "../../packages/logger"
+      "path": "../../packages/config"
     },
     {
-      "path": "../../packages/utils"
+      "path": "../../packages/common"
     },
     {
       "path": "./tsconfig.app.json"

@@ -55,6 +55,7 @@
  */
 
 import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypedConfigModule, fileLoader } from '@hl8/config';
 import { LoggerModule } from '@hl8/logger';
 import { ExceptionModule } from '@hl8/common';
@@ -65,6 +66,7 @@ import { AppConfig } from './config/app.config';
 import { HealthModule } from './health/health.module';
 import { TenantModule } from './tenant/tenant.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { RequestLoggingInterceptor } from './interceptors/request-logging.interceptor';
 import { join } from 'path';
 
 @Module({
@@ -147,7 +149,7 @@ import { join } from 'path';
           },
         },
       }),
-      inject: [AppConfig],
+      inject: [AppConfig as any],
     }) as any,
 
     // 健康检查模块 - 提供应用健康状态检查
@@ -160,6 +162,13 @@ import { join } from 'path';
     MetricsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 请求日志拦截器 - 记录所有HTTP请求的详细信息
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestLoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}
