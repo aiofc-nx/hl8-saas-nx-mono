@@ -1,119 +1,188 @@
 ---
-description: AI助手开发指导文档
+description: HL8 SAAS平台 AI助手开发规范
 globs:
 alwaysApply: true
 ---
 
-# AI助手开发指导文档
+# HL8 SAAS 平台 AI 助手开发规范
 
-## 🎯 项目概述
+> **版本**: 2.0.0 | **更新**: 2025-10-01 | **完整文档**: [docs/guidelines/](../../../docs/guidelines/)
 
-### 项目目标
+---
 
-我们正在构建一个**面向现代企业的SAAS平台基础架构**，采用混合架构模式（Clean Architecture + CQRS + 事件溯源 + 事件驱动架构），为企业用户提供高质量、可扩展、安全可靠的软件即服务解决方案。
+## 🎯 项目架构
 
-### 项目特点
+### 混合架构 = Clean Architecture + DDD + CQRS + ES + EDA
 
-- **多租户架构**: 支持企业租户、社群租户、团队租户、个人租户等多种租户类型
-- **混合架构模式**: Clean Architecture + CQRS + Event Sourcing(ES) + Event-Driven Architecture(EDA)
+```
+Interface → Application → Domain
+     ↓           ↓
+Infrastructure ←┘
+```
 
-### 技术栈
+**技术栈**: TypeScript + NestJS + Fastify + Nx + pnpm + PostgreSQL + Redis
 
-- **运行时**: Node.js
-- **框架**: NestJS + Fastify
-- **语言**: TypeScript (严格模式)
-- **构建工具**: Nx 21.5.3 + SWC
-- **包管理**: pnpm
-- **数据库**: PostgreSQL + MongoDB
-- **ORM**: MikroORM
-- **消息队列**: 待定
-- **缓存**: Redis
+---
 
-### 架构模式组合
+## 🏗️ 核心原则
 
-**Clean Architecture (分层架构)**:
+### 1. 充血模型（必须遵循）
 
-- **领域层 (Domain)**: 以实体为中心，遵循充血模型设计实体，实体与聚合根分离，是核心业务逻辑，要求最内层最稳定
-- **应用层 (Application)**: 以用例为中心，实现 CQRS、事件溯源
-- **基础设施层 (Infrastructure)**: 事件驱动架构实现
-- **接口层 (Interface)**: 用户交互和协议适配
+**业务逻辑在实体内，服务层只协调**
 
-**CQRS (命令查询职责分离)**:
+```typescript
+// ✅ 充血模型
+class User extends BaseEntity {
+  private status: UserStatus;
+  
+  activate(): void {
+    if (this.status !== UserStatus.Pending) {
+      throw new UserNotPendingException();
+    }
+    this.status = UserStatus.Active;
+    this.addDomainEvent(new UserActivatedEvent(this.id));
+  }
+}
 
-- **命令端**: 处理写操作，产生领域事件
-- **查询端**: 处理读操作，优化查询性能
-- **读写分离**: 独立扩展和优化
+// ❌ 贫血模型（禁止）
+class User { setStatus(status: string): void { } }
+class UserService { activate(user: User) { /* 业务逻辑 */ } }  // ❌
+```
 
-**Event Sourcing (事件溯源)**:
+### 2. 常量管理（必须遵循）
 
-- **事件存储**: 记录所有业务状态变更
-- **状态重建**: 从事件历史重建当前状态
-- **审计追踪**: 完整的业务操作历史
+**每个项目必须创建 constants.ts，使用命名空间**
 
-**Event-Driven Architecture (事件驱动)**:
+```typescript
+// ✅ 正确
+export const DI_TOKENS = {
+  MODULE_OPTIONS: 'MODULE_OPTIONS',
+} as const;
 
-- **异步处理**: 提升系统响应性能
-- **松耦合**: 模块间通过事件通信
-- **可扩展**: 支持水平扩展
+import { DI_TOKENS } from './constants';
+@Inject(DI_TOKENS.MODULE_OPTIONS)
 
-## 📋 开发规范
+// ❌ 禁止硬编码
+@Inject('MODULE_OPTIONS')  // ❌
+```
+
+### 3. TSDoc 注释（必须完整）
+
+```typescript
+/**
+ * {功能简述}
+ *
+ * @description {详细描述}
+ *
+ * ## 业务规则
+ * - {规则}
+ *
+ * @param {参数} - {说明}
+ * @returns {返回值}
+ * @throws {异常} {说明}
+ * @example
+ * ```typescript
+ * {示例}
+ * ```
+ * @since 1.0.0
+ */
+```
+
+**禁用**: @created, @author, @version
+
+### 4. 零技术债
+
+- ❌ 不保留向后兼容代码
+- ❌ 不使用 deprecated
+- ✅ 始终使用最佳实践
+
+---
+
+## 🏷️ 命名规范速查
+
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 文件 | kebab-case | `user.service.ts` |
+| 变量 | camelCase | `userName` |
+| 常量 | UPPER_SNAKE_CASE | `MAX_RETRIES` |
+| 函数 | camelCase+动词 | `createUser()` |
+| 类 | PascalCase | `UserService` |
+| 接口 | I+PascalCase | `IUserService` |
+
+---
+
+## 🔒 TypeScript 严格模式
+
+```json
+{ "strict": true, "noImplicitAny": true }
+```
+
+- ❌ 禁止 any
+- ✅ 使用泛型或 unknown
+- ✅ 常量使用 as const
+
+---
+
+## 📂 文件结构
+
+```
+packages/{module}/src/lib/
+├── constants.ts       # 必需
+├── {module}.module.ts
+├── {module}.service.ts
+├── entities/          # 充血模型实体
+├── types/
+└── ...
+```
+
+### 导入顺序
+
+```typescript
+// 1. Node.js内置 → 2. 外部依赖 → 3. 跨包依赖 → 4. 相对导入
+```
+
+---
+
+## ✅ 代码生成检查清单
+
+### 充血模型
+
+- [ ] 业务逻辑在实体内
+- [ ] 私有属性+公开方法
+- [ ] 使用值对象
+- [ ] 发布领域事件
+- [ ] 使用业务语言命名
 
 ### 代码规范
 
-- **注释标准**: 严格遵循 TSDoc 规范，使用中文注释
-- **类型检查**: 启用 TypeScript 严格模式
-- **代码格式**: 使用 Prettier 统一格式化
+- [ ] 有 constants.ts
+- [ ] 完整 TSDoc 注释
+- [ ] kebab-case 文件名
+- [ ] 无硬编码
+- [ ] 导入顺序正确
 
-### 注释要求
+### 类型安全
 
-所有公共 API、类、方法、接口、枚举都必须添加完整的 TSDoc 注释，包括：
+- [ ] 严格模式
+- [ ] 无 any
+- [ ] 使用 as const
 
-- `@description`: 功能描述和业务规则
-- `@param`: 参数说明
-- `@returns`: 返回值说明
-- `@throws`: 异常情况
-- `@example`: 使用示例
-- 避免使用 `@created`、`@author`、`@version`、`@since`属性
+---
 
-### 项目组织原则
+## 🚫 禁止
 
-- **领域模块**: 开发为独立项目，便于未来微服务部署
-- **Clean Architecture**: 严格分离领域实体和聚合根
-- **用例驱动**: 在文档和设计中明确提及用例
-- **配置统一**: 子项目继承根配置文件
+- ❌ 贫血模型（实体有 setter）
+- ❌ 硬编码字符串/数字
+- ❌ 缺少注释
+- ❌ 使用 any
+- ❌ 默认导出
+- ❌ 服务层包含业务逻辑
 
-## 🛠️ 开发工作流
+---
 
-### Nx 工具使用
+## 📚 完整文档
 
-1. **了解架构**: 使用 `nx workspace` 了解项目结构
-2. **查看生成器**: 使用 `nx generators` 查看可用生成器
-3. **生成项目**: 使用 `nx run-generator` 创建新项目/库
-4. **执行任务**: 使用 `nx run` 执行构建、测试、lint等任务
-5. **依赖可视化**: 使用 `nx visualize-graph` 查看项目依赖
-
-### 工具调用规范
-
-- **工作目录**: 确保在 monorepo 根路径 `/home/arligle/aiofix-ai/hl8-saas-nx-mono`
-- **命令执行**: 使用相对路径进入子项目目录执行命令
-- **MCP工具优先**: 优先使用可用的 MCP 工具进行项目操作
-- **eslint-mcp工具优先**：优先使用可用的 MCP 工具进行linting 检查和修复
-
-## 🎯 当前开发阶段
-
-## 🤝 协作指导
-
-### AI助手职责
-
-1. **架构理解**: 深入理解混合架构模式和业务需求
-2. **代码生成**: 严格按照架构分层和代码规范生成代码
-3. **文档维护**: 保持代码注释和文档的一致性
-4. **最佳实践**: 应用 Clean Architecture、CQRS、DDD 等最佳实践
-5. **工具使用**: 充分利用 Nx 和 MCP 工具提高开发效率
-
-### 开发原则
-
-- **代码即文档**: 通过完整的 TSDoc 注释实现代码自文档化
-- **测试驱动**: 为所有业务逻辑编写单元测试
-- **渐进开发**: 按模块逐步构建，确保每个阶段的完整性
-- **质量优先**: 代码质量和架构一致性优于开发速度
+- 📐 [架构设计](../../../docs/architecture/)
+- 📋 [编码规范](../../../docs/guidelines/)
+- 💡 [充血模型实践](../../../docs/guidelines/02-rich-domain-model-practice.md)
+- 🔧 [常量管理](../../../docs/guidelines/03-constants-management.md)
