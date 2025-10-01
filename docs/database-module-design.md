@@ -1,10 +1,23 @@
 # HL8 SAAS平台数据库管理模块设计方案
 
+> **版本**: 1.0.0 | **更新**: 2025-10-01 | **规范遵循**: [项目开发规范](./guidelines/)
+
 ## 📋 文档概述
 
 ### 设计目标
 
 本文档阐述HL8 SAAS平台数据库管理模块的完整设计方案，基于MikroORM、PostgreSQL、MongoDB和nestjs-cls实现高性能、多租户、类型安全的数据库管理解决方案，为整个SAAS平台提供统一、可靠的数据库服务。
+
+### 规范遵循
+
+本文档及实现代码严格遵循以下项目规范：
+
+- ✅ **常量管理**: 使用 `DI_TOKENS` 等命名空间管理所有常量，避免硬编码
+- ✅ **类型安全**: 严格TypeScript类型检查，避免使用 `any` 类型
+- ✅ **TSDoc注释**: 所有公共API都包含完整的TSDoc注释和业务规则说明
+- ✅ **命名规范**: 遵循 kebab-case、camelCase、PascalCase、UPPER_SNAKE_CASE 等命名规范
+- ✅ **充血模型**: 实体设计遵循充血领域模型原则
+- ✅ **零技术债**: 不保留向后兼容代码，始终使用最佳实践
 
 ### 核心特性
 
@@ -83,12 +96,20 @@
 #### 数据库操作接口
 
 ```typescript
+/**
+ * 数据库服务接口
+ *
+ * @description 定义数据库服务的核心操作接口
+ * 提供基础数据库操作、事务管理、连接管理等功能
+ *
+ * @since 1.0.0
+ */
 interface IDatabaseService {
   // 基础操作
   getConnection(): Promise<Connection>;
   getEntityManager(): Promise<EntityManager>;
-  executeQuery<T>(sql: string, params?: any[]): Promise<T[]>;
-  executeRaw<T>(sql: string, params?: any[]): Promise<T>;
+  executeQuery<T>(sql: string, params?: unknown[]): Promise<T[]>;
+  executeRaw<T>(sql: string, params?: unknown[]): Promise<T>;
   
   // 事务操作
   executeTransaction<T>(callback: (em: EntityManager) => Promise<T>): Promise<T>;
@@ -106,11 +127,19 @@ interface IDatabaseService {
 #### 多租户数据库接口
 
 ```typescript
+/**
+ * 多租户数据库服务接口
+ *
+ * @description 扩展基础数据库服务，提供多租户数据隔离和管理功能
+ * 支持租户级别的数据库操作、事务管理、数据库创建等
+ *
+ * @since 1.0.0
+ */
 interface ITenantDatabaseService extends IDatabaseService {
   // 租户操作
   getTenantConnection(tenantId: string): Promise<Connection>;
   getTenantEntityManager(tenantId: string): Promise<EntityManager>;
-  executeTenantQuery<T>(tenantId: string, sql: string, params?: any[]): Promise<T[]>;
+  executeTenantQuery<T>(tenantId: string, sql: string, params?: unknown[]): Promise<T[]>;
   
   // 租户事务
   executeTenantTransaction<T>(tenantId: string, callback: (em: EntityManager) => Promise<T>): Promise<T>;
@@ -400,14 +429,134 @@ packages/database/
 
 ### 核心文件说明
 
+#### 0. constants.ts
+
+```typescript
+/**
+ * 数据库模块常量定义
+ *
+ * @description 定义数据库模块中使用的常量
+ * 用于依赖注入、配置管理、错误码定义等
+ *
+ * ## 最佳实践
+ *
+ * - ✅ 使用 `as const` 确保类型推断
+ * - ✅ 按功能模块分类组织
+ * - ✅ 使用 UPPER_SNAKE_CASE 命名规范
+ * - ✅ 避免魔法数字和硬编码字符串
+ * - ✅ 提供类型安全的常量访问
+ *
+ * @since 1.0.0
+ */
+
+// ============================================================================
+// 依赖注入令牌 (Dependency Injection Tokens)
+// ============================================================================
+
+/**
+ * 依赖注入令牌常量
+ *
+ * @description 用于 NestJS 依赖注入系统的令牌集合
+ */
+export const DI_TOKENS = {
+  /**
+   * 数据库模块配置选项令牌
+   */
+  MODULE_OPTIONS: 'DATABASE_MODULE_OPTIONS',
+
+  /**
+   * 连接管理器令牌
+   */
+  CONNECTION_MANAGER: 'CONNECTION_MANAGER',
+
+  /**
+   * 事务管理器令牌
+   */
+  TRANSACTION_MANAGER: 'TRANSACTION_MANAGER',
+} as const;
+
+// ============================================================================
+// 数据库类型常量 (Database Type Constants)
+// ============================================================================
+
+/**
+ * 数据库类型定义
+ *
+ * @description 支持的数据库类型
+ */
+export const DATABASE_TYPES = {
+  POSTGRESQL: 'postgresql',
+  MONGODB: 'mongodb',
+} as const;
+
+// ============================================================================
+// 隔离策略常量 (Isolation Strategy Constants)
+// ============================================================================
+
+/**
+ * 租户隔离策略
+ *
+ * @description 定义多租户数据隔离的策略类型
+ */
+export const ISOLATION_STRATEGIES = {
+  DATABASE: 'database',
+  SCHEMA: 'schema',
+  TABLE: 'table',
+} as const;
+
+// ============================================================================
+// 错误代码 (Error Codes)
+// ============================================================================
+
+/**
+ * 数据库错误代码
+ *
+ * @description 定义数据库操作的错误代码
+ */
+export const ERROR_CODES = {
+  CONNECTION_FAILED: 'DB_CONNECTION_FAILED',
+  QUERY_FAILED: 'DB_QUERY_FAILED',
+  TRANSACTION_FAILED: 'DB_TRANSACTION_FAILED',
+  MIGRATION_FAILED: 'DB_MIGRATION_FAILED',
+  TENANT_NOT_FOUND: 'DB_TENANT_NOT_FOUND',
+} as const;
+
+// ============================================================================
+// 类型导出 (Type Exports)
+// ============================================================================
+
+export type DITokenType = (typeof DI_TOKENS)[keyof typeof DI_TOKENS];
+export type DatabaseType = (typeof DATABASE_TYPES)[keyof typeof DATABASE_TYPES];
+export type IsolationStrategyType = (typeof ISOLATION_STRATEGIES)[keyof typeof ISOLATION_STRATEGIES];
+export type ErrorCodeType = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+```
+
 #### 1. database.module.ts
 
 ```typescript
+import { Module, DynamicModule } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { DI_TOKENS } from './constants';
 
+/**
+ * 数据库管理模块
+ *
+ * @description HL8 SAAS平台数据库管理核心模块
+ * 提供MikroORM集成、多租户支持、连接管理、事务管理等功能
+ *
+ * @since 1.0.0
+ */
 @Module({})
 export class DatabaseModule {
+  /**
+   * 配置数据库模块
+   *
+   * @description 静态方法用于配置和初始化数据库模块
+   * 
+   * @param options - 数据库模块配置选项
+   * @returns 动态模块配置
+   */
   static forRoot(options: DatabaseModuleOptions): DynamicModule {
     return {
       module: DatabaseModule,
@@ -420,7 +569,7 @@ export class DatabaseModule {
       ],
       providers: [
         {
-          provide: DATABASE_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: options,
         },
         DatabaseService,
@@ -451,6 +600,14 @@ import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 import { EntityManager, Connection } from '@mikro-orm/core';
 
+/**
+ * 数据库服务
+ *
+ * @description 提供基础数据库操作服务
+ * 包括连接管理、查询执行、事务管理等核心功能
+ *
+ * @since 1.0.0
+ */
 @Injectable()
 export class DatabaseService implements IDatabaseService {
   constructor(
@@ -458,20 +615,43 @@ export class DatabaseService implements IDatabaseService {
     private readonly cls: ClsService,
   ) {}
 
+  /**
+   * 获取数据库连接
+   *
+   * @returns 数据库连接实例
+   */
   async getConnection(): Promise<Connection> {
     return this.connectionManager.getConnection();
   }
 
+  /**
+   * 获取实体管理器
+   *
+   * @returns 实体管理器实例
+   */
   async getEntityManager(): Promise<EntityManager> {
     const connection = await this.getConnection();
     return connection.em;
   }
 
-  async executeQuery<T>(sql: string, params?: any[]): Promise<T[]> {
+  /**
+   * 执行SQL查询
+   *
+   * @param sql - SQL查询语句
+   * @param params - 查询参数
+   * @returns 查询结果
+   */
+  async executeQuery<T>(sql: string, params?: unknown[]): Promise<T[]> {
     const em = await this.getEntityManager();
     return em.getConnection().execute(sql, params);
   }
 
+  /**
+   * 执行事务
+   *
+   * @param callback - 事务回调函数
+   * @returns 事务执行结果
+   */
   async executeTransaction<T>(
     callback: (em: EntityManager) => Promise<T>
   ): Promise<T> {
@@ -479,6 +659,9 @@ export class DatabaseService implements IDatabaseService {
     return em.transactional(callback);
   }
 
+  /**
+   * 关闭所有连接
+   */
   async close(): Promise<void> {
     await this.connectionManager.closeAll();
   }
@@ -535,11 +718,32 @@ export class TenantDatabaseService implements ITenantDatabaseService {
 ```typescript
 import { ClsService } from 'nestjs-cls';
 
+/**
+ * 事务装饰器
+ *
+ * @description 方法装饰器，自动处理数据库事务和租户上下文
+ * 根据当前上下文自动选择全局事务或租户事务
+ *
+ * @param options - 事务配置选项
+ * @returns 方法装饰器
+ *
+ * @example
+ * ```typescript
+ * @Transactional()
+ * async createUser(userData: UserData): Promise<User> {
+ *   // 业务逻辑会自动在事务中执行
+ * }
+ * ```
+ *
+ * @since 1.0.0
+ */
 export function Transactional(options?: TransactionOptions) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function (target: object, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    descriptor.value = async function (...args: unknown[]) {
       const cls = this.cls as ClsService;
       const tenantId = cls.get('tenantId');
       
