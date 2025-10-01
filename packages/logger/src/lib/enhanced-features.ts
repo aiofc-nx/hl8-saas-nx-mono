@@ -5,12 +5,51 @@
  * 包含完整的使用示例和最佳实践
  *
  * @fileoverview 日志增强功能实现文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
 import { LogEntry, LogLevel } from './types';
 import { PinoLogger } from './pino-logger';
+
+/**
+ * 告警接口
+ *
+ * @description 定义日志告警的数据结构
+ */
+export interface Alert {
+  id: string;
+  ruleName: string;
+  message: string;
+  level: LogLevel;
+  timestamp: Date;
+  status: 'active' | 'acknowledged' | 'resolved';
+  acknowledgedBy?: string;
+  acknowledgedAt?: Date;
+  resolvedBy?: string;
+  resolvedAt?: Date;
+}
+
+/**
+ * 日志过滤条件接口
+ *
+ * @description 定义日志过滤的各种条件类型
+ */
+interface FilterCriteria {
+  level?: {
+    min?: LogLevel;
+    max?: LogLevel;
+    include?: LogLevel[];
+    exclude?: LogLevel[];
+  };
+  content?: { includes?: string[]; excludes?: string[]; regex?: RegExp };
+  context?: { userId?: string | string[]; requestId?: string | string[] };
+  timeRange?: {
+    start?: Date;
+    end?: Date;
+    last?: { hours?: number; days?: number };
+  };
+  custom?: (entry: LogEntry) => boolean;
+}
 
 /**
  * 日志过滤功能
@@ -19,18 +58,17 @@ import { PinoLogger } from './pino-logger';
  * 支持基于级别、内容、上下文、时间等多种条件的过滤
  */
 export class LogFilter {
-  private filters: Array<{
-    level?: { min?: LogLevel; max?: LogLevel; include?: LogLevel[]; exclude?: LogLevel[] };
-    content?: { includes?: string[]; excludes?: string[]; regex?: RegExp };
-    context?: { userId?: string | string[]; requestId?: string | string[] };
-    timeRange?: { start?: Date; end?: Date; last?: { hours?: number; days?: number } };
-    custom?: (entry: LogEntry) => boolean;
-  }> = [];
+  private filters: FilterCriteria[] = [];
 
   /**
    * 添加级别过滤
    */
-  level(filter: { min?: LogLevel; max?: LogLevel; include?: LogLevel[]; exclude?: LogLevel[] }): LogFilter {
+  level(filter: {
+    min?: LogLevel;
+    max?: LogLevel;
+    include?: LogLevel[];
+    exclude?: LogLevel[];
+  }): LogFilter {
     this.filters.push({ level: filter });
     return this;
   }
@@ -38,7 +76,11 @@ export class LogFilter {
   /**
    * 添加内容过滤
    */
-  content(filter: { includes?: string[]; excludes?: string[]; regex?: RegExp }): LogFilter {
+  content(filter: {
+    includes?: string[];
+    excludes?: string[];
+    regex?: RegExp;
+  }): LogFilter {
     this.filters.push({ content: filter });
     return this;
   }
@@ -46,7 +88,10 @@ export class LogFilter {
   /**
    * 添加上下文过滤
    */
-  context(filter: { userId?: string | string[]; requestId?: string | string[] }): LogFilter {
+  context(filter: {
+    userId?: string | string[];
+    requestId?: string | string[];
+  }): LogFilter {
     this.filters.push({ context: filter });
     return this;
   }
@@ -54,7 +99,11 @@ export class LogFilter {
   /**
    * 添加时间范围过滤
    */
-  timeRange(filter: { start?: Date; end?: Date; last?: { hours?: number; days?: number } }): LogFilter {
+  timeRange(filter: {
+    start?: Date;
+    end?: Date;
+    last?: { hours?: number; days?: number };
+  }): LogFilter {
     this.filters.push({ timeRange: filter });
     return this;
   }
@@ -94,7 +143,7 @@ export class LogFilter {
   /**
    * 检查单个过滤条件
    */
-  private matchesFilter(entry: LogEntry, filter: any): boolean {
+  private matchesFilter(entry: LogEntry, filter: FilterCriteria): boolean {
     // 级别过滤
     if (filter.level) {
       const level = entry.level;
@@ -125,13 +174,21 @@ export class LogFilter {
       const message = entry.message;
 
       if (filter.content.includes) {
-        if (!filter.content.includes.some((keyword: string) => message.includes(keyword))) {
+        if (
+          !filter.content.includes.some((keyword: string) =>
+            message.includes(keyword)
+          )
+        ) {
           return false;
         }
       }
 
       if (filter.content.excludes) {
-        if (filter.content.excludes.some((keyword: string) => message.includes(keyword))) {
+        if (
+          filter.content.excludes.some((keyword: string) =>
+            message.includes(keyword)
+          )
+        ) {
           return false;
         }
       }
@@ -144,14 +201,18 @@ export class LogFilter {
     // 上下文过滤
     if (filter.context) {
       if (filter.context.userId) {
-        const userIds = Array.isArray(filter.context.userId) ? filter.context.userId : [filter.context.userId];
+        const userIds = Array.isArray(filter.context.userId)
+          ? filter.context.userId
+          : [filter.context.userId];
         if (!userIds.includes(entry.context?.userId || '')) {
           return false;
         }
       }
 
       if (filter.context.requestId) {
-        const requestIds = Array.isArray(filter.context.requestId) ? filter.context.requestId : [filter.context.requestId];
+        const requestIds = Array.isArray(filter.context.requestId)
+          ? filter.context.requestId
+          : [filter.context.requestId];
         if (!requestIds.includes(entry.context?.requestId || '')) {
           return false;
         }
@@ -162,7 +223,10 @@ export class LogFilter {
     if (filter.timeRange) {
       const entryTime = entry.timestamp.getTime();
 
-      if (filter.timeRange.start && entryTime < filter.timeRange.start.getTime()) {
+      if (
+        filter.timeRange.start &&
+        entryTime < filter.timeRange.start.getTime()
+      ) {
         return false;
       }
 
@@ -207,7 +271,12 @@ export class LogAggregator {
   /**
    * 按时间聚合
    */
-  async aggregateByTime(entries: LogEntry[], granularity: 'hour' | 'day' | 'week' | 'month' = 'hour'): Promise<Array<{ key: string; count: number; timeRange: { start: Date; end: Date } }>> {
+  async aggregateByTime(
+    entries: LogEntry[],
+    granularity: 'hour' | 'day' | 'week' | 'month' = 'hour'
+  ): Promise<
+    Array<{ key: string; count: number; timeRange: { start: Date; end: Date } }>
+  > {
     const groups = new Map<string, LogEntry[]>();
 
     for (const entry of entries) {
@@ -218,14 +287,18 @@ export class LogAggregator {
       groups.get(key)!.push(entry);
     }
 
-    const results: Array<{ key: string; count: number; timeRange: { start: Date; end: Date } }> = [];
+    const results: Array<{
+      key: string;
+      count: number;
+      timeRange: { start: Date; end: Date };
+    }> = [];
 
     for (const [key, groupEntries] of groups) {
       const timeRange = this.getTimeRange(key, granularity);
       results.push({
         key,
         count: groupEntries.length,
-        timeRange
+        timeRange,
       });
     }
 
@@ -235,7 +308,9 @@ export class LogAggregator {
   /**
    * 按级别聚合
    */
-  async aggregateByLevel(entries: LogEntry[]): Promise<Array<{ level: LogLevel; count: number }>> {
+  async aggregateByLevel(
+    entries: LogEntry[]
+  ): Promise<Array<{ level: LogLevel; count: number }>> {
     const levelCounts = new Map<LogLevel, number>();
 
     for (const entry of entries) {
@@ -243,13 +318,18 @@ export class LogAggregator {
       levelCounts.set(entry.level, count + 1);
     }
 
-    return Array.from(levelCounts.entries()).map(([level, count]) => ({ level, count }));
+    return Array.from(levelCounts.entries()).map(([level, count]) => ({
+      level,
+      count,
+    }));
   }
 
   /**
    * 按用户聚合
    */
-  async aggregateByUser(entries: LogEntry[]): Promise<Array<{ userId: string; count: number }>> {
+  async aggregateByUser(
+    entries: LogEntry[]
+  ): Promise<Array<{ userId: string; count: number }>> {
     const userCounts = new Map<string, number>();
 
     for (const entry of entries) {
@@ -268,7 +348,7 @@ export class LogAggregator {
    */
   private getTimeKey(timestamp: Date, granularity: string): string {
     const date = new Date(timestamp);
-    
+
     switch (granularity) {
       case 'hour':
         return date.toISOString().slice(0, 13) + 'Z';
@@ -289,10 +369,13 @@ export class LogAggregator {
   /**
    * 获取时间范围
    */
-  private getTimeRange(key: string, granularity: string): { start: Date; end: Date } {
+  private getTimeRange(
+    key: string,
+    granularity: string
+  ): { start: Date; end: Date } {
     const start = new Date(key);
     const end = new Date(start);
-    
+
     switch (granularity) {
       case 'hour':
         end.setHours(end.getHours() + 1);
@@ -307,7 +390,7 @@ export class LogAggregator {
         end.setMonth(end.getMonth() + 1);
         break;
     }
-    
+
     return { start, end };
   }
 }
@@ -329,14 +412,7 @@ export class LogAlertManager {
     customTrigger?: (entries: LogEntry[]) => boolean;
   }> = [];
 
-  private alerts: Array<{
-    id: string;
-    ruleName: string;
-    level: string;
-    message: string;
-    timestamp: Date;
-    status: 'active' | 'acknowledged' | 'resolved';
-  }> = [];
+  private alerts: Alert[] = [];
 
   /**
    * 添加告警规则
@@ -350,7 +426,9 @@ export class LogAlertManager {
     enabled?: boolean;
     customTrigger?: (entries: LogEntry[]) => boolean;
   }): string {
-    const ruleId = `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const ruleId = `rule-${Date.now()}-${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
     this.rules.push({ ...rule, enabled: rule.enabled ?? true });
     return ruleId;
   }
@@ -358,8 +436,8 @@ export class LogAlertManager {
   /**
    * 处理日志条目
    */
-  async processLogEntries(entries: LogEntry[]): Promise<Array<{ id: string; ruleName: string; level: string; message: string; timestamp: Date }>> {
-    const triggeredAlerts: Array<{ id: string; ruleName: string; level: string; message: string; timestamp: Date }> = [];
+  async processLogEntries(entries: LogEntry[]): Promise<Alert[]> {
+    const triggeredAlerts: Alert[] = [];
 
     for (const rule of this.rules) {
       if (!rule.enabled) continue;
@@ -370,8 +448,8 @@ export class LogAlertManager {
         case 'frequency':
           if (rule.threshold && rule.timeWindow) {
             const timeWindow = this.calculateTimeWindow(rule.timeWindow);
-            const recentEntries = entries.filter(entry => 
-              entry.timestamp.getTime() >= Date.now() - timeWindow
+            const recentEntries = entries.filter(
+              (entry) => entry.timestamp.getTime() >= Date.now() - timeWindow
             );
             shouldTrigger = recentEntries.length >= rule.threshold;
           }
@@ -379,7 +457,7 @@ export class LogAlertManager {
 
         case 'threshold':
           if (rule.threshold) {
-            shouldTrigger = entries.some(entry => {
+            shouldTrigger = entries.some((entry) => {
               const value = this.extractNumericValue(entry);
               return typeof value === 'number' && value >= rule.threshold!;
             });
@@ -394,13 +472,13 @@ export class LogAlertManager {
       }
 
       if (shouldTrigger) {
-        const alert = {
+        const alert: Alert = {
           id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           ruleName: rule.name,
-          level: rule.level,
+          level: rule.level as LogLevel,
           message: `Alert triggered: ${rule.name}`,
           timestamp: new Date(),
-          status: 'active' as const
+          status: 'active',
         };
 
         this.alerts.push(alert);
@@ -414,15 +492,15 @@ export class LogAlertManager {
   /**
    * 获取活跃告警
    */
-  getActiveAlerts(): Array<{ id: string; ruleName: string; level: string; message: string; timestamp: Date; status: string }> {
-    return this.alerts.filter(alert => alert.status === 'active');
+  getActiveAlerts(): Alert[] {
+    return this.alerts.filter((alert) => alert.status === 'active');
   }
 
   /**
    * 确认告警
    */
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert) {
       alert.status = 'acknowledged';
       return true;
@@ -434,7 +512,7 @@ export class LogAlertManager {
    * 解决告警
    */
   resolveAlert(alertId: string, resolvedBy: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert) {
       alert.status = 'resolved';
       return true;
@@ -445,7 +523,10 @@ export class LogAlertManager {
   /**
    * 计算时间窗口
    */
-  private calculateTimeWindow(timeWindow: { minutes?: number; hours?: number }): number {
+  private calculateTimeWindow(timeWindow: {
+    minutes?: number;
+    hours?: number;
+  }): number {
     let totalMs = 0;
     if (timeWindow.minutes) totalMs += timeWindow.minutes * 60 * 1000;
     if (timeWindow.hours) totalMs += timeWindow.hours * 60 * 60 * 1000;
@@ -464,7 +545,7 @@ export class LogAlertManager {
         }
       }
     }
-    
+
     const numericMatch = entry.message.match(/\d+/);
     return numericMatch ? parseInt(numericMatch[0], 10) : null;
   }
@@ -494,10 +575,20 @@ export class LogAnalysisWorkflow {
    */
   async analyzeLogs(entries: LogEntry[]): Promise<{
     filteredCount: number;
-    timeAggregation: Array<{ key: string; count: number; timeRange: { start: Date; end: Date } }>;
+    timeAggregation: Array<{
+      key: string;
+      count: number;
+      timeRange: { start: Date; end: Date };
+    }>;
     levelAggregation: Array<{ level: LogLevel; count: number }>;
     userAggregation: Array<{ userId: string; count: number }>;
-    triggeredAlerts: Array<{ id: string; ruleName: string; level: string; message: string; timestamp: Date }>;
+    triggeredAlerts: Array<{
+      id: string;
+      ruleName: string;
+      level: string;
+      message: string;
+      timestamp: Date;
+    }>;
   }> {
     this.logger.info('开始日志分析流程', { totalEntries: entries.length });
 
@@ -514,9 +605,16 @@ export class LogAnalysisWorkflow {
 
       // 2. 聚合分析
       this.logger.info('步骤2: 聚合分析');
-      const timeAggregation = await this.aggregator.aggregateByTime(filteredEntries, 'hour');
-      const levelAggregation = await this.aggregator.aggregateByLevel(filteredEntries);
-      const userAggregation = await this.aggregator.aggregateByUser(filteredEntries);
+      const timeAggregation = await this.aggregator.aggregateByTime(
+        filteredEntries,
+        'hour'
+      );
+      const levelAggregation = await this.aggregator.aggregateByLevel(
+        filteredEntries
+      );
+      const userAggregation = await this.aggregator.aggregateByUser(
+        filteredEntries
+      );
 
       // 3. 告警处理
       this.logger.info('步骤3: 告警处理');
@@ -525,10 +623,12 @@ export class LogAnalysisWorkflow {
         condition: 'frequency',
         threshold: 10,
         timeWindow: { minutes: 5 },
-        level: 'high'
+        level: 'high',
       });
 
-      const triggeredAlerts = await this.alertManager.processLogEntries(filteredEntries);
+      const triggeredAlerts = await this.alertManager.processLogEntries(
+        filteredEntries
+      );
 
       this.logger.info('日志分析流程完成');
 
@@ -537,10 +637,12 @@ export class LogAnalysisWorkflow {
         timeAggregation,
         levelAggregation,
         userAggregation,
-        triggeredAlerts
+        triggeredAlerts,
       };
     } catch (error) {
-      this.logger.error('日志分析流程失败', { error: error instanceof Error ? error.message : String(error) });
+      this.logger.error('日志分析流程失败', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     }
   }

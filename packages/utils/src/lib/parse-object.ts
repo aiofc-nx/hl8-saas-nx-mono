@@ -96,28 +96,31 @@ import { isObject } from './is-object';
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function parseObject<T extends Record<string, any>>(source: T, callback: (value: any) => any): T {
-	// 检查输入是否为对象类型
-	if (!isObject(source)) {
-		return source;
-	}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseObject<T extends Record<string, any>>(
+  source: T,
+  callback: (value: any) => any
+): T {
+  // 检查输入是否为对象类型
+  if (!isObject(source)) {
+    return source;
+  }
 
-	// 遍历对象的所有键
-	for (const key of Object.keys(source)) {
-		const value = source[key];
+  // 遍历对象的所有键
+  for (const key of Object.keys(source)) {
+    const value = source[key];
 
-		// 如果值是对象，递归处理
-		if (isObject(value)) {
-			if (!isClassInstance(value)) {
-				(source as any)[key] = parseObject(value, callback);
-			}
-		} else {
-			// 对基本类型应用回调函数
-			(source as any)[key] = callback(value);
-		}
-	}
+    // 如果值是对象，递归处理
+    if (isObject(value)) {
+      if (!isClassInstance(value)) {
+        (source as any)[key] = parseObject(value, callback);
+      }
+    } else {
+      // 对基本类型应用回调函数
+      (source as any)[key] = callback(value);
+    }
+  }
 
-	return source;
+  return source;
 }

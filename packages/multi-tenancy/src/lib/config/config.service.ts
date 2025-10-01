@@ -5,7 +5,6 @@
  * 支持配置文件加载、环境变量覆盖和配置验证
  *
  * @fileoverview 多租户配置服务实现
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -16,6 +15,7 @@ import { MultiTenancyConfig } from './multi-tenancy.config';
 import { DefaultConfigProvider } from './default-config.provider';
 import { ConfigValidator } from './config.validator';
 import { TenantConfigInvalidException } from '../exceptions';
+import { DI_TOKENS } from '../constants';
 
 /**
  * 配置服务选项接口
@@ -46,7 +46,7 @@ export class MultiTenancyConfigService implements OnModuleInit {
     private readonly defaultConfigProvider: DefaultConfigProvider,
     private readonly configValidator: ConfigValidator,
     private readonly logger: PinoLogger,
-    @Inject('MULTI_TENANCY_CONFIG_OPTIONS')
+    @Inject(DI_TOKENS.CONFIG_OPTIONS)
     private readonly options: ConfigServiceOptions = {}
   ) {
     this.logger.setContext({ requestId: 'multi-tenancy-config-service' });

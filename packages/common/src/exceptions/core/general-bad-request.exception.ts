@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { AbstractHttpException } from './abstract-http.exception';
+import { ERROR_CODES } from '../../constants';
 
 /**
  * 通用错误请求异常
@@ -57,17 +58,17 @@ export class GeneralBadRequestException extends AbstractHttpException {
   constructor(
     title: string,
     detail: string,
-    data?: Record<string, any>,
-    rootCause?: unknown,
+    data?: Record<string, unknown>,
+    rootCause?: unknown
   ) {
     super(
-      'BAD_REQUEST',
+      ERROR_CODES.BAD_REQUEST,
       title,
       detail,
       HttpStatus.BAD_REQUEST,
       data,
-      'BAD_REQUEST',
-      rootCause,
+      ERROR_CODES.BAD_REQUEST,
+      rootCause
     );
   }
 }

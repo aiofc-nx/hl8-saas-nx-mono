@@ -5,7 +5,6 @@
  * 包括键前缀、命名空间、数据库、模式等隔离策略
  *
  * @fileoverview 租户隔离策略接口定义
- * @author HL8 Team
  * @since 1.0.0
  */
 

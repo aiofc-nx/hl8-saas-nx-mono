@@ -2,7 +2,6 @@
  * 缓存管理器
  *
  * @description 配置缓存的统一管理接口
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -16,11 +15,11 @@ import {
   CacheStats,
   CacheEvent,
   CacheEventListener,
-  CacheEventType,
 } from '../types/cache.types';
 import { ConfigRecord } from '../types/config.types';
 import { MemoryCacheProvider } from './memory-cache.provider';
 import { FileCacheProvider } from './file-cache.provider';
+import { CONFIG_DEFAULTS, CACHE_KEYS, CacheEventType } from '../constants';
 
 /**
  * 缓存管理器类
@@ -37,10 +36,10 @@ export class CacheManager {
   constructor(options: CacheOptions = {}) {
     this.options = {
       strategy: CacheStrategy.MEMORY,
-      keyPrefix: 'config',
-      ttl: 300000, // 5 分钟
+      keyPrefix: CACHE_KEYS.CONFIG,
+      ttl: CONFIG_DEFAULTS.CACHE_TTL * 1000, // 转换为毫秒
       maxSize: 1000,
-      enabled: true,
+      enabled: CONFIG_DEFAULTS.ENABLE_CACHE,
       ...options,
     };
 

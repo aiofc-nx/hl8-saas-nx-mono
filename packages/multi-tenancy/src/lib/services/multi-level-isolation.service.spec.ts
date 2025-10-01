@@ -4,7 +4,6 @@
  * 测试多层级隔离服务的核心功能和业务逻辑
  *
  * @fileoverview 多层级隔离服务单元测试
- * @author HL8 Team
  * @since 1.0.0
  */
 

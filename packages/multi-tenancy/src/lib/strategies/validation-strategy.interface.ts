@@ -5,7 +5,6 @@
  * 包括数据库验证、缓存验证、外部服务验证等
  *
  * @fileoverview 租户验证策略接口定义
- * @author HL8 Team
  * @since 1.0.0
  */
 

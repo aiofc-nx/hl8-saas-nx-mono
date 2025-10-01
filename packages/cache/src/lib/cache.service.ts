@@ -66,8 +66,8 @@ import {
   CacheModuleOptions,
   CacheStats,
   TenantCacheStats,
-  CACHE_MODULE_OPTIONS,
 } from './types/cache.types';
+import { DI_TOKENS } from './constants';
 
 /**
  * 缓存服务
@@ -132,7 +132,7 @@ export class CacheService implements ICacheService {
     private readonly tenantContextService: TenantContextService,
     private readonly tenantIsolationService: TenantIsolationService,
     private readonly logger: PinoLogger,
-    @Inject(CACHE_MODULE_OPTIONS)
+    @Inject(DI_TOKENS.MODULE_OPTIONS)
     private readonly options: CacheModuleOptions
   ) {
     this.logger.setContext({ requestId: 'cache-service' });

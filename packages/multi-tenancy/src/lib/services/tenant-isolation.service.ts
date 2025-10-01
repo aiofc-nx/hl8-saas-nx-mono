@@ -5,7 +5,6 @@
  * 提供数据隔离策略管理和租户键生成功能
  *
  * @fileoverview 租户隔离服务实现
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -13,11 +12,11 @@ import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import {
   ITenantIsolationConfig,
-  MULTI_TENANCY_MODULE_OPTIONS,
   IMultiTenancyModuleOptions,
 } from '../types/tenant-core.types';
 import { ITenantIsolationStrategy } from '../strategies/isolation-strategy.interface';
 import { TenantContextService } from './tenant-context.service';
+import { DI_TOKENS } from '../constants';
 import {
   TenantConfigInvalidException,
   TenantIsolationFailedException,
@@ -92,7 +91,7 @@ export class TenantIsolationService implements OnModuleInit {
   private isolationStrategy!: ITenantIsolationStrategy;
 
   constructor(
-    @Inject(MULTI_TENANCY_MODULE_OPTIONS) options: IMultiTenancyModuleOptions,
+    @Inject(DI_TOKENS.MODULE_OPTIONS) options: IMultiTenancyModuleOptions,
     private readonly tenantContextService: TenantContextService,
     logger: PinoLogger
   ) {

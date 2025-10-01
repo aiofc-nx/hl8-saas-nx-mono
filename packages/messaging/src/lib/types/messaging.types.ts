@@ -1048,8 +1048,3 @@ export interface DeadLetterStats {
   /** 死信消息平均处理时间（毫秒） */
   averageProcessingTime: number;
 }
-
-/**
- * Messaging模块配置选项的依赖注入令牌
- */
-export const MESSAGING_MODULE_OPTIONS = 'MESSAGING_MODULE_OPTIONS';

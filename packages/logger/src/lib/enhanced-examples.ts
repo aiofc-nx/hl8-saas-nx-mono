@@ -5,7 +5,6 @@
  * 包含完整的使用示例和最佳实践
  *
  * @fileoverview 日志增强功能使用示例文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -14,6 +13,7 @@ import {
   createLogAggregator,
   createLogAlertManager,
   createLogAnalysisWorkflow,
+  Alert,
 } from './enhanced-features';
 import { LogEntry, LogLevel } from './types';
 
@@ -166,7 +166,7 @@ export class LogAlertExamples {
 
     if (triggeredAlerts.length > 0) {
       console.log(`触发了 ${triggeredAlerts.length} 个告警:`);
-      triggeredAlerts.forEach((alert: any) => {
+      triggeredAlerts.forEach((alert: Alert) => {
         console.log(
           `- ${alert.ruleName}: ${alert.message} (级别: ${alert.level})`
         );

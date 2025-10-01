@@ -90,34 +90,33 @@ import { isPlainObject } from './is-plain-object';
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
 export function deepClone<T>(input: T): T {
-	// 如果不是普通对象或为空，直接返回
-	if (!isPlainObject(input) || isEmpty(input)) {
-		return input;
-	}
+  // 如果不是普通对象或为空，直接返回
+  if (!isPlainObject(input) || isEmpty(input)) {
+    return input;
+  }
 
-	// 初始化输出变量
-	let output: any;
+  // 初始化输出变量
+  let output: T | Record<string, unknown> | unknown[];
 
-	// 递归克隆数组类型
-	if (Array.isArray(input)) {
-		output = input.map((item) => deepClone(item));
-		return output as T;
-	}
+  // 递归克隆数组类型
+  if (Array.isArray(input)) {
+    output = input.map((item) => deepClone(item));
+    return output as T;
+  }
 
-	// 类实例直接返回
-	if (isClassInstance(input)) {
-		return input;
-	}
+  // 类实例直接返回
+  if (isClassInstance(input)) {
+    return input;
+  }
 
-	// 递归克隆对象
-	output = {} as Record<string, any>;
-	for (const key in input) {
-		if (Object.prototype.hasOwnProperty.call(input, key)) {
-			output[key] = deepClone(input[key]);
-		}
-	}
-	return output as T;
+  // 递归克隆对象
+  output = {} as Record<string, any>;
+  for (const key in input) {
+    if (Object.prototype.hasOwnProperty.call(input, key)) {
+      output[key] = deepClone(input[key]);
+    }
+  }
+  return output as T;
 }

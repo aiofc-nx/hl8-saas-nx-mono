@@ -70,7 +70,8 @@
 
 import { DynamicModule, Module } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
-import { CacheModuleOptions, CACHE_MODULE_OPTIONS } from './types/cache.types';
+import { CacheModuleOptions } from './types/cache.types';
+import { DI_TOKENS } from './constants';
 import { CacheService } from './cache.service';
 import { RedisService } from './redis.service';
 import { CacheMonitorService } from './monitoring/cache-monitor.service';
@@ -276,7 +277,7 @@ export class CacheModule {
       ],
       providers: [
         {
-          provide: CACHE_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: options,
         },
         RedisService,
@@ -407,7 +408,7 @@ export class CacheModule {
       ],
       providers: [
         {
-          provide: CACHE_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useFactory: options.useFactory!,
           inject: options.inject || [],
         },

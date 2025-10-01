@@ -160,22 +160,6 @@ export interface CacheStats {
 }
 
 /**
- * 缓存事件类型
- *
- * @description 定义缓存事件的类型
- * @type CacheEventType
- * @since 1.0.0
- */
-export type CacheEventType =
-  | 'hit'
-  | 'miss'
-  | 'set'
-  | 'get'
-  | 'delete'
-  | 'expire'
-  | 'clear';
-
-/**
  * 缓存事件接口
  *
  * @description 定义缓存事件的结构
@@ -184,7 +168,7 @@ export type CacheEventType =
  */
 export interface CacheEvent {
   /** 事件类型 */
-  type: CacheEventType;
+  type: string;
   /** 缓存键 */
   key: string;
   /** 事件时间 */
@@ -223,7 +207,7 @@ export interface CacheProvider {
   /** 获取缓存统计信息 */
   getStats(): Promise<CacheStats>;
   /** 添加事件监听器 */
-  on(event: CacheEventType, listener: CacheEventListener): void;
+  on(event: string, listener: CacheEventListener): void;
   /** 移除事件监听器 */
-  off(event: CacheEventType, listener: CacheEventListener): void;
+  off(event: string, listener: CacheEventListener): void;
 }

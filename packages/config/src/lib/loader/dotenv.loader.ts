@@ -2,7 +2,6 @@
  * 环境变量加载器
  *
  * @description 从环境变量加载配置的加载器
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -11,6 +10,7 @@ import * as dotenvExpand from 'dotenv-expand';
 import { ConfigLoader } from '../interfaces/typed-config-module-options.interface';
 import { ErrorHandler, ConfigError } from '../errors';
 import { ConfigRecord, KeyTransformer } from '../types';
+import { CONFIG_DEFAULTS } from '../constants';
 
 /**
  * 环境变量加载器选项接口
@@ -35,17 +35,16 @@ import { DotenvLoaderOptions } from '../types/loader.types';
  *   keyTransformer: (key) => key.toLowerCase()
  * });
  * ```
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 export const dotenvLoader = (
   options: DotenvLoaderOptions = {}
 ): ConfigLoader => {
   const {
-    envFilePath,
+    envFilePath = CONFIG_DEFAULTS.DEFAULT_ENV_FILE,
     ignoreEnvFile = false,
     ignoreEnvVars = false,
-    separator,
+    separator = CONFIG_DEFAULTS.ENV_SEPARATOR,
     keyTransformer,
     enableExpandVariables = true,
   } = options;
@@ -115,7 +114,6 @@ export const dotenvLoader = (
  * @description 展开配置中的变量引用
  * @param config 配置对象
  * @returns 展开后的配置对象
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 function expandVariables(config: ConfigRecord): ConfigRecord {
@@ -132,7 +130,6 @@ function expandVariables(config: ConfigRecord): ConfigRecord {
  * @param config 配置对象
  * @param transformer 键转换器
  * @returns 转换后的配置对象
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 function transformKeys(
@@ -154,7 +151,6 @@ function transformKeys(
  * @param config 配置对象
  * @param separator 分隔符
  * @returns 解析后的配置对象
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 function parseWithSeparator(

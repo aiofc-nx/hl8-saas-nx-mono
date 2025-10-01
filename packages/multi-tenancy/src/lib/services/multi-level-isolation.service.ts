@@ -5,7 +5,6 @@
  * 支持租户、组织、部门、用户四个层级的数据隔离
  *
  * @fileoverview 多层级隔离服务实现
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -22,7 +21,6 @@ import {
   IMultiLevelAction,
   IMultiLevelStats,
   IHierarchyPath,
-  MULTI_TENANCY_MODULE_OPTIONS,
   IMultiTenancyModuleOptions,
 } from '../types/tenant-core.types';
 import {
@@ -31,6 +29,7 @@ import {
   IMultiLevelContextStrategy,
 } from '../strategies/multi-level-isolation-strategy.interface';
 import { TenantContextService } from './tenant-context.service';
+import { DI_TOKENS } from '../constants';
 import {
   TenantConfigInvalidException,
   MultiLevelContextInvalidException,
@@ -145,7 +144,7 @@ export class MultiLevelIsolationService
   constructor(
     private readonly logger: PinoLogger,
     private readonly tenantContextService: TenantContextService,
-    @Inject(MULTI_TENANCY_MODULE_OPTIONS)
+    @Inject(DI_TOKENS.MODULE_OPTIONS)
     private readonly options: IMultiTenancyModuleOptions
   ) {
     if (!options?.multiLevel) {

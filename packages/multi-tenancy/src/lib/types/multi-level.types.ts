@@ -5,7 +5,6 @@
  * 支持租户、组织、部门、用户四个层级的数据隔离
  *
  * @fileoverview 多层级数据隔离类型定义
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -460,8 +459,3 @@ export interface ILevelStats {
   /** 缓存命中率 */
   cacheHitRate?: number;
 }
-
-/**
- * 多层级模块选项常量
- */
-export const MULTI_LEVEL_MODULE_OPTIONS = 'MULTI_LEVEL_MODULE_OPTIONS';

@@ -10,6 +10,7 @@ import {
 } from './config/exception-message.provider';
 import { AnyExceptionFilter } from './filters/any-exception.filter';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { DI_TOKENS } from '../constants';
 
 /**
  * 异常处理模块
@@ -29,7 +30,7 @@ export class ExceptionModule {
     const mergedConfig = { ...DEFAULT_EXCEPTION_CONFIG, ...config };
 
     const messageProvider: Provider = {
-      provide: 'EXCEPTION_MESSAGE_PROVIDER',
+      provide: DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
       useValue:
         mergedConfig.messageProvider || new DefaultExceptionMessageProvider(),
     };
@@ -41,43 +42,43 @@ export class ExceptionModule {
         {
           provide: APP_FILTER,
           useFactory: (
-            httpAdapterHost: any,
+            httpAdapterHost: HttpAdapterHost,
             msgProvider: ExceptionMessageProvider,
-            logger: any
+            logger: unknown
           ) =>
             new AnyExceptionFilter(
               httpAdapterHost,
               msgProvider,
               mergedConfig.documentationUrl,
-              logger
+              logger as any
             ),
           inject: [
             HttpAdapterHost,
-            'EXCEPTION_MESSAGE_PROVIDER',
-            'LOGGER_PROVIDER',
+            DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
+            DI_TOKENS.LOGGER_PROVIDER,
           ],
         },
         {
           provide: APP_FILTER,
           useFactory: (
-            httpAdapterHost: any,
+            httpAdapterHost: HttpAdapterHost,
             msgProvider: ExceptionMessageProvider,
-            logger: any
+            logger: unknown
           ) =>
             new HttpExceptionFilter(
               httpAdapterHost,
               msgProvider,
               mergedConfig.documentationUrl,
-              logger
+              logger as any
             ),
           inject: [
             HttpAdapterHost,
-            'EXCEPTION_MESSAGE_PROVIDER',
-            'LOGGER_PROVIDER',
+            DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
+            DI_TOKENS.LOGGER_PROVIDER,
           ],
         },
       ],
-      exports: ['EXCEPTION_MESSAGE_PROVIDER'],
+      exports: [DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER],
     };
   }
 
@@ -88,22 +89,24 @@ export class ExceptionModule {
    * @returns 动态模块配置
    */
   static forRootAsync(options: {
-    useFactory: (...args: any[]) => Promise<ExceptionConfig> | ExceptionConfig;
-    inject?: any[];
+    useFactory: (
+      ...args: unknown[]
+    ) => Promise<ExceptionConfig> | ExceptionConfig;
+    inject?: unknown[];
   }): DynamicModule {
     const messageProvider: Provider = {
-      provide: 'EXCEPTION_MESSAGE_PROVIDER',
-      useFactory: async (...args: any[]) => {
+      provide: DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
+      useFactory: async (...args: unknown[]) => {
         const config = await options.useFactory(...args);
         return config.messageProvider || new DefaultExceptionMessageProvider();
       },
-      inject: options.inject,
+      inject: options.inject as any[],
     };
 
     const exceptionConfigProvider: Provider = {
-      provide: 'EXCEPTION_CONFIG',
+      provide: DI_TOKENS.EXCEPTION_CONFIG,
       useFactory: options.useFactory,
-      inject: options.inject,
+      inject: options.inject as any[],
     };
 
     return {
@@ -114,7 +117,7 @@ export class ExceptionModule {
         {
           provide: APP_FILTER,
           useFactory: (
-            httpAdapterHost: any,
+            httpAdapterHost: HttpAdapterHost,
             msgProvider: ExceptionMessageProvider,
             config: ExceptionConfig
           ) =>
@@ -125,14 +128,14 @@ export class ExceptionModule {
             ),
           inject: [
             HttpAdapterHost,
-            'EXCEPTION_MESSAGE_PROVIDER',
-            'EXCEPTION_CONFIG',
+            DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
+            DI_TOKENS.EXCEPTION_CONFIG,
           ],
         },
         {
           provide: APP_FILTER,
           useFactory: (
-            httpAdapterHost: any,
+            httpAdapterHost: HttpAdapterHost,
             msgProvider: ExceptionMessageProvider,
             config: ExceptionConfig
           ) =>
@@ -143,12 +146,12 @@ export class ExceptionModule {
             ),
           inject: [
             HttpAdapterHost,
-            'EXCEPTION_MESSAGE_PROVIDER',
-            'EXCEPTION_CONFIG',
+            DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER,
+            DI_TOKENS.EXCEPTION_CONFIG,
           ],
         },
       ],
-      exports: ['EXCEPTION_MESSAGE_PROVIDER'],
+      exports: [DI_TOKENS.EXCEPTION_MESSAGE_PROVIDER],
     };
   }
 }

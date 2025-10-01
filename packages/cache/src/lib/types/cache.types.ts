@@ -43,7 +43,7 @@ export interface ICacheService {
  * @description 定义缓存策略的核心功能
  */
 export interface ICacheStrategy {
-  shouldCache(key: string, value: any): boolean;
+  shouldCache(key: string, value: unknown): boolean;
   getTTL(key: string): number;
   onHit(key: string): void;
   onMiss(key: string): void;
@@ -109,7 +109,7 @@ export interface RedisConfig {
  */
 export interface CacheStrategyConfig {
   type: 'ttl' | 'lru' | 'lfu' | 'custom';
-  options?: any;
+  options?: Record<string, unknown>;
 }
 
 /**
@@ -539,8 +539,3 @@ export interface MessagingStats {
   throughput: number;
   errorRate: number;
 }
-
-/**
- * 缓存模块选项令牌
- */
-export const CACHE_MODULE_OPTIONS = 'CACHE_MODULE_OPTIONS';

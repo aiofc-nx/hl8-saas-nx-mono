@@ -9,7 +9,16 @@ import { ErrorResponse } from '../vo/error-response.dto';
 import { AbstractHttpException } from '../core/abstract-http.exception';
 import type { ExceptionMessageProvider } from '../config/exception-message.provider';
 import { PinoLogger } from '@hl8/logger';
-// import { PinoLogger } from '@hl8/logger';
+import { ERROR_CODES } from '../../constants';
+
+/** Request 接口定义 */
+interface Request {
+  id?: string;
+  method?: string;
+  url?: string;
+  headers?: Record<string, unknown>;
+  body?: unknown;
+}
 
 /**
  * 通用异常过滤器
@@ -118,9 +127,11 @@ export class AnyExceptionFilter implements ExceptionFilter {
    */
   private handleHttpException(
     exception: AbstractHttpException,
-    request: any,
-    response: any,
-    httpAdapter: any
+    request: Request,
+    response: unknown,
+    httpAdapter: {
+      reply: (res: unknown, body: unknown, status: number) => void;
+    }
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const errorResponse = exception.toErrorResponse(
@@ -160,9 +171,11 @@ export class AnyExceptionFilter implements ExceptionFilter {
    */
   private handleUnknownException(
     exception: unknown,
-    request: any,
-    response: any,
-    httpAdapter: any
+    request: Request,
+    response: unknown,
+    httpAdapter: {
+      reply: (res: unknown, body: unknown, status: number) => void;
+    }
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
 
@@ -170,14 +183,16 @@ export class AnyExceptionFilter implements ExceptionFilter {
     const errorResponse: ErrorResponse = {
       type: this.documentationUrl || 'about:blank',
       title:
-        this.messageProvider?.getMessage('INTERNAL_ERROR', 'title') ||
+        this.messageProvider?.getMessage(ERROR_CODES.INTERNAL_ERROR, 'title') ||
         'Internal Server Error',
       detail:
-        this.messageProvider?.getMessage('INTERNAL_ERROR', 'detail') ||
-        'An unexpected error occurred',
+        this.messageProvider?.getMessage(
+          ERROR_CODES.INTERNAL_ERROR,
+          'detail'
+        ) || 'An unexpected error occurred',
       status: 500,
       instance: requestId,
-      errorCode: 'INTERNAL_ERROR',
+      errorCode: ERROR_CODES.INTERNAL_ERROR,
     };
 
     // 记录详细异常日志

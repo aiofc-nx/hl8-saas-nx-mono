@@ -5,7 +5,6 @@
  * 使用键前缀方式实现租户、组织、部门、用户四级隔离
  *
  * @fileoverview 键前缀多层级隔离策略实现
- * @author HL8 Team
  * @since 1.0.0
  */
 

@@ -114,7 +114,7 @@ import {
  * ```
  */
 export function InjectLogger(context?: string): PropertyDecorator {
-  return function (target: any, propertyKey: string | symbol | undefined) {
+  return function (target: object, propertyKey: string | symbol | undefined) {
     if (!propertyKey) return;
     // 定义属性描述符，使用 getter 来延迟创建日志记录器
     Object.defineProperty(target, propertyKey, {
@@ -163,7 +163,7 @@ export function LogMethod(
   } = {}
 ): MethodDecorator {
   return function (
-    target: any,
+    target: object,
     propertyKey: string | symbol,
     descriptor: PropertyDescriptor
   ) {

@@ -80,13 +80,13 @@
  * console.log(parseToBoolean([])); // 输出: false
  *
  * // 在配置处理中使用
- * function getConfigValue(key: string, defaultValue: any): boolean {
+ * function getConfigValue(key: string, defaultValue: unknown): boolean {
  *   const value = process.env[key] || defaultValue;
  *   return parseToBoolean(value);
  * }
  *
  * // 在表单处理中使用
- * function processFormData(data: Record<string, any>): Record<string, boolean> {
+ * function processFormData(data: Record<string, unknown>): Record<string, boolean> {
  *   const result: Record<string, boolean> = {};
  *   for (const [key, value] of Object.entries(data)) {
  *     result[key] = parseToBoolean(value);
@@ -96,35 +96,34 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export const parseToBoolean = (value: any): boolean => {
-	// 处理空值
-	if (value === undefined || value === null) {
-		return false;
-	}
+export const parseToBoolean = (value: unknown): boolean => {
+  // 处理空值
+  if (value === undefined || value === null) {
+    return false;
+  }
 
-	// 处理布尔值
-	if (typeof value === 'boolean') {
-		return value;
-	}
+  // 处理布尔值
+  if (typeof value === 'boolean') {
+    return value;
+  }
 
-	// 处理数字
-	if (typeof value === 'number') {
-		return value !== 0;
-	}
+  // 处理数字
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
 
-	// 处理字符串
-	if (typeof value === 'string') {
-		const normalized = value.toLowerCase().trim();
-		if (normalized === 'true' || normalized === '1') {
-			return true;
-		}
-		if (normalized === 'false' || normalized === '0') {
-			return false;
-		}
-	}
+  // 处理字符串
+  if (typeof value === 'string') {
+    const normalized = value.toLowerCase().trim();
+    if (normalized === 'true' || normalized === '1') {
+      return true;
+    }
+    if (normalized === 'false' || normalized === '0') {
+      return false;
+    }
+  }
 
-	// 默认返回 false
-	return false;
+  // 默认返回 false
+  return false;
 };

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 消息处理器装饰器
@@ -66,11 +67,6 @@ export function MessageHandler(
 }
 
 /**
- * 消息处理器元数据键
- */
-export const MESSAGE_HANDLERS_METADATA_KEY = 'messageHandlers';
-
-/**
  * 获取消息处理器元数据
  *
  * @description 获取类的消息处理器元数据
@@ -85,5 +81,5 @@ export function getMessageHandlers(target: object): Array<{
   methodName: string;
   handler: (...args: unknown[]) => unknown;
 }> {
-  return Reflect.getMetadata(MESSAGE_HANDLERS_METADATA_KEY, target) || [];
+  return Reflect.getMetadata(DECORATOR_METADATA.MESSAGE_HANDLERS, target) || [];
 }

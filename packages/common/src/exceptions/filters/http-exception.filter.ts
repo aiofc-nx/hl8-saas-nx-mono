@@ -10,6 +10,15 @@ import { AbstractHttpException } from '../core/abstract-http.exception';
 import type { ExceptionMessageProvider } from '../config/exception-message.provider';
 import { PinoLogger } from '@hl8/logger';
 
+/** Request 接口定义 */
+interface Request {
+  id?: string;
+  method?: string;
+  url?: string;
+  headers?: Record<string, unknown>;
+  body?: unknown;
+}
+
 /**
  * HTTP异常过滤器
  *
@@ -115,9 +124,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
    */
   private handleAbstractHttpException(
     exception: AbstractHttpException,
-    request: any,
-    response: any,
-    httpAdapter: any
+    request: Request,
+    response: unknown,
+    httpAdapter: {
+      reply: (res: unknown, body: unknown, status: number) => void;
+    }
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const errorResponse = exception.toErrorResponse(
@@ -157,9 +168,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
    */
   private handleNestHttpException(
     exception: HttpException,
-    request: any,
-    response: any,
-    httpAdapter: any
+    request: Request,
+    response: unknown,
+    httpAdapter: {
+      reply: (res: unknown, body: unknown, status: number) => void;
+    }
   ): void {
     const requestId = request.id || `req-${Date.now()}`;
     const status = exception.getStatus();

@@ -94,19 +94,20 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function applyMixins(derivedCtor: any, constructors: any[]): void {
-	// 遍历每个混入构造函数
-	constructors.forEach((baseCtor) => {
-		// 遍历混入类的每个属性/方法
-		Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
-			// 将属性/方法从混入类复制到目标类原型
-			Object.defineProperty(
-				derivedCtor.prototype,
-				name,
-				Object.getOwnPropertyDescriptor(baseCtor.prototype, name) || Object.create(null)
-			);
-		});
-	});
+  // 遍历每个混入构造函数
+  constructors.forEach((baseCtor) => {
+    // 遍历混入类的每个属性/方法
+    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
+      // 将属性/方法从混入类复制到目标类原型
+      Object.defineProperty(
+        derivedCtor.prototype,
+        name,
+        Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
+          Object.create(null)
+      );
+    });
+  });
 }

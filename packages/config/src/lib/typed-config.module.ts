@@ -344,7 +344,6 @@ export class TypedConfigModule {
    * @param options 配置模块选项
    * @param rawConfig 原始配置
    * @returns 动态模块
-   * @author HL8 SAAS Platform Team
    * @since 1.0.0
    */
   private static getDynamicModule(
@@ -367,7 +366,7 @@ export class TypedConfigModule {
     }
 
     const normalized = normalize(rawConfig);
-    const config = validate(normalized, Config, validationOptions);
+    const config = validate(normalized, Config, validationOptions) as unknown;
     const providers = this.getProviders(config, Config, cacheOptions);
 
     return {
@@ -394,9 +393,12 @@ export class TypedConfigModule {
         try {
           const conf = fn(config);
           merge(config, conf);
-        } catch (e: any) {
+        } catch (e: unknown) {
+          const error = e as Error & { details?: unknown };
           debug(
-            `Config load failed: ${e}. Details: ${JSON.stringify(e.details)}`
+            `Config load failed: ${error}. Details: ${JSON.stringify(
+              error.details
+            )}`
           );
           throw e;
         }
@@ -424,9 +426,12 @@ export class TypedConfigModule {
         try {
           const conf = await fn(config);
           merge(config, conf);
-        } catch (e: any) {
+        } catch (e: unknown) {
+          const error = e as Error & { details?: unknown };
           debug(
-            `Config load failed: ${e}. Details: ${JSON.stringify(e.details)}`
+            `Config load failed: ${error}. Details: ${JSON.stringify(
+              error.details
+            )}`
           );
           throw e;
         }

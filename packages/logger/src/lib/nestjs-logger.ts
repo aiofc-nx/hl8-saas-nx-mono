@@ -5,7 +5,6 @@
  * 基于 PinoLogger 构建，提供完整的 NestJS 兼容性
  *
  * @fileoverview NestJS 兼容日志记录器实现文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 

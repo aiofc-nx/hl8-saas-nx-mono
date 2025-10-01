@@ -5,7 +5,6 @@
  * 确保配置的完整性和有效性
  *
  * @fileoverview 配置验证器实现
- * @author HL8 Team
  * @since 1.0.0
  */
 

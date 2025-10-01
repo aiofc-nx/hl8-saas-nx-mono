@@ -5,7 +5,6 @@
  * 提供透明、异步的租户上下文传递和管理功能
  *
  * @fileoverview 租户上下文服务实现
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -21,13 +20,13 @@ import {
   ITenantContext,
   ITenantContextConfig,
   IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
 } from '../types/tenant-core.types';
 import {
   TenantNotFoundException,
   TenantContextInvalidException,
   TenantConfigInvalidException,
 } from '../exceptions';
+import { DI_TOKENS } from '../constants';
 
 /**
  * 租户上下文服务
@@ -96,7 +95,7 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly cls: ClsService,
-    @Inject(MULTI_TENANCY_MODULE_OPTIONS) options: IMultiTenancyModuleOptions,
+    @Inject(DI_TOKENS.MODULE_OPTIONS) options: IMultiTenancyModuleOptions,
     logger: PinoLogger
   ) {
     if (!options?.context) {

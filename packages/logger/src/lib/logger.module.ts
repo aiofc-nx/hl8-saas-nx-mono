@@ -5,15 +5,20 @@
  * 支持同步和异步配置，专为 Fastify 平台优化
  *
  * @fileoverview 日志模块实现文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
-import { DynamicModule, Global, Module, NestModule } from '@nestjs/common';
+import {
+  DynamicModule,
+  Global,
+  Module,
+  NestModule,
+  Provider,
+} from '@nestjs/common';
 import { PinoLogger } from './pino-logger';
 import { PinoLoggerMiddleware } from './fastify-middleware';
 import { LoggerModuleParams, LoggerModuleAsyncParams } from './types';
-import { LOGGER_MODULE_PARAMS, LOGGER_PROVIDER } from './constants';
+import { DI_TOKENS } from './constants';
 
 /**
  * HL8 SAAS平台日志模块
@@ -170,26 +175,26 @@ export class LoggerModule implements NestModule {
    * ```
    */
   static forRoot(params: LoggerModuleParams = {}): DynamicModule {
-    const providers: any[] = [
+    const providers: Provider[] = [
       {
-        provide: LOGGER_MODULE_PARAMS,
+        provide: DI_TOKENS.MODULE_PARAMS,
         useValue: params,
       },
       {
-        provide: LOGGER_PROVIDER,
+        provide: DI_TOKENS.LOGGER_PROVIDER,
         useFactory: (moduleParams: LoggerModuleParams) => {
           return new PinoLogger(moduleParams.config);
         },
-        inject: [LOGGER_MODULE_PARAMS],
+        inject: [DI_TOKENS.MODULE_PARAMS],
       },
     ];
 
-    const exports = [LOGGER_PROVIDER];
+    const exports: Array<string | symbol> = [DI_TOKENS.LOGGER_PROVIDER];
 
     // 如果启用了请求日志记录，添加中间件提供者
     if (params.enableRequestLogging || params.enableResponseLogging) {
       providers.push({
-        provide: 'FASTIFY_LOGGER_MIDDLEWARE',
+        provide: DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE,
         useFactory: (
           moduleParams: LoggerModuleParams
         ): PinoLoggerMiddleware => {
@@ -199,10 +204,10 @@ export class LoggerModule implements NestModule {
             loggerConfig: moduleParams.config,
           });
         },
-        inject: [LOGGER_MODULE_PARAMS],
+        inject: [DI_TOKENS.MODULE_PARAMS],
       });
 
-      exports.push('FASTIFY_LOGGER_MIDDLEWARE');
+      exports.push(DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE);
     }
 
     return {
@@ -288,26 +293,26 @@ export class LoggerModule implements NestModule {
    * ```
    */
   static forRootAsync(params: LoggerModuleAsyncParams): DynamicModule {
-    const providers: any[] = [
+    const providers: Provider[] = [
       {
-        provide: LOGGER_MODULE_PARAMS,
+        provide: DI_TOKENS.MODULE_PARAMS,
         useFactory: params.useFactory,
-        inject: params.inject || [],
+        inject: (params.inject as any[]) || [],
       },
       {
-        provide: LOGGER_PROVIDER,
+        provide: DI_TOKENS.LOGGER_PROVIDER,
         useFactory: (moduleParams: LoggerModuleParams) => {
           return new PinoLogger(moduleParams.config);
         },
-        inject: [LOGGER_MODULE_PARAMS],
+        inject: [DI_TOKENS.MODULE_PARAMS],
       },
     ];
 
-    const exports = [LOGGER_PROVIDER];
+    const exports: Array<string | symbol> = [DI_TOKENS.LOGGER_PROVIDER];
 
     // 添加中间件提供者（总是添加，因为配置是动态的）
     providers.push({
-      provide: 'FASTIFY_LOGGER_MIDDLEWARE',
+      provide: DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE,
       useFactory: (moduleParams: LoggerModuleParams): PinoLoggerMiddleware => {
         return new PinoLoggerMiddleware({
           enableRequestLogging: moduleParams.enableRequestLogging,
@@ -315,16 +320,16 @@ export class LoggerModule implements NestModule {
           loggerConfig: moduleParams.config,
         });
       },
-      inject: [LOGGER_MODULE_PARAMS],
+      inject: [DI_TOKENS.MODULE_PARAMS],
     });
 
-    exports.push('FASTIFY_LOGGER_MIDDLEWARE');
+    exports.push(DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE);
 
     return {
       module: LoggerModule,
       global: true,
-      imports: (params.imports as any[]) || [],
-      providers: [...providers, ...(params.providers || [])],
+      imports: (params.imports || []) as any[],
+      providers: [...providers, ...(params.providers || [])] as Provider[],
       exports,
     };
   }
@@ -361,15 +366,15 @@ export class LoggerModule implements NestModule {
 export function createLoggerProviders(config: Record<string, unknown> = {}) {
   return [
     {
-      provide: LOGGER_MODULE_PARAMS,
+      provide: DI_TOKENS.MODULE_PARAMS,
       useValue: config,
     },
     {
-      provide: LOGGER_PROVIDER,
+      provide: DI_TOKENS.LOGGER_PROVIDER,
       useFactory: (moduleParams: LoggerModuleParams) => {
         return new PinoLogger(moduleParams.config);
       },
-      inject: [LOGGER_MODULE_PARAMS],
+      inject: [DI_TOKENS.MODULE_PARAMS],
     },
   ];
 }
@@ -397,7 +402,7 @@ export function createLoggerMiddlewareProviders(
 ) {
   return [
     {
-      provide: 'FASTIFY_LOGGER_MIDDLEWARE',
+      provide: DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE,
       useFactory: (moduleParams: LoggerModuleParams) => {
         return new PinoLoggerMiddleware({
           enableRequestLogging: moduleParams.enableRequestLogging,
@@ -406,7 +411,7 @@ export function createLoggerMiddlewareProviders(
           ...config,
         });
       },
-      inject: [LOGGER_MODULE_PARAMS],
+      inject: [DI_TOKENS.MODULE_PARAMS],
     },
   ];
 }
@@ -436,7 +441,7 @@ export function createLoggerMiddlewareProviders(
 export function getLoggerInstance(moduleRef: {
   get: (token: string) => PinoLogger;
 }): PinoLogger {
-  return moduleRef.get(LOGGER_PROVIDER);
+  return moduleRef.get(DI_TOKENS.LOGGER_PROVIDER);
 }
 
 /**
@@ -464,5 +469,5 @@ export function getLoggerInstance(moduleRef: {
 export function getLoggerMiddlewareInstance(moduleRef: {
   get: (token: string) => PinoLoggerMiddleware;
 }): PinoLoggerMiddleware {
-  return moduleRef.get('FASTIFY_LOGGER_MIDDLEWARE');
+  return moduleRef.get(DI_TOKENS.FASTIFY_LOGGER_MIDDLEWARE);
 }

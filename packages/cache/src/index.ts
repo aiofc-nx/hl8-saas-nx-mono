@@ -110,6 +110,9 @@ export * from './lib/cache.service';
 export * from './lib/redis.service';
 // ContextService 已由 @hl8/multi-tenancy 的 TenantContextService 替代
 
+// 常量定义导出
+export * from './lib/constants';
+
 // 类型定义导出
 export * from './lib/types/cache.types';
 

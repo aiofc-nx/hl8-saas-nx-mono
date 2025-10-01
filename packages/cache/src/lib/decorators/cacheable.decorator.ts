@@ -9,8 +9,7 @@
 
 import { SetMetadata } from '@nestjs/common';
 import { CacheableOptions } from '../types/cache.types';
-
-export const CACHEABLE_METADATA = 'cacheable';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 缓存方法结果装饰器
@@ -114,7 +113,7 @@ export function Cacheable(
     };
 
     // 设置元数据
-    SetMetadata(CACHEABLE_METADATA, {
+    SetMetadata(DECORATOR_METADATA.CACHEABLE, {
       keyPrefix,
       ttl,
       options,

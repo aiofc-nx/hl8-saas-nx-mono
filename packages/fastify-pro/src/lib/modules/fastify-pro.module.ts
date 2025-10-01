@@ -51,6 +51,7 @@ import { ModuleRef } from '@nestjs/core';
 import { EnterpriseFastifyAdapter } from '../adapters/enterprise-fastify.adapter';
 import { TenantExtractionMiddleware } from '../middleware/tenant.middleware';
 import { HealthCheckService } from '../monitoring/health-check.service';
+import { DI_TOKENS } from '../constants';
 // import { IFastifyEnterpriseConfig } from '../types/fastify.types';
 
 /**
@@ -176,7 +177,7 @@ export class FastifyProModule {
 
     // 添加企业级适配器
     providers.push({
-      provide: 'FASTIFY_PRO_ADAPTER',
+      provide: DI_TOKENS.FASTIFY_PRO_ADAPTER,
       useFactory: () => {
         return new EnterpriseFastifyAdapter({
           enterprise: config?.enterprise,
@@ -191,7 +192,7 @@ export class FastifyProModule {
         useFactory: (fastify: unknown) => {
           return new HealthCheckService(fastify as any);
         },
-        inject: ['FASTIFY_INSTANCE'],
+        inject: [DI_TOKENS.FASTIFY_INSTANCE],
       });
       exports.push(HealthCheckService);
     }
@@ -202,7 +203,7 @@ export class FastifyProModule {
       imports: [...(config?.module?.imports || [])],
       providers: [...providers, ...(config?.module?.providers || [])],
       exports: [
-        'FASTIFY_PRO_ADAPTER',
+        DI_TOKENS.FASTIFY_PRO_ADAPTER,
         ...exports,
         ...(config?.module?.exports || []),
       ],
@@ -223,18 +224,18 @@ export class FastifyProModule {
   }): DynamicModule {
     const providers: Provider[] = [
       {
-        provide: 'FASTIFY_PRO_CONFIG',
+        provide: DI_TOKENS.FASTIFY_PRO_CONFIG,
         useFactory: options.useFactory,
         inject: options.inject || [],
       },
       {
-        provide: 'FASTIFY_PRO_ADAPTER',
+        provide: DI_TOKENS.FASTIFY_PRO_ADAPTER,
         useFactory: (config: IFastifyProModuleConfig) => {
           return new EnterpriseFastifyAdapter({
             enterprise: config?.enterprise,
           });
         },
-        inject: ['FASTIFY_PRO_CONFIG'],
+        inject: [DI_TOKENS.FASTIFY_PRO_CONFIG],
       },
     ];
 
@@ -242,7 +243,7 @@ export class FastifyProModule {
       module: FastifyProModule,
       imports: [...(options.imports || [])],
       providers,
-      exports: ['FASTIFY_PRO_ADAPTER', 'FASTIFY_PRO_CONFIG'],
+      exports: [DI_TOKENS.FASTIFY_PRO_ADAPTER, DI_TOKENS.FASTIFY_PRO_CONFIG],
     };
   }
 
@@ -267,7 +268,7 @@ export class FastifyProModule {
         useFactory: (fastify: unknown) => {
           return new HealthCheckService(fastify as any);
         },
-        inject: ['FASTIFY_INSTANCE'],
+        inject: [DI_TOKENS.FASTIFY_INSTANCE],
       });
       exports.push(HealthCheckService);
     }
@@ -275,21 +276,21 @@ export class FastifyProModule {
     // 性能监控功能
     if (features.performanceMonitoring) {
       providers.push({
-        provide: 'PERFORMANCE_MONITOR',
+        provide: DI_TOKENS.PERFORMANCE_MONITOR,
         useFactory: () => {
           // 这里可以添加性能监控服务
           return {};
         },
       });
-      exports.push('PERFORMANCE_MONITOR');
+      exports.push(DI_TOKENS.PERFORMANCE_MONITOR);
     }
 
     // 租户提取功能
     if (features.tenantExtraction) {
       providers.push({
-        provide: 'TENANT_EXTRACTION_MIDDLEWARE',
+        provide: DI_TOKENS.TENANT_EXTRACTION_MIDDLEWARE,
         useFactory: (moduleRef: ModuleRef) => {
-          const configService = moduleRef.get('FASTIFY_PRO_CONFIG', {
+          const configService = moduleRef.get(DI_TOKENS.FASTIFY_PRO_CONFIG, {
             strict: false,
           });
           return new TenantExtractionMiddleware({
@@ -298,21 +299,21 @@ export class FastifyProModule {
               configService?.enterprise?.tenantHeader || 'X-Tenant-ID',
           });
         },
-        inject: ['FASTIFY_PRO_CONFIG'],
+        inject: [DI_TOKENS.FASTIFY_PRO_CONFIG],
       });
-      exports.push('TENANT_EXTRACTION_MIDDLEWARE');
+      exports.push(DI_TOKENS.TENANT_EXTRACTION_MIDDLEWARE);
     }
 
     // CORS功能
     if (features.cors) {
       providers.push({
-        provide: 'CORS_SERVICE',
+        provide: DI_TOKENS.CORS_SERVICE,
         useFactory: () => {
           // 这里可以添加CORS服务
           return {};
         },
       });
-      exports.push('CORS_SERVICE');
+      exports.push(DI_TOKENS.CORS_SERVICE);
     }
 
     return {

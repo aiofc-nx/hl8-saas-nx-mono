@@ -5,7 +5,6 @@
  * 包括请求头提取、查询参数提取、子域名提取等
  *
  * @fileoverview 租户上下文策略接口定义
- * @author HL8 Team
  * @since 1.0.0
  */
 

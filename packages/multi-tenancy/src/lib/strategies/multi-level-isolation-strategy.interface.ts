@@ -5,7 +5,6 @@
  * 支持租户、组织、部门、用户四个层级的隔离策略
  *
  * @fileoverview 多层级隔离策略接口定义
- * @author HL8 Team
  * @since 1.0.0
  */
 

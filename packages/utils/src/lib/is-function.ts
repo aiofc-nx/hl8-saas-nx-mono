@@ -70,9 +70,8 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function isFunction(item: any): boolean {
-	// 检查类型为 function 且不是数组
-	return typeof item === 'function' && !Array.isArray(item);
+export function isFunction(item: unknown): boolean {
+  // 检查类型为 function 且不是数组
+  return typeof item === 'function' && !Array.isArray(item);
 }

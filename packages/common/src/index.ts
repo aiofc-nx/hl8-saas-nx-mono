@@ -102,8 +102,14 @@
  * ```
  */
 
+// 常量导出
+export * from './constants';
+
 // 类型定义导出
 export * from './types/shared-types';
+
+// 装饰器导出
+export * from './decorators/index';
 
 // 异常处理模块导出
 export * from './exceptions/index';

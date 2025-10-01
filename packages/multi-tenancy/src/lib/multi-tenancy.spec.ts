@@ -4,7 +4,6 @@
  * 测试多租户模块的核心功能和配置选项
  *
  * @fileoverview 多租户模块单元测试
- * @author HL8 Team
  * @since 1.0.0
  */
 

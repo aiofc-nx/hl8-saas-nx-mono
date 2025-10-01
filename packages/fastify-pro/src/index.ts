@@ -37,6 +37,9 @@
  * ```
  */
 
+// 常量定义
+export * from './lib/constants';
+
 // 核心适配器
 export * from './lib/adapters/core-fastify.adapter';
 export * from './lib/adapters/enterprise-fastify.adapter';

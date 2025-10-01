@@ -60,9 +60,8 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function isArray(item: any): boolean {
-	// 使用原生 Array.isArray 方法检查类型
-	return Array.isArray(item);
+export function isArray(item: unknown): boolean {
+  // 使用原生 Array.isArray 方法检查类型
+  return Array.isArray(item);
 }

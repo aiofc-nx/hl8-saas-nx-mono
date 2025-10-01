@@ -72,10 +72,8 @@ import {
   createConfigServiceProvider,
   createConfigOptionsProvider,
 } from './config';
-import {
-  IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
-} from './types/tenant-core.types';
+import { IMultiTenancyModuleOptions } from './types/tenant-core.types';
+import { DI_TOKENS } from './constants';
 
 /**
  * 多租户模块
@@ -194,7 +192,7 @@ export class MultiTenancyModule {
   static forRoot(options: IMultiTenancyModuleOptions): DynamicModule {
     const providers: Provider[] = [
       {
-        provide: MULTI_TENANCY_MODULE_OPTIONS,
+        provide: DI_TOKENS.MODULE_OPTIONS,
         useValue: options,
       },
       PinoLogger,
@@ -234,7 +232,7 @@ export class MultiTenancyModule {
         TenantContextService,
         TenantIsolationService,
         MultiLevelIsolationService,
-        MULTI_TENANCY_MODULE_OPTIONS,
+        DI_TOKENS.MODULE_OPTIONS,
       ],
       global: true,
     };
@@ -301,7 +299,7 @@ export class MultiTenancyModule {
 
       // 多租户服务提供者
       {
-        provide: MULTI_TENANCY_MODULE_OPTIONS,
+        provide: DI_TOKENS.MODULE_OPTIONS,
         useFactory: (configService: MultiTenancyConfigService) => {
           const config = configService.getConfig();
           return {
@@ -364,7 +362,7 @@ export class MultiTenancyModule {
         TenantIsolationService,
         MultiLevelIsolationService,
         MultiTenancyConfigService,
-        MULTI_TENANCY_MODULE_OPTIONS,
+        DI_TOKENS.MODULE_OPTIONS,
       ],
       global: true,
     };
@@ -431,7 +429,7 @@ export class MultiTenancyModule {
   }): DynamicModule {
     const providers: Provider[] = [
       {
-        provide: MULTI_TENANCY_MODULE_OPTIONS,
+        provide: DI_TOKENS.MODULE_OPTIONS,
         useFactory: options.useFactory,
         inject: (options.inject as Array<string | symbol>) || [],
       },
@@ -472,7 +470,7 @@ export class MultiTenancyModule {
         TenantContextService,
         TenantIsolationService,
         MultiLevelIsolationService,
-        MULTI_TENANCY_MODULE_OPTIONS,
+        DI_TOKENS.MODULE_OPTIONS,
       ],
       global: true,
     };

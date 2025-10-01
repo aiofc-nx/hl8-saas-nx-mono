@@ -5,7 +5,6 @@
  * 包括权限检查、跨租户访问控制、审计日志等
  *
  * @fileoverview 租户安全策略接口定义
- * @author HL8 Team
  * @since 1.0.0
  */
 

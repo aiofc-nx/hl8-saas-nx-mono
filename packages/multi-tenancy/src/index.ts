@@ -50,6 +50,9 @@ export * from './lib/services/multi-level-isolation.service';
 // 配置管理
 export * from './lib/config';
 
+// 常量定义导出
+export * from './lib/constants';
+
 // 类型定义
 export * from './lib/types/tenant-core.types';
 

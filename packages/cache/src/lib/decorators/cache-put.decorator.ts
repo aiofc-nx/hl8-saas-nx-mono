@@ -8,8 +8,7 @@
  */
 
 import { SetMetadata } from '@nestjs/common';
-
-export const CACHE_PUT_METADATA = 'cache_put';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 缓存更新选项
@@ -145,7 +144,7 @@ export function CachePut(
     };
 
     // 设置元数据
-    SetMetadata(CACHE_PUT_METADATA, {
+    SetMetadata(DECORATOR_METADATA.CACHE_PUT, {
       keyPrefix,
       ttl,
       options,
@@ -423,7 +422,7 @@ export function CachePutMultiple(
     };
 
     // 设置元数据
-    SetMetadata(CACHE_PUT_METADATA, {
+    SetMetadata(DECORATOR_METADATA.CACHE_PUT, {
       keyPrefixes,
       ttl,
       options,

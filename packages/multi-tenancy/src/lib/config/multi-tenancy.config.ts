@@ -5,7 +5,6 @@
  * 支持环境变量、配置文件加载和配置验证
  *
  * @fileoverview 多租户配置类实现
- * @author HL8 Team
  * @since 1.0.0
  */
 

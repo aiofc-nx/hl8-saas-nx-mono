@@ -65,32 +65,35 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function isEmpty(item: any): boolean {
-    // 检查数组类型
-    if (Array.isArray(item)) {
-        // 过滤掉空值后检查剩余元素
-        const filteredArray = item.filter((val) => !isEmpty(val));
-        return filteredArray.length === 0;
-    } 
-    // 检查对象类型
-    else if (item && typeof item === 'object') {
-        // 创建浅拷贝避免修改原始对象
-        const shallowCopy = { ...item };
-        // 移除空值属性
-        for (const key in shallowCopy) {
-            if (shallowCopy[key] === null || shallowCopy[key] === undefined || shallowCopy[key] === '') {
-                delete shallowCopy[key];
-            }
-        }
-        // 检查剩余属性数量
-        return Object.keys(shallowCopy).length === 0;
-    } 
-    // 检查基本类型
-    else {
-        // 检查非对象/数组值
-        const strValue = (item + '').toLowerCase();
-        return !item || strValue === 'null' || strValue === 'undefined';
+export function isEmpty(item: unknown): boolean {
+  // 检查数组类型
+  if (Array.isArray(item)) {
+    // 过滤掉空值后检查剩余元素
+    const filteredArray = item.filter((val) => !isEmpty(val));
+    return filteredArray.length === 0;
+  }
+  // 检查对象类型
+  else if (item && typeof item === 'object') {
+    // 创建浅拷贝避免修改原始对象
+    const shallowCopy: Record<string, unknown> = { ...item };
+    // 移除空值属性
+    for (const key in shallowCopy) {
+      if (
+        shallowCopy[key] === null ||
+        shallowCopy[key] === undefined ||
+        shallowCopy[key] === ''
+      ) {
+        delete shallowCopy[key];
+      }
     }
+    // 检查剩余属性数量
+    return Object.keys(shallowCopy).length === 0;
+  }
+  // 检查基本类型
+  else {
+    // 检查非对象/数组值
+    const strValue = (item + '').toLowerCase();
+    return !item || strValue === 'null' || strValue === 'undefined';
+  }
 }

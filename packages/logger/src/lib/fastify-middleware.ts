@@ -5,7 +5,6 @@
  * 支持请求/响应日志记录、请求上下文绑定、错误处理等功能
  *
  * @fileoverview Fastify 日志中间件实现文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -156,7 +155,7 @@ export class PinoLoggerMiddleware {
       return false;
     }
 
-    return this.options.excludePaths.some(excludePath => {
+    return this.options.excludePaths.some((excludePath) => {
       if (excludePath.endsWith('*')) {
         return path.startsWith(excludePath.slice(0, -1));
       }
@@ -175,7 +174,7 @@ export class PinoLoggerMiddleware {
    */
   private createRequestContext(request: FastifyRequest): RequestContext {
     const requestId = this.generateRequestId(request);
-    
+
     return {
       requestId,
       userId: request.headers['x-user-id'] as string,
@@ -287,10 +286,15 @@ export class PinoLoggerMiddleware {
 
         // 创建请求上下文
         const context = this.createRequestContext(request);
-        
+
         // 创建请求存储
-        const store = new RequestStore(request, reply, context, this.options.logLevel);
-        
+        const store = new RequestStore(
+          request,
+          reply,
+          context,
+          this.options.logLevel
+        );
+
         // 运行在请求上下文中
         storage.run(store, () => {
           this.handleRequestStart(request, reply, context);
@@ -306,7 +310,7 @@ export class PinoLoggerMiddleware {
 
         const context = store.getContext();
         this.handleRequestComplete(request, reply, context);
-        
+
         return payload;
       });
 
@@ -359,7 +363,7 @@ export class PinoLoggerMiddleware {
    */
   updateOptions(options: Partial<PinoLoggerMiddlewareOptions>): void {
     Object.assign(this.options, options);
-    
+
     if (options.logLevel) {
       this.logger.setLevel(options.logLevel);
     }

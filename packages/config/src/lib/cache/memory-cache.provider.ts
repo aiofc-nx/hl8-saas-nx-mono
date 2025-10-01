@@ -12,10 +12,10 @@ import {
   CacheStats,
   CacheEvent,
   CacheEventListener,
-  CacheEventType,
   MemoryCacheOptions,
 } from '../types/cache.types';
 import { ConfigRecord } from '../types/config.types';
+import { CacheEventType } from '../constants';
 
 /**
  * 内存缓存提供者类

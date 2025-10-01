@@ -48,6 +48,9 @@ export * from './lib/messaging.module';
 export * from './lib/config/messaging.config';
 export * from './lib/config/messaging-config.module';
 
+// 常量定义导出
+export * from './lib/constants';
+
 // 核心服务导出
 export * from './lib/messaging.service';
 export * from './lib/event.service';

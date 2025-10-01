@@ -2,7 +2,6 @@
  * 远程加载器
  *
  * @description 从远程端点加载配置的加载器
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -11,6 +10,7 @@ import {
   AsyncConfigLoader,
 } from '../interfaces/typed-config-module-options.interface';
 import { ErrorHandler, ConfigError } from '../errors';
+import { CONFIG_DEFAULTS } from '../constants';
 
 /**
  * 远程加载器选项接口
@@ -86,7 +86,6 @@ export interface RemoteLoaderOptions {
  *   retryInterval: 1000
  * });
  * ```
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 export const remoteLoader = (
@@ -98,8 +97,8 @@ export const remoteLoader = (
     type = 'json',
     mapResponse = (response) => response.data,
     shouldRetry = (response) => response.status !== 200,
-    retries = 3,
-    retryInterval = 1000,
+    retries = CONFIG_DEFAULTS.RETRY_ATTEMPTS,
+    retryInterval = CONFIG_DEFAULTS.RETRY_DELAY,
   } = options;
 
   return async (): Promise<Record<string, any>> => {
@@ -139,17 +138,19 @@ export const remoteLoader = (
  * @param url 请求 URL
  * @param config 请求配置
  * @returns HTTP 响应
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
-async function makeRequest(url: string, config: any): Promise<any> {
+async function makeRequest(
+  url: string,
+  config: Record<string, unknown>
+): Promise<{ data: unknown; status: number }> {
   // 这里应该使用实际的 HTTP 客户端，如 axios 或 fetch
   // 为了简化，这里使用 fetch API
   const response = await fetch(url, {
-    method: config.method || 'GET',
+    method: (config['method'] as string) || 'GET',
     headers: {
       'Content-Type': 'application/json',
-      ...config.headers,
+      ...((config['headers'] as Record<string, string>) || {}),
     },
     // 移除 timeout 属性，因为 fetch 不支持
   });
@@ -198,7 +199,6 @@ function parseConfig(
  * @description 延迟指定时间
  * @param ms 延迟时间（毫秒）
  * @returns Promise<void>
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 function delay(ms: number): Promise<void> {

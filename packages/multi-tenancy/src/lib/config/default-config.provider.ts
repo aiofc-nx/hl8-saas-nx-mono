@@ -5,7 +5,6 @@
  * 支持环境变量覆盖和配置验证
  *
  * @fileoverview 默认配置提供者实现
- * @author HL8 Team
  * @since 1.0.0
  */
 

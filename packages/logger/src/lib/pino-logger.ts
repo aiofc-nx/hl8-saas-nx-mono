@@ -5,14 +5,13 @@
  * 支持请求上下文绑定、结构化日志输出、异步日志记录等功能
  *
  * @fileoverview Pino 日志记录器实现文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
 const pino = require('pino');
 const pinoPretty = require('pino-pretty');
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { Logger as PinoLoggerType } from 'pino';
+import { Logger as PinoLoggerType, LoggerOptions } from 'pino';
 import {
   LoggerInterface,
   LogLevel,
@@ -97,7 +96,7 @@ export class PinoLogger implements LoggerInterface {
    * @private
    */
   private createPinoInstance(): PinoLoggerType {
-    const pinoConfig: any = {
+    const pinoConfig: LoggerOptions & Record<string, unknown> = {
       level: this._level,
       timestamp: pino.stdTimeFunctions.isoTime,
       formatters: {
@@ -129,18 +128,18 @@ export class PinoLogger implements LoggerInterface {
       }
 
       if (this.config.format.translateTime) {
-        pinoConfig.translateTime = this.config.format.translateTime;
+        pinoConfig['translateTime'] = this.config.format.translateTime;
       }
 
       if (this.config.format.ignore) {
-        pinoConfig.ignore = this.config.format.ignore;
+        pinoConfig['ignore'] = this.config.format.ignore;
       }
     }
 
     // 准备 pino-pretty 选项
     const shouldUsePretty =
       this.config.format?.prettyPrint || this.config.format?.colorize;
-    const prettyOptions: any = {
+    const prettyOptions: Record<string, unknown> = {
       // 强制启用多行格式
       singleLine: false,
       crlf: false,
@@ -150,15 +149,15 @@ export class PinoLogger implements LoggerInterface {
 
     if (shouldUsePretty && this.config.format) {
       if (this.config.format.translateTime) {
-        prettyOptions.translateTime = this.config.format.translateTime;
+        prettyOptions['translateTime'] = this.config.format.translateTime;
       }
 
       if (this.config.format.ignore) {
-        prettyOptions.ignore = this.config.format.ignore;
+        prettyOptions['ignore'] = this.config.format.ignore;
       }
 
       if (this.config.format.colorize) {
-        prettyOptions.colorize = this.config.format.colorize;
+        prettyOptions['colorize'] = this.config.format.colorize;
       }
     }
 

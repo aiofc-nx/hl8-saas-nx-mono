@@ -86,9 +86,8 @@ import { isEmpty } from './is-empty';
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function isNotEmpty(item: any): boolean {
-	// 使用 isEmpty 函数的相反逻辑
-	return !isEmpty(item);
+export function isNotEmpty(item: unknown): boolean {
+  // 使用 isEmpty 函数的相反逻辑
+  return !isEmpty(item);
 }

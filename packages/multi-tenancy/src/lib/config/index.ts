@@ -5,7 +5,6 @@
  * 集成 @hl8/config 模块，支持配置文件加载、环境变量覆盖和配置验证
  *
  * @fileoverview 多租户配置模块导出
- * @author HL8 Team
  * @since 1.0.0
  */
 

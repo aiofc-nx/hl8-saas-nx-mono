@@ -26,8 +26,8 @@ import {
   QueueOptions,
   ConnectionInfo,
   QueueInfo,
-  MESSAGING_MODULE_OPTIONS,
 } from './types/messaging.types';
+import { DI_TOKENS } from './constants';
 
 /**
  * 消息队列服务
@@ -90,7 +90,7 @@ export class MessagingService implements IMessagingService {
     private readonly deduplicationService: MessageDeduplicationService,
     private readonly consumerStateService: ConsumerStateService,
     private readonly logger: PinoLogger,
-    @Inject(MESSAGING_MODULE_OPTIONS)
+    @Inject(DI_TOKENS.MODULE_OPTIONS)
     private readonly options: MessagingModuleOptions
   ) {
     this.logger.setContext({ requestId: 'messaging-service' });

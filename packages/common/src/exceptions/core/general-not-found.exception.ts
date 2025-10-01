@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { AbstractHttpException } from './abstract-http.exception';
+import { ERROR_CODES } from '../../constants';
 
 /**
  * 通用资源未找到异常
@@ -57,17 +58,17 @@ export class GeneralNotFoundException extends AbstractHttpException {
   constructor(
     title: string,
     detail: string,
-    data?: Record<string, any>,
-    rootCause?: unknown,
+    data?: Record<string, unknown>,
+    rootCause?: unknown
   ) {
     super(
-      'NOT_FOUND',
+      ERROR_CODES.NOT_FOUND,
       title,
       detail,
       HttpStatus.NOT_FOUND,
       data,
-      'NOT_FOUND',
-      rootCause,
+      ERROR_CODES.NOT_FOUND,
+      rootCause
     );
   }
 }

@@ -42,6 +42,7 @@
  */
 
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { ERROR_CODES, HTTP_HEADERS } from '../constants';
 import { CoreFastifyMiddleware } from './core-fastify.middleware';
 import { IFastifyMiddlewareConfig } from '../types/fastify.types';
 
@@ -137,7 +138,7 @@ export class TenantExtractionMiddleware extends CoreFastifyMiddleware {
       if (!tenantId) {
         reply.status(400).send({
           error: 'Tenant ID is required',
-          code: 'TENANT_ID_REQUIRED',
+          code: ERROR_CODES.TENANT_ID_REQUIRED,
         });
         return;
       }
@@ -149,7 +150,7 @@ export class TenantExtractionMiddleware extends CoreFastifyMiddleware {
       ) {
         reply.status(400).send({
           error: 'Invalid tenant ID format',
-          code: 'INVALID_TENANT_FORMAT',
+          code: ERROR_CODES.INVALID_TENANT_FORMAT,
         });
         return;
       }
@@ -158,14 +159,14 @@ export class TenantExtractionMiddleware extends CoreFastifyMiddleware {
       request.tenantId = tenantId;
 
       // 设置响应头
-      reply.header('X-Tenant-ID', tenantId);
+      reply.header(HTTP_HEADERS.TENANT_ID, tenantId);
 
       done();
     } catch (error) {
       console.error('Tenant extraction middleware error:', error);
       reply.status(500).send({
         error: 'Tenant extraction failed',
-        code: 'TENANT_EXTRACTION_ERROR',
+        code: ERROR_CODES.TENANT_EXTRACTION_ERROR,
       });
     }
   };

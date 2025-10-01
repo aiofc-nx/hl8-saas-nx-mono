@@ -65,9 +65,8 @@
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
-export function isString(val: any): val is string {
-	// 检查值不为 null/undefined 且类型为 string
-	return val != null && typeof val === 'string';
+export function isString(val: unknown): val is string {
+  // 检查值不为 null/undefined 且类型为 string
+  return val != null && typeof val === 'string';
 }

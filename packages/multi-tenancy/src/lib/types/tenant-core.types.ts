@@ -5,7 +5,6 @@
  * 这些类型是纯技术性的，不包含业务逻辑
  *
  * @fileoverview 多租户核心类型定义
- * @author HL8 Team
  * @since 1.0.0
  */
 
@@ -413,11 +412,6 @@ export interface IMultiTenancyModuleOptions {
   /** 多层级隔离配置（可选） */
   multiLevel?: IMultiLevelIsolationConfig;
 }
-
-/**
- * 模块选项常量
- */
-export const MULTI_TENANCY_MODULE_OPTIONS = 'MULTI_TENANCY_MODULE_OPTIONS';
 
 // 重新导出多层级类型
 export * from './multi-level.types';

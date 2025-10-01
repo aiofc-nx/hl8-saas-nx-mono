@@ -5,7 +5,6 @@
  * 支持从HTTP请求中提取多层级上下文信息
  *
  * @fileoverview 默认多层级上下文策略实现
- * @author HL8 Team
  * @since 1.0.0
  */
 

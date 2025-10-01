@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { AbstractHttpException } from './abstract-http.exception';
+import { ERROR_CODES } from '../../constants';
 
 /**
  * 通用内部服务器错误异常
@@ -60,17 +61,17 @@ export class GeneralInternalServerException extends AbstractHttpException {
   constructor(
     title: string,
     detail: string,
-    data?: Record<string, any>,
-    rootCause?: unknown,
+    data?: Record<string, unknown>,
+    rootCause?: unknown
   ) {
     super(
-      'INTERNAL_ERROR',
+      ERROR_CODES.INTERNAL_ERROR,
       title,
       detail,
       HttpStatus.INTERNAL_SERVER_ERROR,
       data,
-      'INTERNAL_ERROR',
-      rootCause,
+      ERROR_CODES.INTERNAL_ERROR,
+      rootCause
     );
   }
 }

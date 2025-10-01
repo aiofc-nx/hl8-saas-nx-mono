@@ -5,7 +5,6 @@
  * 为每个请求提供独立的日志上下文，支持请求追踪和日志关联
  *
  * @fileoverview 请求上下文管理文件
- * @author HL8 SAAS Platform Team
  * @since 1.0.0
  */
 
@@ -139,7 +138,7 @@ export class RequestStore {
    *
    * @example
    * ```typescript
-   * store.updateMetadata({ 
+   * store.updateMetadata({
    *   operation: 'user-login',
    *   ip: '192.168.1.1'
    * });
@@ -159,7 +158,7 @@ export class RequestStore {
       requestId: '',
       userId: '',
       traceId: '',
-      metadata: {}
+      metadata: {},
     };
   }
 
@@ -287,10 +286,10 @@ export class RequestStore {
  * storage.run(store, () => {
  *   // 在这个作用域内的所有操作都能访问到请求上下文
  *   const context = storage.getStore();
-   *   console.log(context.getRequestId());
-   * });
-   * ```
-   */
+ *   console.log(context.getRequestId());
+ * });
+ * ```
+ */
 export const storage = new AsyncLocalStorage<RequestStore>();
 
 /**
@@ -300,14 +299,14 @@ export const storage = new AsyncLocalStorage<RequestStore>();
  * @returns {RequestStore | undefined} 当前请求的上下文存储，如果不在请求作用域内则返回 undefined
  *
  * @example
-   * ```typescript
-   * const store = getCurrentRequestStore();
-   * if (store) {
-   *   const requestId = store.getRequestId();
-   *   console.log(`Current request: ${requestId}`);
-   * }
-   * ```
-   */
+ * ```typescript
+ * const store = getCurrentRequestStore();
+ * if (store) {
+ *   const requestId = store.getRequestId();
+ *   console.log(`Current request: ${requestId}`);
+ * }
+ * ```
+ */
 export function getCurrentRequestStore(): RequestStore | undefined {
   return storage.getStore();
 }
@@ -319,14 +318,14 @@ export function getCurrentRequestStore(): RequestStore | undefined {
  * @returns {RequestContext | undefined} 当前请求的上下文信息，如果不在请求作用域内则返回 undefined
  *
  * @example
-   * ```typescript
-   * const context = getCurrentRequestContext();
-   * if (context) {
-   *   console.log(`Request ID: ${context.requestId}`);
-   *   console.log(`User ID: ${context.userId}`);
-   * }
-   * ```
-   */
+ * ```typescript
+ * const context = getCurrentRequestContext();
+ * if (context) {
+ *   console.log(`Request ID: ${context.requestId}`);
+ *   console.log(`User ID: ${context.userId}`);
+ * }
+ * ```
+ */
 export function getCurrentRequestContext(): RequestContext | null {
   const store = getCurrentRequestStore();
   return store?.getContext() || null;
@@ -339,13 +338,13 @@ export function getCurrentRequestContext(): RequestContext | null {
  * @returns {string | undefined} 当前请求的ID，如果不在请求作用域内则返回 undefined
  *
  * @example
-   * ```typescript
-   * const requestId = getCurrentRequestId();
-   * if (requestId) {
-   *   console.log(`Processing request: ${requestId}`);
-   * }
-   * ```
-   */
+ * ```typescript
+ * const requestId = getCurrentRequestId();
+ * if (requestId) {
+ *   console.log(`Processing request: ${requestId}`);
+ * }
+ * ```
+ */
 export function getCurrentRequestId(): string | undefined {
   const store = getCurrentRequestStore();
   return store?.getRequestId();
@@ -358,13 +357,13 @@ export function getCurrentRequestId(): string | undefined {
  * @returns {string | undefined} 当前请求的用户ID，如果不在请求作用域内或未设置则返回 undefined
  *
  * @example
-   * ```typescript
-   * const userId = getCurrentUserId();
-   * if (userId) {
-   *   console.log(`Current user: ${userId}`);
-   * }
-   * ```
-   */
+ * ```typescript
+ * const userId = getCurrentUserId();
+ * if (userId) {
+ *   console.log(`Current user: ${userId}`);
+ * }
+ * ```
+ */
 export function getCurrentUserId(): string | undefined {
   const store = getCurrentRequestStore();
   return store?.getUserId();
@@ -377,14 +376,14 @@ export function getCurrentUserId(): string | undefined {
  * @param context - 新的上下文信息
  *
  * @example
-   * ```typescript
-   * setCurrentRequestContext({
-   *   requestId: 'req-123',
-   *   userId: 'user-456',
-   *   traceId: 'trace-789'
-   * });
-   * ```
-   */
+ * ```typescript
+ * setCurrentRequestContext({
+ *   requestId: 'req-123',
+ *   userId: 'user-456',
+ *   traceId: 'trace-789'
+ * });
+ * ```
+ */
 export function setCurrentRequestContext(context: RequestContext): void {
   const store = getCurrentRequestStore();
   if (store) {
@@ -399,21 +398,22 @@ export function setCurrentRequestContext(context: RequestContext): void {
  * @param metadata - 元数据对象
  *
  * @example
-   * ```typescript
-   * updateCurrentRequestMetadata({
-   *   operation: 'user-login',
-   *   ip: '192.168.1.1',
-   *   userAgent: 'Mozilla/5.0...'
-   * });
-   * ```
-   */
-export function updateCurrentRequestMetadata(metadata: Record<string, unknown>): void {
+ * ```typescript
+ * updateCurrentRequestMetadata({
+ *   operation: 'user-login',
+ *   ip: '192.168.1.1',
+ *   userAgent: 'Mozilla/5.0...'
+ * });
+ * ```
+ */
+export function updateCurrentRequestMetadata(
+  metadata: Record<string, unknown>
+): void {
   const store = getCurrentRequestStore();
   if (store) {
     store.updateMetadata(metadata);
   }
 }
-
 
 /**
  * 清除当前请求上下文
@@ -475,5 +475,12 @@ export async function withRequestContext<T>(
   context: RequestContext,
   fn: () => Promise<T>
 ): Promise<T> {
-  return storage.run(new RequestStore(null as unknown as FastifyRequest, null as unknown as FastifyReply, context), fn);
+  return storage.run(
+    new RequestStore(
+      null as unknown as FastifyRequest,
+      null as unknown as FastifyReply,
+      context
+    ),
+    fn
+  );
 }

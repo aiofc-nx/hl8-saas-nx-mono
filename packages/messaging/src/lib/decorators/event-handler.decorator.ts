@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 事件处理器装饰器
@@ -77,11 +78,6 @@ export function EventHandler(eventName: string) {
 }
 
 /**
- * 事件处理器元数据键
- */
-export const EVENT_HANDLERS_METADATA_KEY = 'eventHandlers';
-
-/**
  * 获取事件处理器元数据
  *
  * @description 获取类的事件处理器元数据
@@ -94,5 +90,5 @@ export function getEventHandlers(target: object): Array<{
   methodName: string;
   handler: (...args: unknown[]) => unknown;
 }> {
-  return Reflect.getMetadata(EVENT_HANDLERS_METADATA_KEY, target) || [];
+  return Reflect.getMetadata(DECORATOR_METADATA.EVENT_HANDLERS, target) || [];
 }

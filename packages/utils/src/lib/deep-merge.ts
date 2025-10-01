@@ -86,42 +86,42 @@ import { isPlainObject } from './is-plain-object';
  * ```
  *
  * @since 1.0.0
- * @version 1.0.0
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function deepMerge(target: any, source: any, depth = 0): any {
-	// 如果源对象不存在或不是对象类型，返回目标对象
-	if (!source || typeof source !== 'object') {
-		return target;
-	}
+  // 如果源对象不存在或不是对象类型，返回目标对象
+  if (!source || typeof source !== 'object') {
+    return target;
+  }
 
-	// 在深度为 0 时克隆目标对象，避免修改原始对象
-	if (depth === 0) {
-		target = deepClone(target);
-	}
+  // 在深度为 0 时克隆目标对象，避免修改原始对象
+  if (depth === 0) {
+    target = deepClone(target);
+  }
 
-	// 递归合并对象
-	if (isPlainObject(target) && isPlainObject(source)) {
-		for (const key in source) {
-			if (Object.prototype.hasOwnProperty.call(source, key)) {
-				// 如果源值是对象，递归合并
-				if (isPlainObject(source[key])) {
-					if (!target[key]) {
-						target[key] = {};
-					}
+  // 递归合并对象
+  if (isPlainObject(target) && isPlainObject(source)) {
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        // 如果源值是对象，递归合并
+        if (isPlainObject(source[key])) {
+          if (!target[key]) {
+            target[key] = {};
+          }
 
-					if (!isClassInstance(source[key])) {
-						deepMerge(target[key], source[key], depth + 1);
-					} else {
-						// 如果源是类实例，不合并，直接赋值
-						target[key] = source[key];
-					}
-				} else {
-					// 直接从源对象赋值到目标对象
-					target[key] = source[key];
-				}
-			}
-		}
-	}
+          if (!isClassInstance(source[key])) {
+            deepMerge(target[key], source[key], depth + 1);
+          } else {
+            // 如果源是类实例，不合并，直接赋值
+            target[key] = source[key];
+          }
+        } else {
+          // 直接从源对象赋值到目标对象
+          target[key] = source[key];
+        }
+      }
+    }
+  }
 
-	return target;
+  return target;
 }

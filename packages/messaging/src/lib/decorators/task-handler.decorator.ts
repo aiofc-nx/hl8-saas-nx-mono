@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 任务处理器装饰器
@@ -57,11 +58,6 @@ export function TaskHandler(taskName: string) {
 }
 
 /**
- * 任务处理器元数据键
- */
-export const TASK_HANDLERS_METADATA_KEY = 'taskHandlers';
-
-/**
  * 获取任务处理器元数据
  *
  * @description 获取类的任务处理器元数据
@@ -74,5 +70,5 @@ export function getTaskHandlers(target: object): Array<{
   methodName: string;
   handler: (...args: unknown[]) => unknown;
 }> {
-  return Reflect.getMetadata(TASK_HANDLERS_METADATA_KEY, target) || [];
+  return Reflect.getMetadata(DECORATOR_METADATA.TASK_HANDLERS, target) || [];
 }

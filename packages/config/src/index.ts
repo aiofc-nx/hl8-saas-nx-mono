@@ -105,6 +105,9 @@
  * ```
  */
 
+// 常量导出
+export * from './lib/constants';
+
 // 核心模块导出
 export { TypedConfigModule } from './lib/typed-config.module';
 

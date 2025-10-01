@@ -57,6 +57,7 @@ import { Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { PinoLogger } from '@hl8/logger';
 import { RedisConfig, ConnectionInfo } from './types/cache.types';
+import { DI_TOKENS } from './constants';
 
 /**
  * Redis服务
@@ -111,7 +112,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private connectionInfo!: ConnectionInfo;
 
   constructor(
-    @Inject('CACHE_MODULE_OPTIONS') private readonly options: any,
+    @Inject(DI_TOKENS.MODULE_OPTIONS)
+    private readonly options: { redis: RedisConfig },
     private readonly logger: PinoLogger
   ) {
     this.logger.setContext({ requestId: 'redis-service' });

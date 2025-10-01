@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Module, Type, Provider } from '@nestjs/common';
 import {
   MultiTenancyModule,
   TenantContextService,
@@ -10,8 +10,8 @@ import { CacheModule } from '@hl8/cache';
 import {
   MessagingModuleOptions,
   MessagingAdapterType,
-  MESSAGING_MODULE_OPTIONS,
 } from './types/messaging.types';
+import { DI_TOKENS } from './constants';
 import { MessagingService } from './messaging.service';
 import { EventService } from './event.service';
 import { TaskService } from './task.service';
@@ -169,7 +169,7 @@ export class MessagingModule {
       ],
       providers: [
         {
-          provide: MESSAGING_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: options,
         },
         MessagingService,
@@ -207,8 +207,8 @@ export class MessagingModule {
     useFactory: (
       ...args: unknown[]
     ) => Promise<MessagingModuleOptions> | MessagingModuleOptions;
-    inject?: any[];
-    imports?: any[];
+    inject?: Array<string | symbol | Type<unknown>>;
+    imports?: Array<Type<unknown> | DynamicModule | Promise<DynamicModule>>;
   }): DynamicModule {
     return {
       module: MessagingModule,
@@ -257,7 +257,7 @@ export class MessagingModule {
       ],
       providers: [
         {
-          provide: MESSAGING_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useFactory: options.useFactory,
           inject: options.inject,
         },
@@ -311,8 +311,8 @@ export class MessagingModule {
    * @param options 模块配置选项
    * @returns 适配器提供者数组
    */
-  private static createAdapters(options: MessagingModuleOptions): any[] {
-    const adapters: any[] = [];
+  private static createAdapters(options: MessagingModuleOptions): Provider[] {
+    const adapters: Provider[] = [];
 
     // 根据配置的适配器类型创建相应的适配器
     switch (options.adapter) {
@@ -472,7 +472,7 @@ export class MessagingModule {
       ],
       providers: [
         {
-          provide: MESSAGING_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: options,
         },
         {

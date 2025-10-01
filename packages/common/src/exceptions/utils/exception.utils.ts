@@ -1,5 +1,6 @@
 import { AbstractHttpException } from '../core/abstract-http.exception';
 import { ErrorResponse } from '../vo/error-response.dto';
+import { ExceptionMessageProvider } from '../config/exception-message.provider';
 
 /**
  * 异常工具类
@@ -64,10 +65,14 @@ export class ExceptionUtils {
   static toErrorResponse(
     exception: AbstractHttpException,
     requestId: string,
-    messageProvider?: any,
-    documentationUrl?: string,
+    messageProvider?: ExceptionMessageProvider,
+    documentationUrl?: string
   ): ErrorResponse {
-    return exception.toErrorResponse(requestId, messageProvider, documentationUrl);
+    return exception.toErrorResponse(
+      requestId,
+      messageProvider,
+      documentationUrl
+    );
   }
 
   /**
@@ -87,15 +92,19 @@ export class ExceptionUtils {
    * }
    * ```
    */
-  static isValidException(exception: any): exception is AbstractHttpException {
+  static isValidException(
+    exception: unknown
+  ): exception is AbstractHttpException {
+    if (!exception || typeof exception !== 'object') {
+      return false;
+    }
+    const exc = exception as Record<string, unknown>;
     return (
-      exception &&
-      typeof exception === 'object' &&
-      typeof exception.errorCode === 'string' &&
-      typeof exception.title === 'string' &&
-      typeof exception.detail === 'string' &&
-      typeof exception.status === 'number' &&
-      typeof exception.toErrorResponse === 'function'
+      typeof exc['errorCode'] === 'string' &&
+      typeof exc['title'] === 'string' &&
+      typeof exc['detail'] === 'string' &&
+      typeof exc['status'] === 'number' &&
+      typeof exc['toErrorResponse'] === 'function'
     );
   }
 
@@ -119,8 +128,8 @@ export class ExceptionUtils {
     title: string;
     detail: string;
     status: number;
-    data?: any;
-    rootCause?: any;
+    data?: unknown;
+    rootCause?: unknown;
     timestamp: string;
   } {
     return {
@@ -232,11 +241,13 @@ export class ExceptionUtils {
     }
 
     // 统计各级别异常数量
-    exceptions.forEach(exception => {
+    exceptions.forEach((exception) => {
       const level = this.getExceptionLevel(exception.status);
       stats.byLevel[level] = (stats.byLevel[level] || 0) + 1;
-      stats.byErrorCode[exception.errorCode] = (stats.byErrorCode[exception.errorCode] || 0) + 1;
-      stats.byStatus[exception.status] = (stats.byStatus[exception.status] || 0) + 1;
+      stats.byErrorCode[exception.errorCode] =
+        (stats.byErrorCode[exception.errorCode] || 0) + 1;
+      stats.byStatus[exception.status] =
+        (stats.byStatus[exception.status] || 0) + 1;
     });
 
     // 设置时间范围

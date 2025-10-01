@@ -8,8 +8,7 @@
  */
 
 import { SetMetadata } from '@nestjs/common';
-
-export const CACHE_EVICT_METADATA = 'cache_evict';
+import { DECORATOR_METADATA } from '../constants';
 
 /**
  * 缓存清除选项
@@ -115,7 +114,7 @@ export function CacheEvict(keyPrefix: string, options?: CacheEvictOptions) {
     };
 
     // 设置元数据
-    SetMetadata(CACHE_EVICT_METADATA, {
+    SetMetadata(DECORATOR_METADATA.CACHE_EVICT, {
       keyPrefix,
       options,
       target: target.constructor.name,
@@ -331,7 +330,7 @@ export function CacheEvictMultiple(
     };
 
     // 设置元数据
-    SetMetadata(CACHE_EVICT_METADATA, {
+    SetMetadata(DECORATOR_METADATA.CACHE_EVICT, {
       keyPrefixes,
       options,
       target: target.constructor.name,
