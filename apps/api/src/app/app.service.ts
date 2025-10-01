@@ -55,7 +55,7 @@
  */
 
 import { Injectable, Inject } from '@nestjs/common';
-import { PinoLogger, LOGGER_PROVIDER } from '@hl8/logger';
+import { PinoLogger, DI_TOKENS } from '@hl8/logger';
 import { AppConfig } from './config/app.config';
 
 /**
@@ -73,7 +73,7 @@ export class AppService {
    */
   constructor(
     private readonly config: AppConfig,
-    @Inject(LOGGER_PROVIDER) private readonly logger: PinoLogger
+    @Inject(DI_TOKENS.LOGGER_PROVIDER) private readonly logger: PinoLogger
   ) {
     this.logger.info('AppService initialized', {
       appName: this.config.app.name,
