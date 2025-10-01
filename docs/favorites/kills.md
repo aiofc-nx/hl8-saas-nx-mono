@@ -4,3 +4,10 @@
 [视频](https://www.youtube.com/watch?v=kqS5i6U-kHk)
 
 [MCP](https://www.youtube.com/watch?v=t2L0ZY1u-gg)
+
+[构建生产环境Agent的十二个原则](https://www.youtube.com/watch?v=D8_HxaHGLGs)
+<https://github.com/Sairyss/domain-driven-hexagon>
+<https://github.com/aiofc-nx/software-architecture>
+<https://github.com/softkitit/softkit-core>
+<https://github.com/twentyhq/twenty>
+<https://github.com/ever-co/ever-gauzy>

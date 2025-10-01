@@ -1,0 +1,19 @@
+{
+  "name": "hybrid-archi",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/hybrid-archi/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/hybrid-archi",
+        "main": "packages/hybrid-archi/src/index.ts",
+        "tsConfig": "packages/hybrid-archi/tsconfig.lib.json",
+        "assets": ["packages/hybrid-archi/*.md"]
+      }
+    }
+  }
+}

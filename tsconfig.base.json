@@ -21,6 +21,7 @@
       "@hl8/core": ["packages/core/src/index.ts"],
       "@hl8/database": ["packages/database/src/index.ts"],
       "@hl8/fastify-pro": ["packages/fastify-pro/src/index.ts"],
+      "@hl8/hybrid-archi": ["packages/hybrid-archi/src/index.ts"],
       "@hl8/logger": ["packages/logger/src/index.ts"],
       "@hl8/messaging": ["packages/messaging/src/index.ts"],
       "@hl8/multi-tenancy": ["packages/multi-tenancy/src/index.ts"],

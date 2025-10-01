@@ -1,0 +1,25 @@
+{
+  "name": "@hl8/hybrid-archi",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "description": "HL8 SAAS平台混合架构核心模块 - 为业务模块的开发提供统一的混合架构设计模式，以及提供通用的功能组件",
+  "dependencies": {
+    "@hl8/multi-tenancy": "workspace:*",
+    "@hl8/logger": "workspace:*",
+    "@hl8/cache": "workspace:*",
+    "@hl8/config": "workspace:*",
+    "@hl8/messaging": "workspace:*",
+    "@hl8/database": "workspace:*",
+    "@hl8/common": "workspace:*",
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "nestjs-cls": "^5.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "reflect-metadata": "^0.2.2",
+    "tslib": "^2.3.0"
+  }
+}

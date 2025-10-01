@@ -13,6 +13,7 @@
 - [3. 依赖规则](#3-依赖规则)
 - [4. 架构分层详解](#4-架构分层详解)
 - [5. 模块设计原则](#5-模块设计原则)
+- [6. 混合架构模式的价值](#6-混合架构模式的价值)
 
 ---
 
@@ -22,7 +23,7 @@
 
 HL8 SAAS平台采用混合架构模式，结合多种架构模式的优势：
 
-```
+```text
 混合架构 = Clean Architecture + DDD + CQRS + ES + EDA
 
 ├── Clean Architecture      # 分层架构，清晰的依赖关系
@@ -59,7 +60,85 @@ HL8 SAAS平台采用混合架构模式，结合多种架构模式的优势：
 
 ### 2.1 分层架构
 
+#### 架构分层图
+
+```mermaid
+graph TD
+    subgraph "Interface Layer"
+        A1["REST API - Commands"]
+        A2["REST API - Queries"]
+        A3["GraphQL Resolvers"]
+        A4["WebSocket Gateway"]
+        A5["CLI Commands"]
+        A6["Message Consumers"]
+        A7["DTOs"]
+    end
+    
+    subgraph "Application Layer"
+        B1["Use Cases"]
+        B2["Command Handlers"]
+        B3["Query Handlers"]
+        B4["Event Handlers"]
+        B5["Application Services"]
+        B6["Transaction Management"]
+    end
+    
+    subgraph "Domain Layer"
+        C1["Aggregate Roots"]
+        C2["Entities"]
+        C3["Value Objects"]
+        C4["Domain Services"]
+        C5["Domain Events"]
+        C6["Business Rules"]
+    end
+    
+    subgraph "Infrastructure Layer"
+        D1["Event Store"]
+        D2["Message Bus"]
+        D3["Database Repositories"]
+        D4["Cache Services"]
+        D5["External Services"]
+        D6["File Storage"]
+    end
+    
+    A1 --> B2
+    A2 --> B3
+    A3 --> B3
+    A4 --> B2
+    A4 --> B3
+    A4 --> B4
+    A5 --> B2
+    A6 --> B4
+    
+    B1 --> C1
+    B2 --> C1
+    B3 --> C2
+    B4 --> C4
+    B5 --> C5
+    B6 --> C6
+    
+    C1 -.-> D1
+    C2 -.-> D3
+    C3 -.-> D4
+    C4 -.-> D5
+    C5 -.-> D2
+    
+    D2 -.-> B4
+    D2 -.-> A6
+    
+    style A1 fill:#ffebee
+    style A2 fill:#e3f2fd
+    style A3 fill:#e3f2fd
+    style B2 fill:#ffebee
+    style B3 fill:#e3f2fd
+    style B4 fill:#f3e5f5
+    style C1 fill:#e8f5e8
+    style D1 fill:#fff3e0
 ```
+
+#### 分层结构说明
+
+```text
 ┌─────────────────────────────────────┐
 │      Interface Layer (接口层)        │
 │  - Controllers                      │
@@ -88,6 +167,25 @@ HL8 SAAS平台采用混合架构模式，结合多种架构模式的优势：
 │  - External Services              │
 └─────────────────────────────────────┘
 ```
+
+#### CQRS 绑定关系说明
+
+**命令端 (Write Side)**:
+
+- REST API Commands → Command Handlers
+- CLI Commands → Command Handlers
+- WebSocket Commands → Command Handlers
+
+**查询端 (Read Side)**:
+
+- REST API Queries → Query Handlers
+- GraphQL Resolvers → Query Handlers (主要用于查询)
+- WebSocket Queries → Query Handlers
+
+**事件处理**:
+
+- Message Consumers → Event Handlers
+- WebSocket Events → Event Handlers
 
 ### 2.2 各层职责
 
@@ -181,7 +279,7 @@ export class RedisCacheService implements ICacheService {
 
 **核心规则**: 依赖只能向内，不能向外
 
-```
+```text
 Interface → Application → Domain
      ↓           ↓
 Infrastructure ←┘
@@ -192,7 +290,7 @@ Infrastructure ←┘
 
 ### 3.2 依赖倒置原则
 
-**内层定义接口，外层实现接口**
+内层定义接口，外层实现接口
 
 ```typescript
 // ✅ 正确：领域层定义接口
@@ -398,12 +496,164 @@ export class OrderRepository implements IOrderRepository {
 
 ### 5.2 模块依赖
 
-```
+```text
 业务模块（libs/）
     ↓
 基础设施模块（packages/）
     ↓
 核心框架（NestJS、TypeScript）
+```
+
+---
+
+---
+
+## 6. 混合架构模式的价值
+
+### 6.1 为 SAAS 平台带来的价值
+
+混合架构模式（Clean Architecture + DDD + CQRS + ES + EDA）为 SAAS 平台提供了全面的技术支撑，在业务、技术、开发和运营等多个维度创造显著价值。
+
+#### 业务价值
+
+多租户支持能力
+
+- **租户隔离**: Clean Architecture 的层次分离天然支持租户级别的数据隔离
+- **个性化配置**: 事件溯源记录每个租户的配置变更历史，支持配置回滚和审计
+- **租户级扩展**: 事件驱动架构支持按租户进行独立的服务扩展
+
+订阅和计费管理
+
+- **使用量追踪**: 事件溯源精确记录每个租户的功能使用情况
+- **计费准确性**: CQRS 的读模型可以实时计算使用量和费用
+- **计费审计**: 完整的事件历史支持计费争议的审计和追溯
+
+合规性和审计
+
+- **完整审计轨迹**: 事件溯源提供完整的业务操作历史记录
+- **数据治理**: 清晰的数据流向和事件边界便于数据治理
+- **合规报告**: 基于事件数据自动生成合规报告
+- **安全审计**: 通过事件日志实现安全事件的追踪和分析
+
+#### 技术价值
+
+高可扩展性
+
+- **水平扩展**: 事件驱动架构支持服务独立扩展
+- **读写分离**: CQRS 允许读写服务独立扩展
+- **负载均衡**: 查询端可以部署多个实例处理高并发查询
+- **微服务友好**: 清晰的模块边界便于微服务拆分
+
+高性能
+
+- **查询优化**: CQRS 读模型针对查询场景优化，提升查询性能
+- **缓存友好**: 读模型天然适合缓存，减少数据库压力
+- **异步处理**: 事件驱动架构将耗时操作异步化，提升响应速度
+- **资源隔离**: 读写分离避免相互影响，提升整体性能
+
+高可靠性
+
+- **故障恢复**: 事件溯源支持从任意时间点恢复系统状态
+- **数据一致性**: 事件驱动架构通过最终一致性模型保证数据完整性
+- **容错能力**: 松耦合的事件架构提高系统容错能力
+- **补偿机制**: 支持业务补偿和回滚操作
+
+高可维护性
+
+- **代码组织**: Clean Architecture 提供清晰的代码结构和依赖关系
+- **测试友好**: 各层独立，便于单元测试和集成测试
+- **技术演进**: 松耦合设计支持技术栈的渐进式升级
+- **调试便利**: 事件日志提供完整的业务执行轨迹
+
+#### 开发价值
+
+开发效率
+
+- **快速原型**: Clean Architecture 的分层使新功能开发更快速
+- **代码复用**: 领域层代码可在不同接口间复用
+- **团队协作**: 清晰的边界便于团队并行开发
+- **学习曲线**: 标准化的架构降低新成员学习成本
+
+业务敏捷性
+
+- **需求变更**: 松耦合设计降低需求变更的影响范围
+- **集成能力**: 事件驱动架构便于与第三方系统集成
+- **功能开关**: 基于事件的架构支持功能的热插拔
+- **快速迭代**: 模块化设计支持功能的快速迭代
+
+#### 运营价值
+
+快速迭代
+
+- **功能解耦**: 事件驱动架构支持功能的独立开发和部署
+- **A/B 测试**: 基于事件的架构便于实现功能开关和 A/B 测试
+- **灰度发布**: 支持按租户或用户群体进行灰度发布
+- **回滚能力**: 事件溯源支持快速回滚到历史状态
+
+成本控制
+
+- **资源优化**: CQRS 允许根据实际使用情况优化资源分配
+- **按需扩展**: 事件驱动架构支持按需扩展，避免资源浪费
+- **运维效率**: 清晰的架构边界降低运维复杂度
+- **监控友好**: 事件日志提供丰富的监控和告警数据
+
+客户体验
+
+- **实时响应**: 异步事件处理提升用户体验
+- **个性化服务**: 基于事件历史提供个性化功能
+- **服务可用性**: 高可靠性架构保证服务稳定性
+- **响应速度**: 读写分离和缓存优化提升响应速度
+
+### 6.2 架构价值实现机制
+
+#### Clean Architecture 的价值实现
+
+```text
+分层隔离 → 技术独立 → 业务稳定
+    ↓
+依赖倒置 → 接口抽象 → 灵活扩展
+    ↓
+关注点分离 → 职责清晰 → 易于维护
+```
+
+#### DDD 的价值实现
+
+```text
+领域建模 → 业务理解 → 需求准确
+    ↓
+充血模型 → 业务逻辑集中 → 代码质量
+    ↓
+统一语言 → 团队协作 → 开发效率
+```
+
+#### CQRS 的价值实现
+
+```text
+读写分离 → 性能优化 → 用户体验
+    ↓
+模型优化 → 查询效率 → 响应速度
+    ↓
+独立扩展 → 资源优化 → 成本控制
+```
+
+#### 事件溯源的价值实现
+
+```text
+完整历史 → 审计合规 → 业务保障
+    ↓
+状态重建 → 故障恢复 → 系统可靠
+    ↓
+事件驱动 → 松耦合 → 架构灵活
+```
+
+#### 事件驱动架构的价值实现
+
+```text
+异步处理 → 性能提升 → 用户体验
+    ↓
+松耦合 → 独立部署 → 快速迭代
+    ↓
+事件总线 → 系统集成 → 业务扩展
 ```
 
 ---
