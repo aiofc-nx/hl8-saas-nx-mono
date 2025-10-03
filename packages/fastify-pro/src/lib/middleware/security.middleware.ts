@@ -183,7 +183,9 @@ export class SecurityMiddleware {
   register(fastify: FastifyInstance): void {
     // 注册CORS插件
     if (this.config.cors) {
-        fastify.register(require('@fastify/cors') as unknown, this.config.cors);
+      // 动态导入CORS插件以避免类型错误
+      const corsPlugin = require('@fastify/cors');
+      fastify.register(corsPlugin, this.config.cors);
     }
 
     // 注册请求验证中间件

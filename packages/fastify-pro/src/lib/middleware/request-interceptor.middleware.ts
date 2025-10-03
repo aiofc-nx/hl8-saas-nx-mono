@@ -446,7 +446,7 @@ export class RequestInterceptorMiddleware {
     const logEntry = {
       level,
       message,
-      ...data,
+      ...(typeof data === 'object' && data !== null ? data : {}),
     };
 
     // 这里可以集成到具体的日志系统
