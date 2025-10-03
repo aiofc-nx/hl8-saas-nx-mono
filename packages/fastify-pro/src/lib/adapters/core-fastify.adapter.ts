@@ -61,6 +61,8 @@ declare module 'fastify' {
       userId?: string;
       isolationLevel?: 'tenant' | 'organization' | 'department' | 'user';
       metadata?: Record<string, unknown>;
+      userRoles?: string[];
+      userPermissions?: string[];
     };
     errors?: Array<{
       middleware: string;

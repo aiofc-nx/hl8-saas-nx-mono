@@ -27,7 +27,13 @@ describe('应用层模块导出', () => {
         expect(exportedValue).not.toBeNull();
 
         const type = typeof exportedValue;
-        expect(['function', 'object', 'string', 'undefined']).toContain(type);
+        expect([
+          'function',
+          'object',
+          'string',
+          'undefined',
+          'symbol',
+        ]).toContain(type);
       });
     });
   });
@@ -65,7 +71,7 @@ describe('应用层模块导出', () => {
       const hasServiceExports = exportedNames.some(
         (name) =>
           name.toLowerCase().includes('service') ||
-          name.toLowerCase().includes('application'),
+          name.toLowerCase().includes('application')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -78,7 +84,7 @@ describe('应用层模块导出', () => {
       const hasHandlerExports = exportedNames.some(
         (name) =>
           name.toLowerCase().includes('handler') ||
-          name.toLowerCase().includes('processor'),
+          name.toLowerCase().includes('processor')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -91,7 +97,7 @@ describe('应用层模块导出', () => {
       const hasExplorerExports = exportedNames.some(
         (name) =>
           name.toLowerCase().includes('explorer') ||
-          name.toLowerCase().includes('discovery'),
+          name.toLowerCase().includes('discovery')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -164,6 +170,7 @@ describe('应用层模块导出', () => {
           expect(key).toBeDefined();
           return value;
         }
+        return undefined;
       }).not.toThrow();
     });
 

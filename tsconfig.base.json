@@ -8,6 +8,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
+    "downlevelIteration": true,
     "target": "ES2022",
     "module": "commonjs",
     "lib": ["es2020", "dom", "es2018", "esnext.array", "ES2022"],
@@ -25,6 +26,7 @@
       "@hl8/logger": ["packages/logger/src/index.ts"],
       "@hl8/messaging": ["packages/messaging/src/index.ts"],
       "@hl8/multi-tenancy": ["packages/multi-tenancy/src/index.ts"],
+      "@hl8/user-management": ["packages/user-management/src/index.ts"],
       "@hl8/utils": ["packages/utils/src/index.ts"]
     }
   },

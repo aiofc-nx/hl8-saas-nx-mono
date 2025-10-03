@@ -13,6 +13,9 @@ import {
   IValidationPort,
   IValidationSchema,
   IValidationResult,
+  IPasswordPolicy,
+  IPasswordValidationResult,
+  ISanitizationRules,
 } from '../../../application/ports/shared/shared-ports.interface';
 
 /**
@@ -83,19 +86,21 @@ export class ValidationPortAdapter implements IValidationPort {
 
       return {
         isValid: errors.length === 0,
-        errors: errors.map((error) => error.message),
-        details: {
-          fieldErrors: errors,
-          totalErrors: errors.length,
-        },
+        errors: errors,
+        warnings: [],
       };
     } catch (error) {
       return {
         isValid: false,
-        errors: ['验证过程中发生错误'],
-        details: {
-          error: error instanceof Error ? error.message : String(error),
-        },
+        errors: [
+          {
+            field: 'system',
+            message: '验证过程中发生错误',
+            code: 'VALIDATION_ERROR',
+            value: error instanceof Error ? error.message : String(error),
+          },
+        ],
+        warnings: [],
       };
     }
   }
@@ -148,9 +153,9 @@ export class ValidationPortAdapter implements IValidationPort {
       case ValidationRuleType.NUMBER_RANGE:
         return this.validateNumberRange(value, rule.params);
       case ValidationRuleType.EMAIL:
-        return this.validateEmail(value);
+        return this.validateEmail(value as string);
       case ValidationRuleType.PHONE:
-        return this.validatePhone(value);
+        return this.validatePhone(value as string);
       case ValidationRuleType.REGEX:
         return this.validateRegex(value, rule.params);
       case ValidationRuleType.CUSTOM:
@@ -202,8 +207,8 @@ export class ValidationPortAdapter implements IValidationPort {
       return false;
     }
 
-    const minLength = params?.minLength as number;
-    const maxLength = params?.maxLength as number;
+    const minLength = (params as any)?.minLength as number;
+    const maxLength = (params as any)?.maxLength as number;
 
     if (minLength !== undefined && value.length < minLength) {
       return false;
@@ -228,8 +233,8 @@ export class ValidationPortAdapter implements IValidationPort {
       return false;
     }
 
-    const min = params?.min as number;
-    const max = params?.max as number;
+    const min = (params as any)?.min as number;
+    const max = (params as any)?.max as number;
 
     if (min !== undefined && numValue < min) {
       return false;
@@ -243,9 +248,9 @@ export class ValidationPortAdapter implements IValidationPort {
   }
 
   /**
-   * 邮箱验证
+   * 邮箱验证（私有方法）
    */
-  private validateEmail(value: unknown): boolean {
+  private validateEmailInternal(value: unknown): boolean {
     if (typeof value !== 'string') {
       return false;
     }
@@ -255,9 +260,9 @@ export class ValidationPortAdapter implements IValidationPort {
   }
 
   /**
-   * 手机号验证
+   * 手机号验证（私有方法）
    */
-  private validatePhone(value: unknown): boolean {
+  private validatePhoneInternal(value: unknown): boolean {
     if (typeof value !== 'string') {
       return false;
     }
@@ -277,7 +282,7 @@ export class ValidationPortAdapter implements IValidationPort {
       return false;
     }
 
-    const pattern = params?.pattern as string;
+    const pattern = (params as any)?.pattern as string;
     if (!pattern) {
       return true;
     }
@@ -288,6 +293,185 @@ export class ValidationPortAdapter implements IValidationPort {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * 验证邮箱格式
+   *
+   * @param email - 邮箱地址
+   * @returns 如果格式正确返回true，否则返回false
+   */
+  validateEmail(email: string): boolean {
+    return this.validateEmailInternal(email);
+  }
+
+  /**
+   * 验证手机号格式
+   *
+   * @param phone - 手机号
+   * @param region - 地区代码
+   * @returns 如果格式正确返回true，否则返回false
+   */
+  validatePhone(phone: string, region?: string): boolean {
+    return this.validatePhoneInternal(phone);
+  }
+
+  /**
+   * 验证密码强度
+   *
+   * @param password - 密码
+   * @param policy - 密码策略
+   * @returns 验证结果
+   */
+  validatePassword(
+    password: string,
+    policy?: IPasswordPolicy
+  ): IPasswordValidationResult {
+    const errors: string[] = [];
+    const suggestions: string[] = [];
+    let strength = 0;
+
+    // 基础长度检查
+    if (password.length < 8) {
+      errors.push('密码长度至少8位');
+      suggestions.push('增加密码长度');
+    } else {
+      strength += 20;
+    }
+
+    // 字符类型检查
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (hasUpperCase) strength += 20;
+    if (hasLowerCase) strength += 20;
+    if (hasNumbers) strength += 20;
+    if (hasSpecialChar) strength += 20;
+
+    const typeCount = [
+      hasUpperCase,
+      hasLowerCase,
+      hasNumbers,
+      hasSpecialChar,
+    ].filter(Boolean).length;
+
+    if (typeCount < 3) {
+      errors.push('密码应包含至少3种字符类型（大小写字母、数字、特殊字符）');
+      suggestions.push('添加大写字母、小写字母、数字或特殊字符');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      strength,
+      errors,
+      suggestions,
+    };
+  }
+
+  /**
+   * 数据脱敏
+   *
+   * @param data - 原始数据
+   * @param rules - 脱敏规则
+   * @returns 脱敏后的数据
+   */
+  sanitize<T>(data: T, rules: ISanitizationRules): T {
+    if (typeof data === 'string') {
+      return data.trim() as T;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map((item) => this.sanitize(item, rules)) as T;
+    }
+
+    if (typeof data === 'object' && data !== null) {
+      const sanitized: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(data)) {
+        const fieldRule = rules.fields[key];
+        if (fieldRule) {
+          switch (fieldRule.type) {
+            case 'mask':
+              sanitized[key] = this.maskValue(value);
+              break;
+            case 'remove':
+              // 不添加该字段
+              break;
+            case 'hash':
+              sanitized[key] = this.hashValue(value);
+              break;
+            case 'encrypt':
+              sanitized[key] = this.encryptValue(value);
+              break;
+            default:
+              sanitized[key] = this.sanitize(value, rules);
+          }
+        } else if (rules.defaultRule) {
+          switch (rules.defaultRule.type) {
+            case 'mask':
+              sanitized[key] = this.maskValue(value);
+              break;
+            case 'remove':
+              // 不添加该字段
+              break;
+            case 'hash':
+              sanitized[key] = this.hashValue(value);
+              break;
+            case 'encrypt':
+              sanitized[key] = this.encryptValue(value);
+              break;
+            default:
+              sanitized[key] = this.sanitize(value, rules);
+          }
+        } else {
+          sanitized[key] = this.sanitize(value, rules);
+        }
+      }
+      return sanitized as T;
+    }
+
+    return data;
+  }
+
+  /**
+   * 掩码处理
+   */
+  private maskValue(value: unknown): string {
+    if (typeof value === 'string') {
+      if (value.length <= 2) {
+        return '*'.repeat(value.length);
+      }
+      return (
+        value.charAt(0) +
+        '*'.repeat(value.length - 2) +
+        value.charAt(value.length - 1)
+      );
+    }
+    return '***';
+  }
+
+  /**
+   * 哈希处理
+   */
+  private hashValue(value: unknown): string {
+    // 简单的哈希实现
+    const str = String(value);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // 转换为32位整数
+    }
+    return Math.abs(hash).toString(16);
+  }
+
+  /**
+   * 加密处理
+   */
+  private encryptValue(value: unknown): string {
+    // 简单的Base64编码作为示例
+    return Buffer.from(String(value)).toString('base64');
   }
 
   /**
@@ -328,13 +512,13 @@ export interface IValidationSchemaBuilder {
  * 验证模式构建器
  */
 class ValidationSchemaBuilder implements IValidationSchemaBuilder {
-  private schema: IValidationSchema = {};
+  private schema: IValidationSchema = { type: 'object' };
 
   addField(
     fieldName: string,
     rules: IValidationRule[]
   ): IValidationSchemaBuilder {
-    this.schema[fieldName] = rules;
+    (this.schema as any)[fieldName] = rules;
     return this;
   }
 

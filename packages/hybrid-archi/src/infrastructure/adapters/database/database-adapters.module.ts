@@ -64,7 +64,10 @@ export class DatabaseAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(DatabaseModule, LoggerModule);
+    imports.push(
+      DatabaseModule.forRoot({ mikroORM: {} as any }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(DatabaseFactory);
@@ -96,7 +99,10 @@ export class DatabaseAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(DatabaseModule, LoggerModule);
+    imports.push(
+      DatabaseModule.forRoot({ mikroORM: {} as any }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(DatabaseFactory);

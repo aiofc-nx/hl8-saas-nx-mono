@@ -151,7 +151,7 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    * @returns 持久化对象和事件
    */
   public toPersistenceWithEvents(
-    aggregateRoot: TAggregateRoot,
+    aggregateRoot: TAggregateRoot
   ): IAggregateRootMappingResult<TPersistence> {
     try {
       this.validateDomainEntity(aggregateRoot);
@@ -162,7 +162,7 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
       // 提取和映射未提交的事件
       const uncommittedEvents = this.extractUncommittedEvents(aggregateRoot);
       const mappedEvents = uncommittedEvents.map((event) =>
-        this.mapEventToPersistence(event),
+        this.mapEventToPersistence(event)
       );
 
       return {
@@ -171,10 +171,12 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
       };
     } catch (error) {
       throw new MappingError(
-        `聚合根映射失败: ${error instanceof Error ? error.message : String(error)}`,
+        `聚合根映射失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
         'AggregateRoot',
         'PersistenceWithEvents',
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
   }
@@ -188,7 +190,7 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    */
   public fromPersistenceWithHistory(
     persistenceEntity: TPersistence,
-    events: unknown[],
+    events: unknown[]
   ): TAggregateRoot {
     try {
       this.validatePersistenceEntity(persistenceEntity);
@@ -199,7 +201,7 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
       // 如果有事件历史，重放事件
       if (events.length > 0) {
         const domainEvents = events.map((event) =>
-          this.mapEventToDomain(event),
+          this.mapEventToDomain(event)
         );
         return this.replayEvents(aggregateRoot, domainEvents);
       }
@@ -207,10 +209,12 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
       return aggregateRoot;
     } catch (error) {
       throw new MappingError(
-        `从事件历史重建聚合根失败: ${error instanceof Error ? error.message : String(error)}`,
+        `从事件历史重建聚合根失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
         'PersistenceWithEvents',
         'AggregateRoot',
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
   }
@@ -223,16 +227,18 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    * @protected
    */
   protected extractUncommittedEvents(
-    aggregateRoot: TAggregateRoot,
+    aggregateRoot: TAggregateRoot
   ): BaseDomainEvent[] {
     // 默认实现假设聚合根有getUncommittedEvents方法
     // 子类可以重写此方法以适应不同的聚合根实现
     if (
-      typeof (aggregateRoot as Record<string, unknown>).getUncommittedEvents ===
-      'function'
+      typeof (aggregateRoot as Record<string, unknown>)[
+        'getUncommittedEvents'
+      ] === 'function'
     ) {
-      const method = (aggregateRoot as Record<string, unknown>)
-        .getUncommittedEvents as () => BaseDomainEvent[];
+      const method = (aggregateRoot as Record<string, unknown>)[
+        'getUncommittedEvents'
+      ] as () => BaseDomainEvent[];
       return method();
     }
     return [];
@@ -275,16 +281,17 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    */
   protected replayEvents(
     aggregateRoot: TAggregateRoot,
-    events: BaseDomainEvent[],
+    events: BaseDomainEvent[]
   ): TAggregateRoot {
     // 默认实现假设聚合根有replayEvents方法
     // 子类可以重写此方法以适应不同的聚合根实现
     if (
-      typeof (aggregateRoot as Record<string, unknown>).replayEvents ===
+      typeof (aggregateRoot as Record<string, unknown>)['replayEvents'] ===
       'function'
     ) {
-      const method = (aggregateRoot as Record<string, unknown>)
-        .replayEvents as (events: BaseDomainEvent[]) => TAggregateRoot;
+      const method = (aggregateRoot as Record<string, unknown>)[
+        'replayEvents'
+      ] as (events: BaseDomainEvent[]) => TAggregateRoot;
       return method(events);
     }
 
@@ -307,9 +314,9 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    */
   protected getAggregateVersion(aggregateRoot: TAggregateRoot): number {
     if (
-      typeof (aggregateRoot as Record<string, unknown>).version === 'number'
+      typeof (aggregateRoot as Record<string, unknown>)['version'] === 'number'
     ) {
-      return (aggregateRoot as Record<string, unknown>).version as number;
+      return (aggregateRoot as Record<string, unknown>)['version'] as number;
     }
     return 1; // 默认版本
   }
@@ -323,15 +330,15 @@ export abstract class BaseAggregateMapper<TAggregateRoot, TPersistence>
    */
   protected setAggregateVersion(
     aggregateRoot: TAggregateRoot,
-    version: number,
+    version: number
   ): void {
     if (
-      typeof (aggregateRoot as Record<string, unknown>).setVersion ===
+      typeof (aggregateRoot as Record<string, unknown>)['setVersion'] ===
       'function'
     ) {
-      const method = (aggregateRoot as Record<string, unknown>).setVersion as (
-        version: number,
-      ) => void;
+      const method = (aggregateRoot as Record<string, unknown>)[
+        'setVersion'
+      ] as (version: number) => void;
       method(version);
     }
   }

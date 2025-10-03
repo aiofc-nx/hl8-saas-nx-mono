@@ -106,7 +106,7 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
   constructor(
     handlerName: string,
     queryType: string,
-    handlerVersion: string = '1.0.0',
+    handlerVersion = '1.0.0',
   ) {
     this.handlerName = handlerName;
     this.queryType = queryType;
@@ -249,10 +249,10 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
    * @param context - 执行上下文
    */
   protected async validateDataAccess(
-    query: TQuery,
-    context: IQueryExecutionContext,
+    _query: TQuery,
+    _context: IQueryExecutionContext,
   ): Promise<void> {
-    // 默认不做额外验证，子类可以重写
+    // 默认不做额外验证，子类可以重写，参数用于接口兼容性
   }
 
   /**

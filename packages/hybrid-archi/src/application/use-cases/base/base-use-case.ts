@@ -76,7 +76,7 @@ import {
   USE_CASE_ERROR_CODES,
   TENANT_ERROR_CODES,
   DEFAULT_ENVIRONMENT,
-} from '../../../common/constants';
+} from '../../../constants';
 
 /**
  * 用例执行结果
@@ -130,7 +130,7 @@ export abstract class BaseUseCase<TRequest, TResponse>
   constructor(
     useCaseName: string,
     useCaseDescription: string,
-    useCaseVersion: string = '1.0.0',
+    useCaseVersion = '1.0.0',
     requiredPermissions: string[] = [],
     logger?: PinoLogger
   ) {

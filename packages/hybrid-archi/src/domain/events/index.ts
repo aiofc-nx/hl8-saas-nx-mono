@@ -5,11 +5,28 @@
  * @since 1.0.0
  */
 
-// 基础设施
-export * from './base';
+// 基础设施 - 明确导出以避免命名冲突
+export {
+  BaseDomainEvent,
+  IDomainEvent,
+  IDomainEventHandler,
+  IDomainEventBus,
+  IDomainEventStore,
+  EventMetadata,
+  DomainEvent,
+} from './base';
 
-// 装饰器
-export * from './decorators';
+// 装饰器 - 明确导出以避免命名冲突
+export {
+  DomainEvent as DomainEventDecorator,
+  EventHandler,
+  getDomainEventMetadata,
+  isDomainEvent,
+  getEventHandlers,
+  DomainEventRegistry,
+  DOMAIN_EVENT_METADATA_KEY,
+  DomainEventOptions,
+} from './decorators';
 
 // 示例（可选导出，用于学习参考）
 export * from './examples';

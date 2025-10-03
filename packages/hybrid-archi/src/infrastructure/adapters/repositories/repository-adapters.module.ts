@@ -16,7 +16,7 @@ import { MessagingModule } from '@hl8/messaging';
 
 import { BaseRepositoryAdapter } from './base-repository.adapter';
 import { BaseAggregateRepositoryAdapter } from './base-aggregate-repository.adapter';
-import { DomainServiceAdapter } from './domain-service.adapter';
+// import { DomainServiceAdapter } from './domain-service.adapter';
 
 /**
  * 仓储适配器模块
@@ -29,13 +29,13 @@ import { DomainServiceAdapter } from './domain-service.adapter';
     // 仓储适配器
     BaseRepositoryAdapter,
     BaseAggregateRepositoryAdapter,
-    DomainServiceAdapter,
+    // DomainServiceAdapter,
   ],
   exports: [
     // 仓储适配器
     BaseRepositoryAdapter,
     BaseAggregateRepositoryAdapter,
-    DomainServiceAdapter,
+    // DomainServiceAdapter,
   ],
 })
 export class RepositoryAdaptersModule {

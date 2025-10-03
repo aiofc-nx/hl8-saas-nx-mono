@@ -10,5 +10,16 @@
     "esModuleInterop": false,
     "useDefineForClassFields": false
   },
-  "extends": "./tsconfig.base.json"
+  "extends": "./tsconfig.base.json",
+  "references": [
+    {
+      "path": "./packages/multi-tenancy"
+    },
+    {
+      "path": "./packages/messaging"
+    },
+    {
+      "path": "./apps/api"
+    }
+  ]
 }

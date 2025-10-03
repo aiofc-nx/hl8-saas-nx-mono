@@ -9,7 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { ILoggerPort } from '../../../application/ports/shared/shared-ports.interface';
 
 /**
@@ -19,7 +19,7 @@ import { ILoggerPort } from '../../../application/ports/shared/shared-ports.inte
  */
 @Injectable()
 export class LoggerPortAdapter implements ILoggerPort {
-  constructor(private readonly logger: Logger) {}
+  constructor(private readonly logger: PinoLogger) {}
 
   /**
    * 记录调试日志
@@ -82,7 +82,7 @@ export class LoggerPortAdapter implements ILoggerPort {
    *
    * @param level - 日志级别
    */
-  setLevel(level: 'debug' | 'info' | 'warn' | 'error'): void {
+  setLevel(_level: 'debug' | 'info' | 'warn' | 'error'): void {
     // 注意：具体的日志级别设置取决于底层日志服务的实现
     // 这里提供接口兼容性，实际实现可能需要根据具体的日志服务调整
   }
@@ -103,7 +103,7 @@ export class LoggerPortAdapter implements ILoggerPort {
    * @param level - 日志级别
    * @returns 是否启用
    */
-  isLevelEnabled(level: string): boolean {
+  isLevelEnabled(_level: string): boolean {
     // 注意：具体的级别检查取决于底层日志服务的实现
     return true;
   }

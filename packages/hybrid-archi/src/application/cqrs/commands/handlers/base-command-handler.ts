@@ -97,7 +97,7 @@ export abstract class BaseCommandHandler<
   constructor(
     handlerName: string,
     commandType: string,
-    handlerVersion: string = '1.0.0',
+    handlerVersion = '1.0.0',
   ) {
     this.handlerName = handlerName;
     this.commandType = commandType;
@@ -236,7 +236,7 @@ export abstract class BaseCommandHandler<
     _command: TCommand,
     _context: ICommandExecutionContext,
   ): Promise<void> {
-    // 默认不做额外验证，子类可以重写
+    // 默认不做额外验证，子类可以重写，参数用于接口兼容性
   }
 
   /**
@@ -253,7 +253,7 @@ export abstract class BaseCommandHandler<
     _result: TResult,
     _context: ICommandExecutionContext,
   ): Promise<void> {
-    // 默认不发布事件，子类可以重写
+    // 默认不发布事件，子类可以重写，参数用于接口兼容性
   }
 
   /**
@@ -376,7 +376,7 @@ export abstract class BaseCommandHandler<
     _message: string,
     _context?: Record<string, unknown>,
   ): void {
-    // 日志记录将在运行时注入
+    // 日志记录将在运行时注入，参数用于接口兼容性
     // TODO: 替换为实际的日志系统
     // console.log(
     //   `[${level.toUpperCase()}] [${this.handlerName}] ${message}`,

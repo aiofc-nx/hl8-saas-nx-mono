@@ -45,11 +45,11 @@ describe('装饰器模块导出', () => {
       expect(typeof DecoratorsModule.isCommandHandler).toBe('function');
       expect(typeof DecoratorsModule.getCommandType).toBe('function');
       expect(typeof DecoratorsModule.getCommandHandlerPriority).toBe(
-        'function',
+        'function'
       );
       expect(typeof DecoratorsModule.supportsCommandType).toBe('function');
       expect(typeof DecoratorsModule.getCommandHandlerMetadata).toBe(
-        'function',
+        'function'
       );
     });
   });
@@ -197,9 +197,10 @@ describe('装饰器模块导出', () => {
       class TestClass {}
 
       // 测试设置和获取元数据
-      DecoratorsModule.setMetadata(TestClass, 'test-key', 'test-value');
+      const metadata = { value: 'test-value' } as any;
+      DecoratorsModule.setMetadata(TestClass, 'test-key', metadata);
       const value = DecoratorsModule.getMetadata(TestClass, 'test-key');
-      expect(value).toBe('test-value');
+      expect(value).toEqual(metadata);
 
       // 测试检查元数据存在
       const exists = DecoratorsModule.hasMetadata(TestClass, 'test-key');
@@ -216,7 +217,7 @@ describe('装饰器模块导出', () => {
 
       // 这些函数应该能够被调用而不抛出错误
       expect(() =>
-        DecoratorsModule.isCommandHandler(TestHandler),
+        DecoratorsModule.isCommandHandler(TestHandler)
       ).not.toThrow();
       expect(() => DecoratorsModule.isQueryHandler(TestHandler)).not.toThrow();
       expect(() => DecoratorsModule.isEventHandler(TestHandler)).not.toThrow();
@@ -229,25 +230,25 @@ describe('装饰器模块导出', () => {
       class EmptyClass {}
 
       expect(
-        DecoratorsModule.getMetadata(EmptyClass, 'non-existent'),
+        DecoratorsModule.getMetadata(EmptyClass, 'non-existent')
       ).toBeUndefined();
       expect(DecoratorsModule.hasMetadata(EmptyClass, 'non-existent')).toBe(
-        false,
+        false
       );
       expect(() =>
-        DecoratorsModule.deleteMetadata(EmptyClass, 'non-existent'),
+        DecoratorsModule.deleteMetadata(EmptyClass, 'non-existent')
       ).not.toThrow();
     });
 
     it('应该处理特殊字符的元数据键', () => {
       class TestClass {}
       const specialKey = 'test_José_🚀_key!@#';
-      const value = { test: '测试' };
+      const value = { test: '测试' } as any;
 
       DecoratorsModule.setMetadata(TestClass, specialKey, value);
       const retrievedValue = DecoratorsModule.getMetadata(
         TestClass,
-        specialKey,
+        specialKey
       );
       expect(retrievedValue).toEqual(value);
     });

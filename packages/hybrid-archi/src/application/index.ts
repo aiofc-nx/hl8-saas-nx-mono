@@ -8,9 +8,6 @@
 // 用例系统（Clean Architecture核心）
 export * from './use-cases';
 
-// 公共基础设施
-export * from './common';
-
 // CQRS系统
 export * from './cqrs';
 

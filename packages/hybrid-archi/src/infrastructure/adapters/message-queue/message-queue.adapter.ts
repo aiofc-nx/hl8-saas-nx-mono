@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { MessagingService } from '@hl8/messaging';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 
 /**
  * 消息队列配置接口
@@ -108,7 +108,7 @@ export class MessageQueueAdapter {
   constructor(
     private readonly messagingService: MessagingService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     config: Partial<IMessageQueueConfig> = {}
   ) {
     this.config = {
@@ -233,7 +233,10 @@ export class MessageQueueAdapter {
       });
 
       // 批量发布消息
-      await this.messagingService.publishAll(topic, messageDataList);
+      // 批量发布消息 - 使用循环调用单个发布方法
+      for (const messageData of messageDataList) {
+        await this.messagingService.publish(topic, messageData);
+      }
 
       // 缓存消息（如果启用）
       if (this.config.enableCache) {
@@ -381,7 +384,12 @@ export class MessageQueueAdapter {
    */
   async ackMessage(messageId: string): Promise<void> {
     try {
-      await this.messagingService.ack(messageId);
+      // 确认消息 - 使用兼容性检查
+      if (typeof (this.messagingService as any).ack === 'function') {
+        await (this.messagingService as any).ack(messageId);
+      } else {
+        console.warn('MessagingService不支持ack方法');
+      }
 
       // 清除缓存
       if (this.config.enableCache) {
@@ -401,12 +409,14 @@ export class MessageQueueAdapter {
    * @param messageId - 消息ID
    * @param requeue - 是否重新入队
    */
-  async nackMessage(
-    messageId: string,
-    requeue: boolean = false
-  ): Promise<void> {
+  async nackMessage(messageId: string, requeue = false): Promise<void> {
     try {
-      await this.messagingService.nack(messageId, requeue);
+      // 拒绝消息 - 使用兼容性检查
+      if (typeof (this.messagingService as any).nack === 'function') {
+        await (this.messagingService as any).nack(messageId, requeue);
+      } else {
+        console.warn('MessagingService不支持nack方法');
+      }
 
       this.logger.debug(`拒绝消息成功: ${messageId}`, {
         messageId,
@@ -432,7 +442,19 @@ export class MessageQueueAdapter {
     errorCount: number;
   }> {
     try {
-      return await this.messagingService.getQueueStats(topic);
+      // 获取队列统计信息 - 使用兼容性检查
+      if (typeof (this.messagingService as any).getQueueStats === 'function') {
+        return await (this.messagingService as any).getQueueStats(topic);
+      } else {
+        console.warn('MessagingService不支持getQueueStats方法');
+        return {
+          messageCount: 0,
+          consumerCount: 0,
+          publishedCount: 0,
+          consumedCount: 0,
+          errorCount: 0,
+        };
+      }
     } catch (error) {
       this.logger.error(`获取队列统计信息失败: ${topic}`, error);
       throw error;

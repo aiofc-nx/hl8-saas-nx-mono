@@ -71,18 +71,16 @@
  */
 import { EntityId } from '../../value-objects/entity-id';
 import { IAuditInfo, IPartialAuditInfo } from './audit-info';
+import { IEntity } from './entity.interface';
 import { TenantContextService, ITenantContext } from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
 import {
   GeneralBadRequestException,
   GeneralInternalServerException,
 } from '@hl8/common';
-import {
-  ENTITY_OPERATIONS,
-  ENTITY_ERROR_CODES,
-} from '../../../common/constants';
+import { ENTITY_OPERATIONS, ENTITY_ERROR_CODES } from '../../../constants';
 
-export abstract class BaseEntity {
+export abstract class BaseEntity implements IEntity {
   private readonly _id: EntityId;
   private readonly _auditInfo: IAuditInfo;
   protected readonly logger: PinoLogger;
@@ -211,7 +209,7 @@ export abstract class BaseEntity {
    * @param other - 要比较的另一个实体
    * @returns 如果两个实体相等则返回 true，否则返回 false
    */
-  public equals(other: BaseEntity | null | undefined): boolean {
+  public equals(other: IEntity | null | undefined): boolean {
     if (other === null || other === undefined) {
       return false;
     }
@@ -220,7 +218,7 @@ export abstract class BaseEntity {
       return false;
     }
 
-    return this._id.equals(other._id);
+    return this._id.equals(other.id);
   }
 
   /**
@@ -279,6 +277,55 @@ export abstract class BaseEntity {
     }
 
     return this._id.compareTo(other._id);
+  }
+
+  /**
+   * 获取实体的业务标识符
+   *
+   * @returns 业务标识符字符串
+   */
+  public getBusinessIdentifier(): string {
+    return `${this.constructor.name}(${this._id.toString()})`;
+  }
+
+  /**
+   * 转换为纯数据对象
+   *
+   * @returns 包含所有实体数据的纯对象
+   */
+  public toData(): Record<string, unknown> {
+    return {
+      id: this._id.toString(),
+      type: this.constructor.name,
+      createdAt: this._auditInfo.createdAt,
+      updatedAt: this._auditInfo.updatedAt,
+      version: this._auditInfo.version,
+      tenantId: this._auditInfo.tenantId,
+      isDeleted: this._auditInfo.deletedAt !== null,
+    };
+  }
+
+  /**
+   * 检查实体是否为新创建的
+   *
+   * @returns 如果是新创建的返回true，否则返回false
+   */
+  public isNew(): boolean {
+    // 如果版本为1且创建时间和更新时间相同，认为是新创建的
+    return (
+      this._auditInfo.version === 1 &&
+      this._auditInfo.createdAt.getTime() ===
+        this._auditInfo.updatedAt.getTime()
+    );
+  }
+
+  /**
+   * 获取实体版本
+   *
+   * @returns 实体版本号
+   */
+  public getVersion(): number {
+    return this._auditInfo.version;
   }
 
   /**

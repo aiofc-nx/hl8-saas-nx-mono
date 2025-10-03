@@ -11,7 +11,7 @@
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@hl8/cache';
 import { LoggerModule } from '@hl8/logger';
-import { ConfigModule } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { MessagingModule } from '@hl8/messaging';
 import { MultiTenancyModule } from '@hl8/multi-tenancy';
 import { DatabaseModule } from '@hl8/database';
@@ -29,7 +29,7 @@ import { InfrastructureServiceManager } from './base-infrastructure.adapter';
     // 重构后的基础设施模块
     CacheModule,
     LoggerModule,
-    ConfigModule,
+    TypedConfigModule,
     MessagingModule,
     MultiTenancyModule,
     DatabaseModule,
@@ -40,7 +40,7 @@ import { InfrastructureServiceManager } from './base-infrastructure.adapter';
     // 重构后的基础设施模块
     CacheModule,
     LoggerModule,
-    ConfigModule,
+    TypedConfigModule,
     MessagingModule,
     MultiTenancyModule,
     DatabaseModule,

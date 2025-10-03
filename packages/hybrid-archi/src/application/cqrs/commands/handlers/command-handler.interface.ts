@@ -157,7 +157,7 @@ export interface ICommandHandler<TCommand extends ICommand, TResult = void> {
  * 命令处理器工厂接口
  */
 export interface ICommandHandlerFactory<
-  THandler extends ICommandHandler<any, any>,
+  THandler extends ICommandHandler<ICommand, unknown>
 > {
   /**
    * 创建命令处理器实例
@@ -187,7 +187,7 @@ export interface ICommandHandlerRegistry {
    */
   register<TCommand extends ICommand, TResult>(
     commandType: string,
-    handlerFactory: ICommandHandlerFactory<ICommandHandler<TCommand, TResult>>,
+    handlerFactory: ICommandHandlerFactory<ICommandHandler<TCommand, TResult>>
   ): void;
 
   /**
@@ -197,7 +197,7 @@ export interface ICommandHandlerRegistry {
    * @returns 处理器实例
    */
   get<TCommand extends ICommand, TResult>(
-    commandType: string,
+    commandType: string
   ): ICommandHandler<TCommand, TResult> | undefined;
 
   /**
@@ -278,7 +278,7 @@ export interface ICommandExecutionContext {
 /**
  * 命令执行结果接口
  */
-export interface ICommandExecutionResult<TResult = any> {
+export interface ICommandExecutionResult<TResult = unknown> {
   /**
    * 执行是否成功
    */

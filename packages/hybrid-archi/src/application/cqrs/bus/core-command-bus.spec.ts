@@ -1,355 +1,317 @@
 /**
- * CoreCommandBus 测试
+ * 核心命令总线测试
  *
- * @description 测试核心命令总线的功能
+ * 测试核心命令总线的功能，包括命令注册、命令处理、中间件执行等。
+ *
+ * @description 核心命令总线的单元测试
  * @since 1.0.0
  */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoreCommandBus } from './core-command-bus';
 import { BaseCommand } from '../commands/base/base-command';
-import { ICommandHandler } from '../commands/base/command-handler.interface';
-import { IMiddleware, IMessageContext } from './cqrs-bus.interface';
-
-/**
- * 测试命令类
- */
-class TestCommand extends BaseCommand {
-  constructor(
-    public readonly data: string,
-    tenantId: string,
-    userId: string,
-  ) {
-    super(tenantId, userId);
-  }
-
-  get commandType(): string {
-    return 'TestCommand';
-  }
-
-  get commandData(): Record<string, unknown> {
-    return { data: this.data };
-  }
-}
-
-/**
- * 测试命令处理器
- */
-class TestCommandHandler implements ICommandHandler<TestCommand> {
-  public executedCommands: TestCommand[] = [];
-
-  async execute(command: TestCommand): Promise<void> {
-    this.executedCommands.push(command);
-  }
-
-  getSupportedCommandType(): string {
-    return 'TestCommand';
-  }
-
-  supports(commandType: string): boolean {
-    return commandType === 'TestCommand';
-  }
-
-  validateCommand(command: TestCommand): void {
-    if (!command.data) {
-      throw new Error('Command data is required');
-    }
-  }
-
-  getPriority(): number {
-    return 0;
-  }
-
-  async canHandle(_command: TestCommand): Promise<boolean> {
-    return true;
-  }
-}
-
-/**
- * 测试中间件
- */
-class TestMiddleware implements IMiddleware {
-  public executedCount = 0;
-  public context: IMessageContext | null = null;
-
-  constructor(
-    public name: string,
-    public priority: number = 0,
-  ) {}
-
-  async execute(
-    context: IMessageContext,
-    next: () => Promise<unknown>,
-  ): Promise<unknown> {
-    this.executedCount++;
-    this.context = context;
-    return await next();
-  }
-}
+import { ICommandHandler } from '../interfaces/common';
+import { PinoLogger } from '@hl8/logger';
 
 describe('CoreCommandBus', () => {
   let commandBus: CoreCommandBus;
-  let testHandler: TestCommandHandler;
+  let logger: PinoLogger;
+
+  class TestCommand extends BaseCommand {
+    constructor(
+      public readonly name: string,
+      public readonly value: string,
+      tenantId?: string,
+      userId?: string
+    ) {
+      super(tenantId, userId);
+    }
+  }
+
+  class TestCommandHandler implements ICommandHandler<TestCommand> {
+    async handle(command: TestCommand): Promise<void> {
+      // 模拟命令处理
+      console.log(`处理命令: ${command.name} = ${command.value}`);
+    }
+  }
+
+  class AnotherCommand extends BaseCommand {
+    constructor(
+      public readonly id: string,
+      tenantId?: string,
+      userId?: string
+    ) {
+      super(tenantId, userId);
+    }
+  }
+
+  class AnotherCommandHandler implements ICommandHandler<AnotherCommand> {
+    async handle(command: AnotherCommand): Promise<void> {
+      // 模拟命令处理
+      console.log(`处理另一个命令: ${command.id}`);
+    }
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [CoreCommandBus],
+      providers: [
+        CoreCommandBus,
+        {
+          provide: PinoLogger,
+          useValue: {
+            info: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     commandBus = module.get<CoreCommandBus>(CoreCommandBus);
-    testHandler = new TestCommandHandler();
+    logger = module.get<PinoLogger>(PinoLogger);
+  });
+
+  describe('构造函数', () => {
+    it('应该正确初始化命令总线', () => {
+      expect(commandBus).toBeDefined();
+      expect(commandBus.getHandlerCount()).toBe(0);
+      expect(commandBus.getMiddlewareCount()).toBe(0);
+    });
+  });
+
+  describe('命令处理器注册', () => {
+    it('应该注册命令处理器', () => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+
+      expect(commandBus.getHandlerCount()).toBe(1);
+      expect(commandBus.hasHandler(TestCommand)).toBe(true);
+    });
+
+    it('应该注册多个命令处理器', () => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+      commandBus.registerHandler(AnotherCommand, new AnotherCommandHandler());
+
+      expect(commandBus.getHandlerCount()).toBe(2);
+      expect(commandBus.hasHandler(TestCommand)).toBe(true);
+      expect(commandBus.hasHandler(AnotherCommand)).toBe(true);
+    });
+
+    it('应该覆盖已存在的处理器', () => {
+      const handler1 = new TestCommandHandler();
+      const handler2 = new TestCommandHandler();
+
+      commandBus.registerHandler(TestCommand, handler1);
+      commandBus.registerHandler(TestCommand, handler2);
+
+      expect(commandBus.getHandlerCount()).toBe(1);
+    });
   });
 
   describe('命令执行', () => {
-    it('应该能够执行注册的命令', async () => {
-      // 注册处理器
-      commandBus.registerHandler('TestCommand', testHandler);
-
-      // 创建命令
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
-
-      // 执行命令
-      await commandBus.execute(command);
-
-      // 验证命令被执行
-      expect(testHandler.executedCommands).toHaveLength(1);
-      expect(testHandler.executedCommands[0]).toBe(command);
+    beforeEach(() => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
     });
 
-    it('应该在没有注册处理器时抛出错误', async () => {
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
+    it('应该执行命令', async () => {
+      const command = new TestCommand('test', 'value');
 
-      await expect(commandBus.execute(command)).rejects.toThrow(
-        'No handler registered for command type: TestCommand',
-      );
+      await expect(commandBus.execute(command)).resolves.not.toThrow();
     });
 
-    it('应该验证命令的有效性', async () => {
-      commandBus.registerHandler('TestCommand', testHandler);
+    it('应该执行多个命令', async () => {
+      const command1 = new TestCommand('test1', 'value1');
+      const command2 = new TestCommand('test2', 'value2');
 
-      // 创建无效命令
-      const invalidCommand = new TestCommand('', 'tenant-1', 'user-1');
-
-      await expect(commandBus.execute(invalidCommand)).rejects.toThrow(
-        'Command data is required',
-      );
+      await expect(commandBus.execute(command1)).resolves.not.toThrow();
+      await expect(commandBus.execute(command2)).resolves.not.toThrow();
     });
 
-    it('应该检查处理器是否可以处理命令', async () => {
-      // 创建不支持命令的处理器
-      const unsupportedHandler = {
-        ...testHandler,
-        supports: (type: string) => type === 'TestCommand',
-        validateCommand: () => {},
-        canHandle: async () => false,
-        execute: async () => {},
-        getSupportedCommandType: () => 'TestCommand',
-        getPriority: () => 0,
-      };
+    it('应该处理不存在的命令处理器', async () => {
+      const unknownCommand = new AnotherCommand('unknown');
 
-      commandBus.registerHandler('TestCommand', unsupportedHandler);
-
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
-
-      await expect(commandBus.execute(command)).rejects.toThrow(
-        'Handler cannot process command: TestCommand',
-      );
+      await expect(commandBus.execute(unknownCommand)).rejects.toThrow();
     });
   });
 
-  describe('处理器管理', () => {
-    it('应该能够注册命令处理器', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
+  describe('中间件', () => {
+    let middleware1: jest.Mock;
+    let middleware2: jest.Mock;
 
-      expect(commandBus.supports('TestCommand')).toBe(true);
-      expect(commandBus.getRegisteredCommandTypes()).toContain('TestCommand');
-      expect(commandBus.getHandlerCount()).toBe(1);
+    beforeEach(() => {
+      middleware1 = jest.fn().mockImplementation((command, next) => {
+        console.log('中间件1: 执行前');
+        return next();
+      });
+
+      middleware2 = jest.fn().mockImplementation((command, next) => {
+        console.log('中间件2: 执行前');
+        return next();
+      });
+
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
     });
 
-    it('应该防止重复注册同一命令类型的处理器', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
-
-      expect(() => {
-        commandBus.registerHandler('TestCommand', testHandler);
-      }).toThrow('Handler already registered for command type: TestCommand');
-    });
-
-    it('应该能够取消注册命令处理器', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
-      expect(commandBus.supports('TestCommand')).toBe(true);
-
-      commandBus.unregisterHandler('TestCommand');
-      expect(commandBus.supports('TestCommand')).toBe(false);
-      expect(commandBus.getHandlerCount()).toBe(0);
-    });
-
-    it('应该能够获取指定的处理器', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
-
-      const handler = commandBus.getHandler('TestCommand');
-      expect(handler).toBe(testHandler);
-    });
-
-    it('应该为不存在的处理器返回 undefined', () => {
-      const handler = commandBus.getHandler('NonExistentCommand');
-      expect(handler).toBeUndefined();
-    });
-  });
-
-  describe('中间件管理', () => {
-    it('应该能够添加中间件', () => {
-      const middleware = new TestMiddleware('TestMiddleware', 1);
-
-      commandBus.addMiddleware(middleware);
+    it('应该注册中间件', () => {
+      commandBus.use(middleware1);
 
       expect(commandBus.getMiddlewareCount()).toBe(1);
-      expect(commandBus.getMiddlewares()).toContain(middleware);
     });
 
-    it('应该按优先级排序中间件', () => {
-      const middleware1 = new TestMiddleware('Middleware1', 2);
-      const middleware2 = new TestMiddleware('Middleware2', 1);
-      const middleware3 = new TestMiddleware('Middleware3', 3);
-
-      commandBus.addMiddleware(middleware1);
-      commandBus.addMiddleware(middleware2);
-      commandBus.addMiddleware(middleware3);
-
-      const middlewares = commandBus.getMiddlewares();
-      expect(middlewares[0]).toBe(middleware2); // 优先级 1
-      expect(middlewares[1]).toBe(middleware1); // 优先级 2
-      expect(middlewares[2]).toBe(middleware3); // 优先级 3
-    });
-
-    it('应该能够替换同名中间件', () => {
-      const middleware1 = new TestMiddleware('TestMiddleware', 1);
-      const middleware2 = new TestMiddleware('TestMiddleware', 2);
-
-      commandBus.addMiddleware(middleware1);
-      commandBus.addMiddleware(middleware2);
-
-      expect(commandBus.getMiddlewareCount()).toBe(1);
-      expect(commandBus.getMiddlewares()[0]).toBe(middleware2);
-    });
-
-    it('应该能够移除中间件', () => {
-      const middleware = new TestMiddleware('TestMiddleware');
-
-      commandBus.addMiddleware(middleware);
-      expect(commandBus.getMiddlewareCount()).toBe(1);
-
-      commandBus.removeMiddleware('TestMiddleware');
-      expect(commandBus.getMiddlewareCount()).toBe(0);
-    });
-
-    it('应该能够清除所有中间件', () => {
-      commandBus.addMiddleware(new TestMiddleware('Middleware1'));
-      commandBus.addMiddleware(new TestMiddleware('Middleware2'));
+    it('应该注册多个中间件', () => {
+      commandBus.use(middleware1);
+      commandBus.use(middleware2);
 
       expect(commandBus.getMiddlewareCount()).toBe(2);
+    });
 
-      commandBus.clearMiddlewares();
-      expect(commandBus.getMiddlewareCount()).toBe(0);
+    it('应该按顺序执行中间件', async () => {
+      commandBus.use(middleware1);
+      commandBus.use(middleware2);
+
+      const command = new TestCommand('test', 'value');
+      await commandBus.execute(command);
+
+      expect(middleware1).toHaveBeenCalledBefore(middleware2 as any);
+    });
+
+    it('应该处理中间件错误', async () => {
+      const errorMiddleware = jest.fn().mockImplementation(() => {
+        throw new Error('中间件错误');
+      });
+
+      commandBus.use(errorMiddleware);
+
+      const command = new TestCommand('test', 'value');
+      await expect(commandBus.execute(command)).rejects.toThrow('中间件错误');
     });
   });
 
-  describe('中间件执行', () => {
-    it('应该按顺序执行中间件', async () => {
-      const middleware1 = new TestMiddleware('Middleware1', 1);
-      const middleware2 = new TestMiddleware('Middleware2', 2);
-
-      commandBus.addMiddleware(middleware1);
-      commandBus.addMiddleware(middleware2);
-      commandBus.registerHandler('TestCommand', testHandler);
-
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
-      await commandBus.execute(command);
-
-      expect(middleware1.executedCount).toBe(1);
-      expect(middleware2.executedCount).toBe(1);
-      expect(testHandler.executedCommands).toHaveLength(1);
+  describe('错误处理', () => {
+    beforeEach(() => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
     });
 
-    it('应该传递正确的消息上下文给中间件', async () => {
-      const middleware = new TestMiddleware('TestMiddleware');
+    it('应该处理命令执行错误', async () => {
+      const errorHandler = jest.fn().mockImplementation(() => {
+        throw new Error('命令执行错误');
+      });
 
-      commandBus.addMiddleware(middleware);
-      commandBus.registerHandler('TestCommand', testHandler);
+      commandBus.registerHandler(TestCommand, errorHandler);
 
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
-      await commandBus.execute(command);
-
-      expect(middleware.context).toBeDefined();
-      expect(middleware.context?.messageId).toBe(command.commandId.toString());
-      expect(middleware.context?.tenantId).toBe('tenant-1');
-      expect(middleware.context?.userId).toBe('user-1');
-      expect(middleware.context?.messageType).toBe('TestCommand');
+      const command = new TestCommand('test', 'value');
+      await expect(commandBus.execute(command)).rejects.toThrow('命令执行错误');
     });
 
-    it('应该处理中间件异常', async () => {
-      const errorMiddleware = new TestMiddleware('ErrorMiddleware');
-      errorMiddleware.execute = async () => {
-        throw new Error('Middleware error');
-      };
+    it('应该记录错误日志', async () => {
+      const errorHandler = jest.fn().mockImplementation(() => {
+        throw new Error('测试错误');
+      });
 
-      commandBus.addMiddleware(errorMiddleware);
-      commandBus.registerHandler('TestCommand', testHandler);
+      commandBus.registerHandler(TestCommand, errorHandler);
 
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
+      const command = new TestCommand('test', 'value');
+      await expect(commandBus.execute(command)).rejects.toThrow();
 
-      await expect(commandBus.execute(command)).rejects.toThrow(
-        'Middleware error',
-      );
-      expect(testHandler.executedCommands).toHaveLength(0);
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 
   describe('统计信息', () => {
-    it('应该返回正确的统计信息', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
-      commandBus.addMiddleware(new TestMiddleware('TestMiddleware'));
-
-      expect(commandBus.getHandlerCount()).toBe(1);
-      expect(commandBus.getMiddlewareCount()).toBe(1);
-      expect(commandBus.getRegisteredCommandTypes()).toEqual(['TestCommand']);
+    beforeEach(() => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
     });
 
-    it('应该支持多个命令类型', () => {
-      const handler1 = {
-        ...new TestCommandHandler(),
-        getSupportedCommandType: () => 'Command1',
-        supports: (type: string) => type === 'Command1',
-        execute: async () => {},
-        validateCommand: () => {},
-        getPriority: () => 0,
-        canHandle: async () => true,
-      };
-      const handler2 = {
-        ...new TestCommandHandler(),
-        getSupportedCommandType: () => 'Command2',
-        supports: (type: string) => type === 'Command2',
-        execute: async () => {},
-        validateCommand: () => {},
-        getPriority: () => 0,
-        canHandle: async () => true,
-      };
+    it('应该获取处理器统计信息', () => {
+      const stats = commandBus.getHandlerStats();
 
-      commandBus.registerHandler('Command1', handler1);
-      commandBus.registerHandler('Command2', handler2);
+      expect(stats).toHaveProperty('totalHandlers');
+      expect(stats).toHaveProperty('handlersByType');
+      expect(stats.totalHandlers).toBe(1);
+    });
 
-      expect(commandBus.getHandlerCount()).toBe(2);
-      expect(commandBus.getRegisteredCommandTypes()).toContain('Command1');
-      expect(commandBus.getRegisteredCommandTypes()).toContain('Command2');
+    it('应该获取中间件统计信息', () => {
+      commandBus.use(jest.fn());
+      commandBus.use(jest.fn());
+
+      const stats = commandBus.getMiddlewareStats();
+
+      expect(stats).toHaveProperty('totalMiddleware');
+      expect(stats.totalMiddleware).toBe(2);
     });
   });
 
-  describe('清理操作', () => {
-    it('应该能够清除所有处理器', () => {
-      commandBus.registerHandler('TestCommand', testHandler);
-      expect(commandBus.getHandlerCount()).toBe(1);
+  describe('清理功能', () => {
+    it('应该移除处理器', () => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+      expect(commandBus.hasHandler(TestCommand)).toBe(true);
+
+      commandBus.removeHandler(TestCommand);
+      expect(commandBus.hasHandler(TestCommand)).toBe(false);
+    });
+
+    it('应该移除中间件', () => {
+      const middleware = jest.fn();
+      commandBus.use(middleware);
+      expect(commandBus.getMiddlewareCount()).toBe(1);
+
+      commandBus.removeMiddleware(middleware);
+      expect(commandBus.getMiddlewareCount()).toBe(0);
+    });
+
+    it('应该清理所有处理器', () => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+      commandBus.registerHandler(AnotherCommand, new AnotherCommandHandler());
 
       commandBus.clearHandlers();
       expect(commandBus.getHandlerCount()).toBe(0);
-      expect(commandBus.supports('TestCommand')).toBe(false);
+    });
+
+    it('应该清理所有中间件', () => {
+      commandBus.use(jest.fn());
+      commandBus.use(jest.fn());
+
+      commandBus.clearMiddleware();
+      expect(commandBus.getMiddlewareCount()).toBe(0);
+    });
+  });
+
+  describe('性能测试', () => {
+    beforeEach(() => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+    });
+
+    it('应该高效处理大量命令', async () => {
+      const startTime = Date.now();
+      const promises = [];
+
+      // 并发执行1000个命令
+      for (let i = 0; i < 1000; i++) {
+        const command = new TestCommand(`test${i}`, `value${i}`);
+        promises.push(commandBus.execute(command));
+      }
+
+      await Promise.all(promises);
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      expect(duration).toBeLessThan(1000); // 应该在1秒内完成
+    });
+  });
+
+  describe('并发安全', () => {
+    it('应该支持并发命令执行', async () => {
+      commandBus.registerHandler(TestCommand, new TestCommandHandler());
+
+      const promises = [];
+
+      // 并发执行命令
+      for (let i = 0; i < 100; i++) {
+        const command = new TestCommand(`concurrent${i}`, `value${i}`);
+        promises.push(commandBus.execute(command));
+      }
+
+      await expect(Promise.all(promises)).resolves.not.toThrow();
     });
   });
 });

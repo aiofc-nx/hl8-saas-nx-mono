@@ -23,7 +23,7 @@ class TestSagaEvent extends BaseDomainEvent {
     aggregateId: EntityId,
     aggregateVersion: number,
     tenantId: string,
-    public readonly data: { orderId: string },
+    public readonly data: { orderId: string }
   ) {
     super(aggregateId, aggregateVersion, tenantId);
   }
@@ -32,13 +32,12 @@ class TestSagaEvent extends BaseDomainEvent {
     return 'TestSagaEvent';
   }
 
-  get eventData(): Record<string, unknown> {
+  override get eventData(): Record<string, unknown> {
     return { orderId: this.data.orderId };
   }
 }
 
 // 测试用的 Saga 处理器类（使用基础装饰器）
-// @ts-expect-error - TypeScript 装饰器签名误报
 @Saga('TestSaga')
 class BasicTestSagaHandler implements ISagaHandler<TestSagaEvent> {
   async handle(event: TestSagaEvent): Promise<void> {
@@ -99,18 +98,18 @@ describe('Saga装饰器', () => {
 
     it('应该正确设置静态属性', () => {
       expect(
-        (BasicTestSagaHandler as unknown as { sagaType: string }).sagaType,
+        (BasicTestSagaHandler as unknown as { sagaType: string }).sagaType
       ).toBe('TestSaga');
       expect(
-        (BasicTestSagaHandler as unknown as { priority: number }).priority,
+        (BasicTestSagaHandler as unknown as { priority: number }).priority
       ).toBe(0);
       expect(
         typeof (BasicTestSagaHandler as unknown as { supports: unknown })
-          .supports,
+          .supports
       ).toBe('function');
       expect(
         typeof (BasicTestSagaHandler as unknown as { getMetadata: unknown })
-          .getMetadata,
+          .getMetadata
       ).toBe('function');
     });
 
@@ -137,7 +136,7 @@ describe('Saga装饰器', () => {
       expect(getSagaType(TestSagaHandlerWithoutDecorator)).toBeUndefined();
       expect(getSagaPriority(TestSagaHandlerWithoutDecorator)).toBeUndefined();
       expect(
-        supportsSagaType(TestSagaHandlerWithoutDecorator, 'TestSaga'),
+        supportsSagaType(TestSagaHandlerWithoutDecorator, 'TestSaga')
       ).toBe(false);
       expect(getSagaMetadata(TestSagaHandlerWithoutDecorator)).toBeUndefined();
     });

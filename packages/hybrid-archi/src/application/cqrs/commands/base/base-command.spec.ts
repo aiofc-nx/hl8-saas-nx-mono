@@ -12,19 +12,40 @@ class TestCommand extends BaseCommand {
   private _customCommandId?: EntityId;
 
   constructor(
-    public readonly action: string,
+    tenantId: string,
+    userId: string,
+    commandVersion = 1,
+    metadata: Record<string, unknown> = {},
+    public readonly action: string = '',
     public readonly data: Record<string, unknown> = {},
-    tenantId: string = 'default',
-    userId: string = 'default-user',
-    commandVersion?: number,
-    metadata?: Record<string, unknown>,
-    customCommandId?: EntityId,
+    customCommandId?: EntityId
   ) {
     super(tenantId, userId, commandVersion, metadata);
     this._customCommandId = customCommandId;
   }
 
-  get commandId(): EntityId {
+  // 静态工厂方法支持旧格式
+  static create(
+    action: string,
+    data: Record<string, unknown> = {},
+    tenantId = 'default-tenant',
+    userId = 'default-user',
+    commandVersion = 1,
+    metadata: Record<string, unknown> = {},
+    customCommandId?: EntityId
+  ): TestCommand {
+    return new TestCommand(
+      tenantId,
+      userId,
+      commandVersion,
+      metadata,
+      action,
+      data,
+      customCommandId
+    );
+  }
+
+  override get commandId(): EntityId {
     return this._customCommandId || super.commandId;
   }
 
@@ -32,14 +53,14 @@ class TestCommand extends BaseCommand {
     return 'TestCommand';
   }
 
-  get commandData(): Record<string, unknown> {
+  override get commandData(): Record<string, unknown> {
     return {
       action: this.action,
       data: this.data,
     };
   }
 
-  validate(): void {
+  override validate(): void {
     // 只在特定测试中验证，构造函数调用时不抛出错误
     if (this.action === 'INVALID_ACTION') {
       throw new Error('Action is invalid');
@@ -50,34 +71,36 @@ class TestCommand extends BaseCommand {
 // 复杂命令类
 class ComplexCommand extends BaseCommand {
   constructor(
+    tenantId: string,
+    userId: string,
+    commandVersion = 1,
+    metadata: Record<string, unknown> = {},
     public readonly operation: {
       type: 'CREATE' | 'UPDATE' | 'DELETE';
       target: string;
       payload: Record<string, unknown>;
-    },
+    } = { type: 'CREATE', target: '', payload: {} },
     public readonly options: {
       async?: boolean;
       timeout?: number;
       retries?: number;
-    } = {},
-    tenantId: string = 'default',
-    userId: string = 'default-user',
+    } = {}
   ) {
-    super(tenantId, userId);
+    super(tenantId, userId, commandVersion, metadata);
   }
 
   get commandType(): string {
     return 'ComplexCommand';
   }
 
-  get commandData(): Record<string, unknown> {
+  override get commandData(): Record<string, unknown> {
     return {
       operation: this.operation,
       options: this.options,
     };
   }
 
-  validate(): void {
+  override validate(): void {
     if (this.operation && !this.operation.type) {
       throw new Error('Operation type is required');
     }
@@ -102,10 +125,12 @@ describe('BaseCommand', () => {
   describe('命令创建', () => {
     it('应该正确创建基础命令', () => {
       const command = new TestCommand(
-        'test-action',
-        { key: 'value' },
         tenantId,
         'user-123',
+        1,
+        {},
+        'test-action',
+        { key: 'value' }
       );
 
       expect(command).toBeInstanceOf(BaseCommand);
@@ -118,42 +143,42 @@ describe('BaseCommand', () => {
     });
 
     it('应该为每个命令生成唯一的ID', () => {
-      const command1 = new TestCommand('action1');
-      const command2 = new TestCommand('action2');
+      const command1 = TestCommand.create('action1');
+      const command2 = TestCommand.create('action2');
 
       expect(command1.commandId.equals(command2.commandId)).toBe(false);
     });
 
     it('应该正确设置命令创建时间', () => {
       const beforeTime = new Date();
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       const afterTime = new Date();
 
       expect(command.createdAt.getTime()).toBeGreaterThanOrEqual(
-        beforeTime.getTime(),
+        beforeTime.getTime()
       );
       expect(command.createdAt.getTime()).toBeLessThanOrEqual(
-        afterTime.getTime(),
+        afterTime.getTime()
       );
     });
   });
 
   describe('命令类型和验证', () => {
     it('应该返回正确的命令类型', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.commandType).toBe('TestCommand');
     });
 
     it('应该正确验证命令', () => {
-      const validCommand = new TestCommand('valid-action');
+      const validCommand = TestCommand.create('valid-action');
       expect(() => validCommand.validate()).not.toThrow();
 
-      const invalidCommand = new TestCommand('INVALID_ACTION');
+      const invalidCommand = TestCommand.create('INVALID_ACTION');
       expect(() => invalidCommand.validate()).toThrow('Action is invalid');
     });
 
     it('应该正确检查命令类型', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.isOfType('TestCommand')).toBe(true);
       expect(command.isOfType('OtherCommand')).toBe(false);
     });
@@ -165,9 +190,9 @@ describe('BaseCommand', () => {
       const TestCommandClass = class extends BaseCommand {
         constructor(
           public readonly action: string,
-          tenantId: string = 'default',
-          userId: string = 'default-user',
-          customCommandId?: EntityId,
+          tenantId = 'default',
+          userId = 'default-user',
+          customCommandId?: EntityId
         ) {
           super(tenantId, userId);
           if (customCommandId) {
@@ -187,27 +212,27 @@ describe('BaseCommand', () => {
         'action1',
         'tenant-123',
         'user-456',
-        sharedCommandId,
+        sharedCommandId
       );
       const command2 = new TestCommandClass(
         'action2',
         'tenant-123',
         'user-456',
-        sharedCommandId,
+        sharedCommandId
       );
 
       expect(command1.equals(command2)).toBe(true);
     });
 
     it('不同ID的命令应该不相等', () => {
-      const command1 = new TestCommand('action1', {}, tenantId);
-      const command2 = new TestCommand('action2', {}, tenantId);
+      const command1 = TestCommand.create('action1', {}, tenantId);
+      const command2 = TestCommand.create('action2', {}, tenantId);
 
       expect(command1.equals(command2)).toBe(false);
     });
 
     it('与 null 或 undefined 比较应该返回 false', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.equals(null)).toBe(false);
       expect(command.equals(undefined)).toBe(false);
     });
@@ -215,12 +240,12 @@ describe('BaseCommand', () => {
 
   describe('命令比较', () => {
     it('应该按创建时间比较命令', async () => {
-      const command1 = new TestCommand('action1');
+      const command1 = TestCommand.create('action1');
 
       // 等待一小段时间确保时间不同
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const command2 = new TestCommand('action2');
+      const command2 = TestCommand.create('action2');
 
       expect(command1.compareTo(command2)).toBeLessThan(0);
       expect(command2.compareTo(command1)).toBeGreaterThan(0);
@@ -228,7 +253,7 @@ describe('BaseCommand', () => {
     });
 
     it('与 null 或 undefined 比较应该返回 1', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.compareTo(null as any)).toBe(1);
       expect(command.compareTo(undefined as any)).toBe(1);
     });
@@ -236,7 +261,12 @@ describe('BaseCommand', () => {
 
   describe('租户关联', () => {
     it('应该正确检查命令是否属于指定的租户', () => {
-      const command = new TestCommand('test-action', {}, tenantId, 'user-456');
+      const command = TestCommand.create(
+        'test-action',
+        {},
+        tenantId,
+        'user-456'
+      );
       const otherTenantId = 'other-tenant-456';
 
       expect(command.belongsToTenant(tenantId)).toBe(true);
@@ -246,12 +276,12 @@ describe('BaseCommand', () => {
 
   describe('命令转换', () => {
     it('应该正确转换为字符串', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.toString()).toMatch(/^TestCommand\([a-f0-9-]+\)$/);
     });
 
     it('应该正确转换为 JSON', () => {
-      const command = new TestCommand('test-action', { key: 'value' });
+      const command = TestCommand.create('test-action', { key: 'value' });
       const json = command.toJSON();
 
       expect(json).toHaveProperty('commandId');
@@ -259,19 +289,19 @@ describe('BaseCommand', () => {
       expect(json).toHaveProperty('tenantId');
       expect(json).toHaveProperty('createdAt');
       expect(json).toHaveProperty('commandData');
-      expect(json.commandData).toEqual({
+      expect(json['commandData']).toEqual({
         action: 'test-action',
         data: { key: 'value' },
       });
     });
 
     it('应该正确获取哈希码', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.getHashCode()).toBe(command.commandId.toString());
     });
 
     it('应该正确获取类型名称', () => {
-      const command = new TestCommand('test-action');
+      const command = TestCommand.create('test-action');
       expect(command.getTypeName()).toBe('TestCommand');
     });
   });
@@ -289,7 +319,14 @@ describe('BaseCommand', () => {
         retries: 3,
       };
 
-      const command = new ComplexCommand(operation, options);
+      const command = new ComplexCommand(
+        'default-tenant',
+        'default-user',
+        1,
+        {},
+        operation,
+        options
+      );
 
       expect(command.operation).toEqual(operation);
       expect(command.options).toEqual(options);
@@ -297,58 +334,80 @@ describe('BaseCommand', () => {
     });
 
     it('应该正确验证复杂命令', () => {
-      const validCommand = new ComplexCommand({
-        type: 'UPDATE',
-        target: 'Product',
-        payload: { price: 100 },
-      });
+      const validCommand = new ComplexCommand(
+        'default-tenant',
+        'default-user',
+        1,
+        {},
+        {
+          type: 'UPDATE',
+          target: 'Product',
+          payload: { price: 100 },
+        }
+      );
       expect(() => validCommand.validate()).not.toThrow();
 
       // 缺少操作类型
-      const invalidTypeCommand = new ComplexCommand({
-        type: '' as any,
-        target: 'User',
-        payload: {},
-      });
+      const invalidTypeCommand = new ComplexCommand(
+        'default-tenant',
+        'default-user',
+        1,
+        {},
+        {
+          type: '' as any,
+          target: 'User',
+          payload: {},
+        }
+      );
       expect(() => invalidTypeCommand.validate()).toThrow(
-        'Operation type is required',
+        'Operation type is required'
       );
 
       // 缺少操作目标
-      const invalidTargetCommand = new ComplexCommand({
-        type: 'CREATE',
-        target: '',
-        payload: {},
-      });
+      const invalidTargetCommand = new ComplexCommand(
+        'default-tenant',
+        'default-user',
+        1,
+        {},
+        {
+          type: 'CREATE',
+          target: '',
+          payload: {},
+        }
+      );
       expect(() => invalidTargetCommand.validate()).toThrow(
-        'Operation target is required',
+        'Operation target is required'
       );
 
       // 无效的超时时间
       const invalidTimeoutCommand = new ComplexCommand(
+        'default-tenant',
+        'default-user',
+        1,
+        {},
         {
           type: 'DELETE',
           target: 'User',
           payload: {},
         },
-        { timeout: -1 },
+        { timeout: -1 }
       );
       expect(() => invalidTimeoutCommand.validate()).toThrow(
-        'Timeout must be non-negative',
+        'Timeout must be non-negative'
       );
     });
   });
 
   describe('边界情况', () => {
     it('应该处理空数据对象', () => {
-      const command = new TestCommand('test-action', {});
+      const command = TestCommand.create('test-action', {});
       expect(command.data).toEqual({});
       expect(() => command.validate()).not.toThrow();
     });
 
     it('应该处理特殊字符的动作', () => {
       const specialAction = 'test-action_123.@#$%^&*()';
-      const command = new TestCommand(specialAction);
+      const command = TestCommand.create(specialAction);
       expect(command.action).toBe(specialAction);
     });
 
@@ -369,17 +428,17 @@ describe('BaseCommand', () => {
         regex: /test/g,
       };
 
-      const command = new TestCommand('test-action', complexData);
+      const command = TestCommand.create('test-action', complexData);
       expect(command.data).toEqual(complexData);
     });
 
     it('应该处理 Unicode 字符', () => {
       const unicodeAction = '测试动作_José_🚀';
-      const command = new TestCommand(
+      const command = TestCommand.create(
         unicodeAction,
         {},
         '租户-123',
-        'user-456',
+        'user-456'
       );
 
       expect(command.action).toBe(unicodeAction);

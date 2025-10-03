@@ -93,7 +93,7 @@ export class CoreQueryBus implements IQueryBus {
       metadata: query.metadata,
     };
 
-    let result: TResult;
+    let result: TResult | undefined;
 
     // 执行中间件链
     await this.executeMiddlewares(context, async () => {
@@ -124,7 +124,10 @@ export class CoreQueryBus implements IQueryBus {
       }
     });
 
-    return result!;
+    if (!result) {
+      throw new Error('查询执行失败：未返回结果');
+    }
+    return result;
   }
 
   /**

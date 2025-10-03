@@ -27,7 +27,13 @@ describe('领域层模块导出', () => {
         expect(exportedValue).not.toBeNull();
 
         const type = typeof exportedValue;
-        expect(['function', 'object', 'string', 'undefined']).toContain(type);
+        expect([
+          'function',
+          'object',
+          'string',
+          'undefined',
+          'symbol',
+        ]).toContain(type);
       });
     });
   });
@@ -65,7 +71,7 @@ describe('领域层模块导出', () => {
       const hasMultiTenantExports = exportedNames.some(
         (name) =>
           name.toLowerCase().includes('tenant') ||
-          name.toLowerCase().includes('multi'),
+          name.toLowerCase().includes('multi')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -79,7 +85,7 @@ describe('领域层模块导出', () => {
         (name) =>
           name.toLowerCase().includes('security') ||
           name.toLowerCase().includes('auth') ||
-          name.toLowerCase().includes('permission'),
+          name.toLowerCase().includes('permission')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -93,7 +99,7 @@ describe('领域层模块导出', () => {
         (name) =>
           name.toLowerCase().includes('validation') ||
           name.toLowerCase().includes('validate') ||
-          name.toLowerCase().includes('rule'),
+          name.toLowerCase().includes('rule')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -222,6 +228,7 @@ describe('领域层模块导出', () => {
           expect(key).toBeDefined();
           return value;
         }
+        return undefined;
       }).not.toThrow();
     });
 

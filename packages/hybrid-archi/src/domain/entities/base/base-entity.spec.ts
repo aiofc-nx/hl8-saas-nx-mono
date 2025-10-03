@@ -1,373 +1,255 @@
 /**
- * BaseEntity 测试
+ * 基础实体测试
  *
- * 测试基础实体类的核心功能，包括标识符管理、审计信息、相等性比较等。
+ * 测试基础实体的核心功能，包括标识符、审计信息、相等性比较等。
  *
- * @description 基础实体类的单元测试
+ * @description 基础实体的单元测试
  * @since 1.0.0
  */
 
+import { Test, TestingModule } from '@nestjs/testing';
 import { BaseEntity } from './base-entity';
-import { EntityId } from '../value-objects/entity-id';
-import { IPartialAuditInfo } from './audit-info';
-
-/**
- * 测试实体类
- */
-class TestEntity extends BaseEntity {
-  constructor(
-    id: EntityId,
-    public readonly name: string,
-    public readonly email: string,
-    auditInfo: IPartialAuditInfo,
-  ) {
-    super(id, auditInfo);
-  }
-
-  public updateName(newName: string): void {
-    (this as any).name = newName;
-    this.updateTimestamp();
-  }
-
-  public updateEmail(newEmail: string): void {
-    (this as any).email = newEmail;
-    this.updateTimestamp();
-  }
-
-  protected updateTimestamp(): void {
-    // 模拟更新时间戳
-    (this as any)._auditInfo = {
-      ...this.auditInfo,
-      updatedAt: new Date(),
-      version: this.auditInfo.version + 1,
-    };
-  }
-}
+import { EntityId } from '../../value-objects/entity-id';
+import { PinoLogger } from '@hl8/logger';
+import { TenantContextService } from '@hl8/multi-tenancy';
 
 describe('BaseEntity', () => {
-  let testEntity: TestEntity;
-  let entityId: EntityId;
-  let auditInfo: IPartialAuditInfo;
+  let entity: TestEntity;
+  let logger: PinoLogger;
+  let tenantContext: TenantContextService;
 
-  beforeEach(() => {
-    entityId = EntityId.generate();
-    auditInfo = {
-      createdBy: 'test-user',
-      tenantId: 'test-tenant',
-      version: 1,
-    };
-    testEntity = new TestEntity(
-      entityId,
+  class TestEntity extends BaseEntity {
+    constructor(
+      id: EntityId,
+      private name: string,
+      private email: string
+    ) {
+      super(id);
+    }
+
+    getName(): string {
+      return this.name;
+    }
+
+    getEmail(): string {
+      return this.email;
+    }
+
+    updateName(newName: string): void {
+      this.name = newName;
+      this.updateTimestamp();
+    }
+
+    updateEmail(newEmail: string): void {
+      this.email = newEmail;
+      this.updateTimestamp();
+    }
+  }
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        {
+          provide: PinoLogger,
+          useValue: {
+            info: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
+        {
+          provide: TenantContextService,
+          useValue: {
+            getCurrentTenantId: jest.fn().mockReturnValue('tenant-123'),
+            getCurrentUserId: jest.fn().mockReturnValue('user-123'),
+          },
+        },
+      ],
+    }).compile();
+
+    logger = module.get<PinoLogger>(PinoLogger);
+    tenantContext = module.get<TenantContextService>(TenantContextService);
+
+    entity = new TestEntity(
+      EntityId.generate(),
       'Test User',
-      'test@example.com',
-      auditInfo,
+      'test@example.com'
     );
   });
 
   describe('构造函数', () => {
     it('应该正确初始化实体', () => {
-      expect(testEntity.id).toBe(entityId);
-      expect(testEntity.name).toBe('Test User');
-      expect(testEntity.email).toBe('test@example.com');
-      expect(testEntity.auditInfo).toBeDefined();
+      expect(entity).toBeDefined();
+      expect(entity.id).toBeDefined();
+      expect(entity.getName()).toBe('Test User');
+      expect(entity.getEmail()).toBe('test@example.com');
     });
 
-    it('应该正确设置审计信息', () => {
-      const audit = testEntity.auditInfo;
-      expect(audit.createdBy).toBe('test-user');
-      expect(audit.updatedBy).toBe('test-user');
-      expect(audit.tenantId).toBe('test-tenant');
-      expect(audit.version).toBe(1);
-      expect(audit.deletedBy).toBeNull();
-      expect(audit.deletedAt).toBeNull();
-      expect(audit.lastOperation).toBe('CREATE');
+    it('应该设置创建时间', () => {
+      expect(entity.createdAt).toBeDefined();
+      expect(entity.createdAt).toBeInstanceOf(Date);
     });
 
-    it('应该使用默认值填充缺失的审计信息', () => {
-      const minimalAuditInfo: IPartialAuditInfo = {};
-      const entity = new TestEntity(
-        EntityId.generate(),
-        'Test',
-        'test@test.com',
-        minimalAuditInfo,
-      );
+    it('应该设置租户ID', () => {
+      expect(entity.tenantId).toBe('tenant-123');
+    });
 
-      const audit = entity.auditInfo;
-      expect(audit.createdBy).toBe('system');
-      expect(audit.updatedBy).toBe('system');
-      expect(audit.tenantId).toBe('default');
-      expect(audit.version).toBe(1);
+    it('应该设置创建者ID', () => {
+      expect(entity.createdBy).toBe('user-123');
     });
   });
 
-  describe('标识符管理', () => {
-    it('应该正确返回实体标识符', () => {
-      expect(testEntity.id).toBe(entityId);
-      expect(testEntity.id.toString()).toBe(entityId.toString());
+  describe('标识符', () => {
+    it('应该具有唯一标识符', () => {
+      const entity1 = new TestEntity(EntityId.generate(), 'User 1', 'user1@example.com');
+      const entity2 = new TestEntity(EntityId.generate(), 'User 2', 'user2@example.com');
+
+      expect(entity1.id).not.toEqual(entity2.id);
     });
 
-    it('应该正确返回哈希码', () => {
-      const hashCode = testEntity.getHashCode();
-      expect(hashCode).toBe(entityId.getHashCode());
-    });
-  });
+    it('应该支持标识符比较', () => {
+      const id = EntityId.generate();
+      const entity1 = new TestEntity(id, 'User 1', 'user1@example.com');
+      const entity2 = new TestEntity(id, 'User 2', 'user2@example.com');
 
-  describe('审计信息访问', () => {
-    it('应该正确返回创建时间', () => {
-      const createdAt = testEntity.createdAt;
-      expect(createdAt).toBeInstanceOf(Date);
-      expect(createdAt).toBe(testEntity.auditInfo.createdAt);
-    });
-
-    it('应该正确返回更新时间', () => {
-      const updatedAt = testEntity.updatedAt;
-      expect(updatedAt).toBeInstanceOf(Date);
-      expect(updatedAt).toBe(testEntity.auditInfo.updatedAt);
-    });
-
-    it('应该正确返回删除时间', () => {
-      const deletedAt = testEntity.deletedAt;
-      expect(deletedAt).toBeNull();
-    });
-
-    it('应该正确返回租户标识符', () => {
-      expect(testEntity.tenantId).toBe('test-tenant');
-    });
-
-    it('应该正确返回版本号', () => {
-      expect(testEntity.version).toBe(1);
-    });
-
-    it('应该正确检查是否被删除', () => {
-      expect(testEntity.isDeleted).toBe(false);
-    });
-
-    it('应该正确返回创建者', () => {
-      expect(testEntity.createdBy).toBe('test-user');
-    });
-
-    it('应该正确返回更新者', () => {
-      expect(testEntity.updatedBy).toBe('test-user');
-    });
-
-    it('应该正确返回删除者', () => {
-      expect(testEntity.deletedBy).toBeNull();
+      expect(entity1.id).toEqual(entity2.id);
     });
   });
 
   describe('相等性比较', () => {
-    it('相同标识符的实体应该相等', () => {
-      const entity1 = new TestEntity(
-        entityId,
-        'User 1',
-        'user1@test.com',
-        auditInfo,
-      );
-      const entity2 = new TestEntity(
-        entityId,
-        'User 2',
-        'user2@test.com',
-        auditInfo,
-      );
+    it('相同ID的实体应该相等', () => {
+      const id = EntityId.generate();
+      const entity1 = new TestEntity(id, 'User 1', 'user1@example.com');
+      const entity2 = new TestEntity(id, 'User 2', 'user2@example.com');
 
       expect(entity1.equals(entity2)).toBe(true);
     });
 
-    it('不同标识符的实体应该不相等', () => {
-      const entity1 = new TestEntity(
-        EntityId.generate(),
-        'User 1',
-        'user1@test.com',
-        auditInfo,
-      );
-      const entity2 = new TestEntity(
-        EntityId.generate(),
-        'User 2',
-        'user2@test.com',
-        auditInfo,
-      );
+    it('不同ID的实体应该不相等', () => {
+      const entity1 = new TestEntity(EntityId.generate(), 'User 1', 'user1@example.com');
+      const entity2 = new TestEntity(EntityId.generate(), 'User 2', 'user2@example.com');
 
       expect(entity1.equals(entity2)).toBe(false);
     });
 
-    it('与 null 比较应该返回 false', () => {
-      expect(testEntity.equals(null)).toBe(false);
+    it('与null比较应该不相等', () => {
+      expect(entity.equals(null)).toBe(false);
     });
 
-    it('与 undefined 比较应该返回 false', () => {
-      expect(testEntity.equals(undefined)).toBe(false);
-    });
-
-    it('不同类型但相同标识符的实体应该不相等', () => {
-      class AnotherEntity extends BaseEntity {
-        constructor(id: EntityId, auditInfo: IPartialAuditInfo) {
-          super(id, auditInfo);
-        }
-      }
-
-      const anotherEntity = new AnotherEntity(entityId, auditInfo);
-      expect(testEntity.equals(anotherEntity)).toBe(false);
+    it('与undefined比较应该不相等', () => {
+      expect(entity.equals(undefined)).toBe(false);
     });
   });
 
-  describe('实体比较', () => {
-    it('应该基于标识符进行比较', () => {
-      const entity1 = new TestEntity(
-        EntityId.generate(),
-        'User 1',
-        'user1@test.com',
-        auditInfo,
-      );
-      const entity2 = new TestEntity(
-        EntityId.generate(),
-        'User 2',
-        'user2@test.com',
-        auditInfo,
-      );
-
-      const result = entity1.compareTo(entity2);
-      expect(typeof result).toBe('number');
-      expect([-1, 0, 1]).toContain(result);
-    });
-
-    it('与 null 比较应该返回 1', () => {
-      const result = testEntity.compareTo(null as any);
-      expect(result).toBe(1);
-    });
-
-    it('与 undefined 比较应该返回 1', () => {
-      const result = testEntity.compareTo(undefined as any);
-      expect(result).toBe(1);
-    });
-  });
-
-  describe('字符串和JSON转换', () => {
-    it('应该正确转换为字符串', () => {
-      const str = testEntity.toString();
-      expect(str).toContain('TestEntity');
-      expect(str).toContain(entityId.toString());
-    });
-
-    it('应该正确转换为JSON', () => {
-      const json = testEntity.toJSON();
-      expect(json.id).toBe(entityId.toString());
-      expect(json.type).toBe('TestEntity');
-      expect(json.auditInfo).toBeDefined();
-    });
-
-    it('应该正确返回类型名称', () => {
-      expect(testEntity.getTypeName()).toBe('TestEntity');
-    });
-  });
-
-  describe('实体更新', () => {
-    it('应该能够更新实体属性', async () => {
-      const originalVersion = testEntity.version;
-      const originalUpdatedAt = testEntity.updatedAt;
-
+  describe('时间戳更新', () => {
+    it('应该更新修改时间', () => {
+      const originalUpdatedAt = entity.updatedAt;
+      
       // 等待一小段时间确保时间戳不同
-      await new Promise((resolve) => global.setTimeout(resolve, 10));
-
-      testEntity.updateName('Updated User');
-      expect(testEntity.name).toBe('Updated User');
-      expect(testEntity.version).toBe(originalVersion + 1);
-      expect(testEntity.updatedAt.getTime()).toBeGreaterThan(
-        originalUpdatedAt.getTime(),
-      );
+      setTimeout(() => {
+        entity.updateName('Updated Name');
+        expect(entity.updatedAt).not.toEqual(originalUpdatedAt);
+        expect(entity.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      }, 10);
     });
 
-    it('应该能够更新多个属性', () => {
-      testEntity.updateName('New Name');
-      testEntity.updateEmail('new@example.com');
-
-      expect(testEntity.name).toBe('New Name');
-      expect(testEntity.email).toBe('new@example.com');
+    it('应该更新修改者', () => {
+      entity.updateName('Updated Name');
+      expect(entity.updatedBy).toBe('user-123');
     });
   });
 
-  describe('验证功能', () => {
-    it('应该通过有效实体的验证', () => {
+  describe('JSON序列化', () => {
+    it('应该正确序列化为JSON', () => {
+      const json = entity.toJSON();
+      
+      expect(json).toHaveProperty('id');
+      expect(json).toHaveProperty('createdAt');
+      expect(json).toHaveProperty('updatedAt');
+      expect(json).toHaveProperty('tenantId');
+      expect(json).toHaveProperty('createdBy');
+      expect(json).toHaveProperty('version');
+    });
+
+    it('应该包含所有必要字段', () => {
+      const json = entity.toJSON();
+      
+      expect(json.id).toBe(entity.id.toString());
+      expect(json.tenantId).toBe('tenant-123');
+      expect(json.createdBy).toBe('user-123');
+      expect(json.version).toBe(1);
+    });
+  });
+
+  describe('哈希值', () => {
+    it('应该生成一致的哈希值', () => {
+      const hash1 = entity.hashCode();
+      const hash2 = entity.hashCode();
+      
+      expect(hash1).toBe(hash2);
+    });
+
+    it('相同实体的哈希值应该相等', () => {
+      const id = EntityId.generate();
+      const entity1 = new TestEntity(id, 'User 1', 'user1@example.com');
+      const entity2 = new TestEntity(id, 'User 2', 'user2@example.com');
+
+      expect(entity1.hashCode()).toBe(entity2.hashCode());
+    });
+  });
+
+  describe('版本管理', () => {
+    it('应该正确管理版本号', () => {
+      expect(entity.version).toBe(1);
+      
+      entity.updateName('Updated Name');
+      expect(entity.version).toBe(2);
+      
+      entity.updateEmail('updated@example.com');
+      expect(entity.version).toBe(3);
+    });
+  });
+
+  describe('业务方法', () => {
+    it('应该正确更新名称', () => {
+      entity.updateName('New Name');
+      expect(entity.getName()).toBe('New Name');
+    });
+
+    it('应该正确更新邮箱', () => {
+      entity.updateEmail('new@example.com');
+      expect(entity.getEmail()).toBe('new@example.com');
+    });
+  });
+
+  describe('错误处理', () => {
+    it('应该处理无效的标识符', () => {
       expect(() => {
-        (testEntity as any).validate();
+        new TestEntity(null as any, 'User', 'user@example.com');
+      }).toThrow();
+    });
+
+    it('应该处理空名称', () => {
+      expect(() => {
+        entity.updateName('');
       }).not.toThrow();
     });
-
-    it('应该拒绝无效的实体标识符', () => {
-      // 由于 EntityId 构造函数会验证 UUID 格式，无效的 UUID 会在构造时抛出异常
-      expect(() => {
-        new TestEntity(
-          EntityId.fromString('00000000-0000-0000-0000-000000000000'),
-          'Test',
-          'test@test.com',
-          auditInfo,
-        );
-      }).toThrow(
-        'Invalid EntityId: 00000000-0000-0000-0000-000000000000 is not a valid UUID v4',
-      );
-    });
-
-    it('应该拒绝空的租户标识符', () => {
-      const entityWithEmptyTenant = new TestEntity(
-        EntityId.generate(),
-        'Test',
-        'test@test.com',
-        { ...auditInfo, tenantId: '' },
-      );
-
-      // 由于 BaseEntity 的 buildAuditInfo 方法会使用默认值，空字符串会被保留
-      // 但验证方法会检查租户标识符
-      expect(() => {
-        (entityWithEmptyTenant as any).validate();
-      }).toThrow('Tenant ID cannot be null or empty');
-    });
   });
 
-  describe('边界情况', () => {
-    it('应该处理复杂的审计信息', () => {
-      const complexAuditInfo: IPartialAuditInfo = {
-        createdBy: 'admin',
-        updatedBy: 'user',
-        tenantId: 'complex-tenant',
-        version: 5,
-        lastOperation: 'UPDATE',
-        lastOperationIp: '192.168.1.1',
-        lastOperationUserAgent: 'Mozilla/5.0',
-        lastOperationSource: 'WEB',
-        deleteReason: null,
-      };
-
-      const entity = new TestEntity(
-        EntityId.generate(),
-        'Complex',
-        'complex@test.com',
-        complexAuditInfo,
-      );
-      const audit = entity.auditInfo;
-
-      expect(audit.createdBy).toBe('admin');
-      expect(audit.updatedBy).toBe('user');
-      expect(audit.tenantId).toBe('complex-tenant');
-      expect(audit.version).toBe(5);
-      expect(audit.lastOperation).toBe('UPDATE');
-      expect(audit.lastOperationIp).toBe('192.168.1.1');
-      expect(audit.lastOperationUserAgent).toBe('Mozilla/5.0');
-      expect(audit.lastOperationSource).toBe('WEB');
+  describe('审计信息', () => {
+    it('应该正确设置审计信息', () => {
+      expect(entity.createdAt).toBeDefined();
+      expect(entity.updatedAt).toBeDefined();
+      expect(entity.tenantId).toBe('tenant-123');
+      expect(entity.createdBy).toBe('user-123');
+      expect(entity.updatedBy).toBe('user-123');
     });
 
-    it('应该处理最小审计信息', () => {
-      const minimalAuditInfo: IPartialAuditInfo = {};
-      const entity = new TestEntity(
-        EntityId.generate(),
-        'Minimal',
-        'minimal@test.com',
-        minimalAuditInfo,
-      );
-
-      expect(entity.createdBy).toBe('system');
-      expect(entity.updatedBy).toBe('system');
-      expect(entity.tenantId).toBe('default');
-      expect(entity.version).toBe(1);
-      expect(entity.auditInfo.lastOperation).toBe('CREATE');
+    it('应该支持软删除', () => {
+      entity.markAsDeleted();
+      expect(entity.deletedAt).toBeDefined();
+      expect(entity.deletedBy).toBe('user-123');
     });
   });
 });

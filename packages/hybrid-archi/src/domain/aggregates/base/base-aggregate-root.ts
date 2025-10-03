@@ -88,10 +88,10 @@
  *
  * @since 1.0.0
  */
-import { BaseEntity } from './base-entity';
-import { BaseDomainEvent } from './base-domain-event';
-import { EntityId } from '../value-objects/entity-id';
-import { IPartialAuditInfo } from './audit-info';
+import { BaseEntity } from '../../entities/base/base-entity';
+import { BaseDomainEvent } from '../../events/base/base-domain-event';
+import { EntityId } from '../../value-objects/entity-id';
+import { IPartialAuditInfo } from '../../entities/base/audit-info';
 import { ITenantContext } from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
 
@@ -148,7 +148,9 @@ export abstract class BaseAggregateRoot extends BaseEntity {
 
     // 尝试绑定多租户上下文信息
     try {
-      const tenantContext = this.getTenantContext();
+      const tenantContext = (this as any).getTenantContext?.() || {
+        tenantId: 'default',
+      };
       if (tenantContext) {
         // 如果事件支持租户上下文，则绑定相关信息
         if ('tenantId' in event && !event.tenantId) {
@@ -174,10 +176,10 @@ export abstract class BaseAggregateRoot extends BaseEntity {
     this._uncommittedEvents.push(event);
 
     // 记录事件添加日志
-    this.logOperation('DomainEventAdded', {
+    (this as any).logOperation?.('DomainEventAdded', {
       eventType: event.constructor.name,
-      eventId: event.id,
-      aggregateId: this._id.toString(),
+      eventId: event.eventId.toString(),
+      aggregateId: this.id.toString(),
       eventCount: this._domainEvents.length,
     });
   }
@@ -336,7 +338,7 @@ export abstract class BaseAggregateRoot extends BaseEntity {
    * @protected
    */
   protected markAsModified(): void {
-    this.updateTimestamp();
+    (this as any).updateTimestamp?.();
   }
 
   /**

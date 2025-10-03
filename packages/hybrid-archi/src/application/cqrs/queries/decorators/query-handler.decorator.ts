@@ -129,9 +129,9 @@ export const QUERY_HANDLER_METADATA_KEY = Symbol('queryHandler');
  */
 export function QueryHandler<TQuery extends IQuery>(
   queryClass: new (...args: any[]) => TQuery,
-  options: IQueryHandlerOptions = {},
+  options: IQueryHandlerOptions = {}
 ): ClassDecorator {
-  return function <T extends new (...args: any[]) => any>(target: T) {
+  return function (target: any): any {
     // 获取查询类型
     const queryInstance = new queryClass();
     const queryType = queryInstance.queryType;
@@ -144,9 +144,24 @@ export function QueryHandler<TQuery extends IQuery>(
       requiredPermissions: options.requiredPermissions || [],
       category: options.category,
       tags: options.tags,
-      cache: options.cache,
-      timeout: options.timeout,
-      complexity: options.complexity,
+      cache: options.cache
+        ? {
+            ...options.cache,
+            keyPrefix: options.cache.keyPrefix || 'query',
+          }
+        : undefined,
+      timeout: options.timeout
+        ? {
+            ...options.timeout,
+            alertOnTimeout: options.timeout.alertOnTimeout ?? true,
+          }
+        : undefined,
+      complexity: options.complexity
+        ? {
+            ...options.complexity,
+            alertOnHigh: options.complexity.alertOnHigh ?? true,
+          }
+        : undefined,
     };
 
     // 设置元数据
@@ -171,7 +186,7 @@ export function QueryHandler<TQuery extends IQuery>(
  * @returns 查询处理器元数据
  */
 export function getQueryHandlerMetadata(
-  target: any,
+  target: any
 ): IQueryMetadata | undefined {
   return Reflect.getMetadata(QUERY_HANDLER_METADATA_KEY, target);
 }
@@ -224,7 +239,7 @@ export function Query(options: {
     keyPrefix?: string;
   };
 }): ClassDecorator {
-  return function <T extends new (...args: any[]) => any>(target: T) {
+  return function (target: any): any {
     const metadata: IQueryMetadata = {
       queryType: options.type,
       description: options.description || `${options.type} 查询`,
@@ -232,7 +247,12 @@ export function Query(options: {
       requiredPermissions: options.requiredPermissions || [],
       category: options.category,
       tags: options.tags,
-      cache: options.cache,
+      cache: options.cache
+        ? {
+            ...options.cache,
+            keyPrefix: options.cache.keyPrefix || 'query',
+          }
+        : undefined,
     };
 
     // 设置元数据

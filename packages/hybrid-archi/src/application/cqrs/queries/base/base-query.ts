@@ -204,10 +204,10 @@ export abstract class BaseQuery {
   protected constructor(
     tenantId: string,
     userId: string,
-    page: number = 1,
+    page = 1,
     pageSize: number = BaseQuery.DEFAULT_PAGE_SIZE,
     sortRules: ISortRule[] = [],
-    queryVersion: number = 1,
+    queryVersion = 1,
     metadata: Record<string, unknown> = {},
   ) {
     this._queryId = EntityId.generate();

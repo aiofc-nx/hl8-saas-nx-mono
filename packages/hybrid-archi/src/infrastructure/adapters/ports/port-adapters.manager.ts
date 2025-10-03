@@ -9,9 +9,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
-import { ConfigService } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { EventService } from '@hl8/messaging';
 import {
   PortAdaptersFactory,
@@ -47,9 +47,9 @@ export class PortAdaptersManager {
   private healthCheckTimer?: NodeJS.Timeout;
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
-    private readonly configService: ConfigService,
+    private readonly configService: TypedConfigModule,
     private readonly eventService: EventService,
     private readonly adaptersFactory: PortAdaptersFactory,
     config: Partial<IPortAdaptersManagerConfig> = {}

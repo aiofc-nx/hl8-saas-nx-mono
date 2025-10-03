@@ -10,7 +10,7 @@
 
 import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { LoggerModule } from '@hl8/logger';
-import { ConfigModule } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { MessagingModule } from '@hl8/messaging';
 
 import { LoggerPortAdapter } from './logger-port.adapter';
@@ -63,7 +63,12 @@ export class PortAdaptersModule {
     providers.push(PortAdaptersManager);
 
     if (options.enableLogger !== false) {
-      imports.push(LoggerModule.forRoot());
+      imports.push(
+        LoggerModule.forRootAsync({
+          useFactory: () => ({}),
+          inject: [],
+        })
+      );
       providers.push({ provide: 'ILoggerPort', useClass: LoggerPortAdapter });
     }
 
@@ -89,7 +94,12 @@ export class PortAdaptersModule {
     }
 
     if (options.enableConfiguration !== false) {
-      imports.push(ConfigModule.forRoot());
+      imports.push(
+        TypedConfigModule.forRoot({
+          schema: {} as any,
+          load: () => ({}),
+        })
+      );
       providers.push({
         provide: 'IConfigurationPort',
         useClass: ConfigurationPortAdapter,
@@ -97,7 +107,11 @@ export class PortAdaptersModule {
     }
 
     if (options.enableEventBus !== false) {
-      imports.push(MessagingModule.forRoot());
+      imports.push(
+        MessagingModule.forRoot({
+          adapter: 'memory' as any,
+        })
+      );
       providers.push({
         provide: 'IEventBusPort',
         useClass: EventBusPortAdapter,
@@ -128,7 +142,12 @@ export class PortAdaptersModule {
     providers.push(PortAdaptersManager);
 
     if (options.enableLogger !== false) {
-      imports.push(LoggerModule.forRootAsync());
+      imports.push(
+        LoggerModule.forRootAsync({
+          useFactory: () => ({}),
+          inject: [],
+        })
+      );
       providers.push({ provide: 'ILoggerPort', useClass: LoggerPortAdapter });
     }
 
@@ -154,7 +173,12 @@ export class PortAdaptersModule {
     }
 
     if (options.enableConfiguration !== false) {
-      imports.push(ConfigModule.forRootAsync());
+      imports.push(
+        TypedConfigModule.forRoot({
+          schema: {} as any,
+          load: () => ({}),
+        })
+      );
       providers.push({
         provide: 'IConfigurationPort',
         useClass: ConfigurationPortAdapter,
@@ -162,7 +186,11 @@ export class PortAdaptersModule {
     }
 
     if (options.enableEventBus !== false) {
-      imports.push(MessagingModule.forRootAsync());
+      imports.push(
+        MessagingModule.forRoot({
+          adapter: 'memory' as any,
+        })
+      );
       providers.push({
         provide: 'IEventBusPort',
         useClass: EventBusPortAdapter,

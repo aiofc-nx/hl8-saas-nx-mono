@@ -7,7 +7,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   CacheAdapter,
   ICacheConfig,
@@ -16,8 +16,8 @@ import {
 
 describe('CacheAdapter', () => {
   let adapter: CacheAdapter;
-  let mockCacheService: jest.Mocked<CacheService>;
-  let mockLogger: jest.Mocked<Logger>;
+  let mockCacheService: any;
+  let mockLogger: jest.Mocked<PinoLogger>;
 
   beforeEach(async () => {
     const mockCacheServiceInstance = {
@@ -43,17 +43,15 @@ describe('CacheAdapter', () => {
           useValue: mockCacheServiceInstance,
         },
         {
-          provide: Logger,
+          provide: PinoLogger,
           useValue: mockLoggerInstance,
         },
       ],
     }).compile();
 
     adapter = module.get<CacheAdapter>(CacheAdapter);
-    mockCacheService = module.get<CacheService>(
-      CacheService
-    ) as jest.Mocked<CacheService>;
-    mockLogger = module.get<Logger>(Logger) as jest.Mocked<Logger>;
+    mockCacheService = mockCacheServiceInstance;
+    mockLogger = module.get<PinoLogger>(PinoLogger) as jest.Mocked<PinoLogger>;
   });
 
   describe('get', () => {

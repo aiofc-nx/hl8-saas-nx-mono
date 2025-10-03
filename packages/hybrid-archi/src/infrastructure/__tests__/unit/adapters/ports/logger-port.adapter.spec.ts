@@ -6,12 +6,12 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { LoggerPortAdapter } from '../../../../adapters/ports/logger-port.adapter';
 
 describe('LoggerPortAdapter', () => {
   let adapter: LoggerPortAdapter;
-  let mockLogger: jest.Mocked<Logger>;
+  let mockLogger: jest.Mocked<PinoLogger>;
 
   beforeEach(async () => {
     const mockLoggerInstance = {
@@ -26,14 +26,14 @@ describe('LoggerPortAdapter', () => {
       providers: [
         LoggerPortAdapter,
         {
-          provide: Logger,
+          provide: PinoLogger,
           useValue: mockLoggerInstance,
         },
       ],
     }).compile();
 
     adapter = module.get<LoggerPortAdapter>(LoggerPortAdapter);
-    mockLogger = module.get<Logger>(Logger) as jest.Mocked<Logger>;
+    mockLogger = module.get<PinoLogger>(PinoLogger) as jest.Mocked<PinoLogger>;
   });
 
   describe('debug', () => {
@@ -143,7 +143,7 @@ describe('LoggerPortAdapter', () => {
 
       const childAdapter = adapter.child(context, metadata);
 
-      expect(mockLogger.child).toHaveBeenCalledWith(context, metadata);
+      expect(mockLogger.child).toHaveBeenCalledWith(metadata);
       expect(childAdapter).toBeInstanceOf(LoggerPortAdapter);
     });
   });

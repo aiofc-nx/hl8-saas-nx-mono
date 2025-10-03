@@ -10,7 +10,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 
 /**
  * 缓存配置接口
@@ -89,12 +89,12 @@ export class CacheAdapter {
   };
   private readonly memoryCache = new Map<
     string,
-    { value: any; expiresAt: number }
+    { value: unknown; expiresAt: number }
   >();
 
   constructor(
     private readonly cacheService: CacheService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     config: Partial<ICacheConfig> = {}
   ) {
     this.config = {
@@ -118,7 +118,7 @@ export class CacheAdapter {
    * @param level - 缓存级别
    * @returns 缓存值
    */
-  async get<T = any>(key: string, level?: CacheLevel): Promise<T | null> {
+  async get<T = unknown>(key: string, level?: CacheLevel): Promise<T | null> {
     const startTime = Date.now();
     const fullKey = this.getFullKey(key);
 
@@ -169,7 +169,7 @@ export class CacheAdapter {
    * @param ttl - 生存时间（秒）
    * @param level - 缓存级别
    */
-  async set<T = any>(
+  async set<T = unknown>(
     key: string,
     value: T,
     ttl?: number,
@@ -376,6 +376,47 @@ export class CacheAdapter {
           level,
         }
       );
+      throw error;
+    }
+  }
+
+  /**
+   * 按模式删除缓存
+   *
+   * @param pattern - 缓存键模式
+   * @param level - 缓存级别
+   */
+  async deletePattern(pattern: string, level?: CacheLevel): Promise<number> {
+    const fullPattern = this.getFullKey(pattern);
+    let deletedCount = 0;
+
+    try {
+      if (level === CacheLevel.MEMORY || !level) {
+        deletedCount += await this.deletePatternFromMemoryCache(fullPattern);
+      }
+
+      if (level === CacheLevel.REDIS || !level) {
+        deletedCount += await this.deletePatternFromRedisCache(fullPattern);
+      }
+
+      if (level === CacheLevel.DISTRIBUTED || !level) {
+        deletedCount += await this.deletePatternFromDistributedCache(
+          fullPattern
+        );
+      }
+
+      this.logger.debug(`按模式删除缓存成功: ${pattern}`, {
+        pattern,
+        deletedCount,
+        level: level || 'auto',
+      });
+
+      return deletedCount;
+    } catch (error) {
+      this.logger.error(`按模式删除缓存失败: ${pattern}`, error, {
+        pattern,
+        level,
+      });
       throw error;
     }
   }
@@ -716,7 +757,12 @@ export class CacheAdapter {
       return;
     }
 
-    await this.cacheService.clear();
+    // 使用兼容性检查调用 clear 方法
+    if (typeof (this.cacheService as any).clear === 'function') {
+      await (this.cacheService as any).clear();
+    } else {
+      console.warn('CacheService不支持clear方法');
+    }
   }
 
   /**
@@ -748,6 +794,67 @@ export class CacheAdapter {
     if (oldestKey) {
       this.memoryCache.delete(oldestKey);
     }
+  }
+
+  /**
+   * 从内存缓存按模式删除
+   */
+  private async deletePatternFromMemoryCache(pattern: string): Promise<number> {
+    if (!this.config.enableMemoryCache) {
+      return 0;
+    }
+
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    let deletedCount = 0;
+
+    for (const key of this.memoryCache.keys()) {
+      if (regex.test(key)) {
+        this.memoryCache.delete(key);
+        deletedCount++;
+      }
+    }
+
+    return deletedCount;
+  }
+
+  /**
+   * 从Redis缓存按模式删除
+   */
+  private async deletePatternFromRedisCache(pattern: string): Promise<number> {
+    if (!this.config.enableRedisCache) {
+      return 0;
+    }
+
+    // 这里需要实现Redis模式删除逻辑
+    // 由于CacheService可能没有deletePattern方法，我们提供一个基础实现
+    try {
+      // 尝试调用CacheService的deletePattern方法
+      if (typeof (this.cacheService as any).deletePattern === 'function') {
+        return await (this.cacheService as any).deletePattern(pattern);
+      }
+
+      // 如果没有deletePattern方法，返回0
+      this.logger.warn('CacheService不支持deletePattern方法', { pattern });
+      return 0;
+    } catch (error) {
+      this.logger.error('Redis模式删除失败', error, { pattern });
+      return 0;
+    }
+  }
+
+  /**
+   * 从分布式缓存按模式删除
+   */
+  private async deletePatternFromDistributedCache(
+    pattern: string
+  ): Promise<number> {
+    if (!this.config.enableDistributedCache) {
+      return 0;
+    }
+
+    // 实现分布式缓存模式删除逻辑
+    // 这里需要根据具体的分布式缓存实现
+    return 0;
   }
 
   /**

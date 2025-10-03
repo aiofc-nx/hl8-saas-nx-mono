@@ -16,19 +16,22 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/common"
+      "path": "../multi-tenancy"
     },
     {
-      "path": "../../packages/config"
+      "path": "../common"
     },
     {
-      "path": "../../packages/logger"
+      "path": "../config"
     },
     {
-      "path": "../../packages/multi-tenancy"
+      "path": "../logger"
     },
     {
-      "path": "../../packages/cache"
+      "path": "../utils"
+    },
+    {
+      "path": "../cache"
     },
     {
       "path": "./tsconfig.lib.json"

@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { BaseDomainEvent } from '../../../domain/events/base/base-domain-event';
 import { EntityId } from '../../../domain/value-objects/entity-id';
 
@@ -103,7 +103,7 @@ export class EventStoreAdapter {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     config: Partial<IEventStoreConfig> = {}
   ) {
     this.config = {
@@ -146,7 +146,7 @@ export class EventStoreAdapter {
 
       // 存储事件
       const records: IEventStoreRecord[] = events.map((event, index) => ({
-        eventId: event.eventId || this.generateEventId(),
+        eventId: event.eventId.toString(),
         aggregateId,
         aggregateType,
         eventType: event.constructor.name,
@@ -154,13 +154,13 @@ export class EventStoreAdapter {
         eventData: this.serializeEvent(event),
         metadata: {
           ...event.metadata,
-          tenantId: event.metadata?.tenantId,
-          userId: event.metadata?.userId,
+          tenantId: (event.metadata as any)?.tenantId,
+          userId: (event.metadata as any)?.userId,
           timestamp: event.timestamp,
         },
         createdAt: new Date(),
-        tenantId: event.metadata?.tenantId,
-        userId: event.metadata?.userId,
+        tenantId: (event.metadata as any)?.tenantId,
+        userId: (event.metadata as any)?.userId,
       }));
 
       await this.saveEventsToDatabase(records);
@@ -383,11 +383,10 @@ export class EventStoreAdapter {
    */
   private serializeEvent(event: BaseDomainEvent): any {
     let data = {
-      eventId: event.eventId,
+      eventId: event.eventId.toString(),
       eventType: event.constructor.name,
       timestamp: event.timestamp,
       metadata: event.metadata,
-      ...event,
     };
 
     if (this.config.enableCompression) {
@@ -591,7 +590,12 @@ export class EventStoreAdapter {
    */
   private async clearCache(aggregateId: string): Promise<void> {
     const pattern = `event:${aggregateId}:*`;
-    await this.cacheService.deletePattern(pattern);
+    // 使用兼容性检查调用 deletePattern 方法
+    if (typeof (this.cacheService as any).deletePattern === 'function') {
+      await (this.cacheService as any).deletePattern(pattern);
+    } else {
+      console.warn('CacheService不支持deletePattern方法');
+    }
   }
 
   /**

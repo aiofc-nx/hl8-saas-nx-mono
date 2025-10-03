@@ -9,10 +9,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
 import { DatabaseService } from '@hl8/database';
-import { EventService } from '@hl8/messaging';
+import { EventService, MessagingService } from '@hl8/messaging';
 import { TenantContextService } from '@hl8/multi-tenancy';
 
 // 导入所有适配器
@@ -113,10 +113,11 @@ export class InfrastructureFactory {
   >();
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
     private readonly eventService: EventService,
+    private readonly messagingService: MessagingService,
     private readonly tenantContextService: TenantContextService
   ) {
     this.initializeServiceConstructors();
@@ -380,7 +381,7 @@ export class InfrastructureFactory {
         );
         results[serviceName] = {
           healthy: isHealthy,
-          status: isHealthy ? 'healthy' : 'unhealthy',
+          healthStatus: isHealthy ? 'healthy' : 'unhealthy',
           serviceName,
           serviceType: registration.serviceType,
           createdAt: registration.createdAt,
@@ -594,13 +595,18 @@ export class InfrastructureFactory {
       case 'base':
         return new BaseRepositoryAdapter(
           this.databaseService,
+          this.cacheService,
           this.logger,
+          options.entityName || 'Entity',
           options
         );
       case 'aggregate':
         return new BaseAggregateRepositoryAdapter(
           this.databaseService,
+          this.cacheService,
           this.logger,
+          this.eventService,
+          options.entityName || 'Aggregate',
           options
         );
       default:
@@ -612,21 +618,36 @@ export class InfrastructureFactory {
    * 创建领域服务适配器
    */
   private createDomainServiceAdapter(serviceName: string, options: any): any {
-    return new DomainServiceAdapter(this.logger, options);
+    return new DomainServiceAdapter(
+      this.logger,
+      this.cacheService,
+      serviceName,
+      options
+    );
   }
 
   /**
    * 创建事件存储适配器
    */
   private createEventStoreAdapter(serviceName: string, options: any): any {
-    return new EventStoreAdapter(this.databaseService, this.logger, options);
+    return new EventStoreAdapter(
+      this.databaseService,
+      this.cacheService,
+      this.logger,
+      options
+    );
   }
 
   /**
    * 创建消息队列适配器
    */
   private createMessageQueueAdapter(serviceName: string, options: any): any {
-    return new MessageQueueAdapter(this.eventService, this.logger, options);
+    return new MessageQueueAdapter(
+      this.messagingService,
+      this.cacheService,
+      this.logger,
+      options
+    );
   }
 
   /**

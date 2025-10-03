@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { MessagingService } from '@hl8/messaging';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   MessageQueueAdapter,
   IMessageQueueConfig,
@@ -49,7 +49,7 @@ export class MessageQueueFactory {
   constructor(
     private readonly messagingService: MessagingService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger
+    private readonly logger: PinoLogger
   ) {}
 
   /**
@@ -360,6 +360,11 @@ export class MessageQueueFactory {
    */
   private async cleanupQueueCache(queueName: string): Promise<void> {
     const pattern = `message:${queueName}:*`;
-    await this.cacheService.deletePattern(pattern);
+    // 使用兼容性检查调用 deletePattern 方法
+    if (typeof (this.cacheService as any).deletePattern === 'function') {
+      await (this.cacheService as any).deletePattern(pattern);
+    } else {
+      console.warn('CacheService不支持deletePattern方法');
+    }
   }
 }

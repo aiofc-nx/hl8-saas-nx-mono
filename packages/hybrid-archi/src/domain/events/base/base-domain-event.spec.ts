@@ -5,7 +5,7 @@
  * @since 1.0.0
  */
 import { BaseDomainEvent } from './base-domain-event';
-import { EntityId } from '../value-objects/entity-id';
+import { EntityId } from '../../value-objects/entity-id';
 
 // 测试用的具体事件类
 class TestDomainEvent extends BaseDomainEvent {
@@ -13,7 +13,7 @@ class TestDomainEvent extends BaseDomainEvent {
     aggregateId: EntityId,
     aggregateVersion: number,
     tenantId: string,
-    public readonly testData: string,
+    public readonly testData: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
   }
@@ -22,7 +22,7 @@ class TestDomainEvent extends BaseDomainEvent {
     return 'TestDomainEvent';
   }
 
-  get eventData(): Record<string, unknown> {
+  override get eventData(): Record<string, unknown> {
     return {
       testData: this.testData,
     };
@@ -65,10 +65,10 @@ describe('BaseDomainEvent', () => {
       const afterTime = new Date();
 
       expect(event.occurredAt.getTime()).toBeGreaterThanOrEqual(
-        beforeTime.getTime(),
+        beforeTime.getTime()
       );
       expect(event.occurredAt.getTime()).toBeLessThanOrEqual(
-        afterTime.getTime(),
+        afterTime.getTime()
       );
     });
   });
@@ -126,6 +126,10 @@ describe('BaseDomainEvent', () => {
       const event1 = new TestDomainEvent(aggregateId, 1, tenantId, 'data1');
 
       class OtherTestEvent extends BaseDomainEvent {
+        constructor(aggregateId: EntityId, version: number, tenantId: string) {
+          super(aggregateId, version, tenantId);
+        }
+
         get eventType(): string {
           return 'OtherTestEvent';
         }
@@ -218,7 +222,7 @@ describe('BaseDomainEvent', () => {
           aggregateId: EntityId,
           aggregateVersion: number,
           tenantId: string,
-          eventVersion: number,
+          eventVersion: number
         ) {
           super(aggregateId, aggregateVersion, tenantId, eventVersion);
         }

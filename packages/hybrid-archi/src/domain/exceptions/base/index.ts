@@ -15,3 +15,9 @@ export {
   DomainStateException,
   DomainPermissionException,
 } from './base-domain-exception';
+
+// 事件相关异常类
+export {
+  EventBusException,
+  EventHandlingException,
+} from './event-exceptions';

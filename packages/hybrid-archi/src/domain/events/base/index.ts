@@ -17,5 +17,9 @@ export {
   EventMetadata,
 } from './domain-event.interface';
 
-// 重新导出常用类型
-export type { EntityId } from '../../entities/value-objects/entity-id.vo';
+// 重新导出常用类型 - 避免重复导出
+// export type { EntityId } from '../../value-objects/entity-id';
+
+// 领域事件类型别名 - 需要先导入IDomainEvent
+import { IDomainEvent } from './domain-event.interface';
+export type DomainEvent = IDomainEvent;

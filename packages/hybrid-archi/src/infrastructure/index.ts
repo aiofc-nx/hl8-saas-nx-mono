@@ -9,8 +9,8 @@
 
 // 重构后的基础设施模块集成
 export { CacheService, CacheModule } from '@hl8/cache';
-export { Logger, LoggerModule } from '@hl8/logger';
-export { ConfigService, ConfigModule } from '@hl8/config';
+export { PinoLogger, LoggerModule } from '@hl8/logger';
+export { TypedConfigModule } from '@hl8/config';
 export {
   MessagingService,
   EventService,
@@ -31,6 +31,9 @@ export { FastifyProModule } from '@hl8/fastify-pro';
 
 // 通用基础设施功能组件
 export * from './common';
+
+// 基础设施层常量
+export * from './constants';
 
 // 端口适配器（应用层端口适配器）
 export * from './adapters/ports';

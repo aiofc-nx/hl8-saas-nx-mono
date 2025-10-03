@@ -9,7 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
 import { IDomainService } from '../../../domain/services/base/domain-service.interface';
 
@@ -43,7 +43,7 @@ export class DomainServiceAdapter implements IDomainService {
   private readonly config: IDomainServiceConfig;
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
     private readonly serviceName: string,
     config: Partial<IDomainServiceConfig> = {}
@@ -57,6 +57,15 @@ export class DomainServiceAdapter implements IDomainService {
       maxRetries: config.maxRetries ?? 3,
       retryDelay: config.retryDelay ?? 1000,
     };
+  }
+
+  /**
+   * 获取服务名称
+   *
+   * @returns 服务名称
+   */
+  getServiceName(): string {
+    return this.serviceName;
   }
 
   /**
@@ -314,7 +323,13 @@ export class DomainServiceAdapter implements IDomainService {
 
     try {
       const cachePattern = pattern || `${this.serviceName}:*`;
-      return await this.cacheService.deletePattern(cachePattern);
+      // 使用兼容性检查调用 deletePattern 方法
+      if (typeof (this.cacheService as any).deletePattern === 'function') {
+        return await (this.cacheService as any).deletePattern(cachePattern);
+      } else {
+        console.warn('CacheService不支持deletePattern方法');
+        return 0;
+      }
     } catch (error) {
       this.logger.error(`清理领域服务缓存失败: ${this.serviceName}`, error);
       throw error;

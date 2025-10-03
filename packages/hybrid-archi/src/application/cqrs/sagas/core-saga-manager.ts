@@ -56,10 +56,27 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
-import type { ILoggerService } from '@aiofix/logging';
-import { LogContext } from '@aiofix/logging';
+import type { PinoLogger } from '@hl8/logger';
+
+// 定义 LogContext 枚举
+enum LogContext {
+  SYSTEM = 'SYSTEM',
+  BUSINESS = 'BUSINESS',
+  AUTH = 'AUTH',
+  DATABASE = 'DATABASE',
+  EXTERNAL = 'EXTERNAL',
+  CACHE = 'CACHE',
+  PERFORMANCE = 'PERFORMANCE',
+  HTTP_REQUEST = 'HTTP_REQUEST',
+}
 import { v4 as uuidv4 } from 'uuid';
-import type { IAsyncContext } from '../../../common/context/async-context.interface';
+// 简化的上下文类型定义
+interface IAsyncContext {
+  getTenantId?(): string;
+  getUserId?(): string;
+  getOrganizationId?(): string;
+  getDepartmentId?(): string;
+}
 import {
   ISaga,
   ISagaManager,
@@ -110,9 +127,7 @@ export class CoreSagaManager implements ISagaManager {
   private _cleanupTimer?: ReturnType<typeof globalThis.setInterval>;
   private _monitoringTimer?: ReturnType<typeof globalThis.setInterval>;
 
-  constructor(
-    @Inject('ILoggerService') private readonly logger: ILoggerService,
-  ) {}
+  constructor(@Inject('ILoggerService') private readonly logger: PinoLogger) {}
 
   /**
    * 启动 Saga
@@ -120,7 +135,7 @@ export class CoreSagaManager implements ISagaManager {
   public startSaga(
     sagaType: string,
     data: Record<string, unknown>,
-    context?: IAsyncContext,
+    context?: IAsyncContext
   ): Observable<ISagaExecutionContext> {
     if (!this._isStarted) {
       return throwError(() => new Error('Saga manager is not started'));
@@ -171,7 +186,7 @@ export class CoreSagaManager implements ISagaManager {
         this.updateStatistics(executionContext, 'failed');
         this.emitSagaEvent('saga.failed', executionContext);
         return throwError(() => error);
-      }),
+      })
     );
   }
 
@@ -224,7 +239,7 @@ export class CoreSagaManager implements ISagaManager {
     this.logger.info(
       `Compensating saga: ${context.sagaType}`,
       LogContext.SYSTEM,
-      { sagaId, sagaType: context.sagaType },
+      { sagaId, sagaType: context.sagaType }
     );
 
     return saga.compensate(context).pipe(
@@ -243,10 +258,10 @@ export class CoreSagaManager implements ISagaManager {
             sagaType: context.sagaType,
             error: (error as Error).message,
           },
-          error as Error,
+          error as Error
         );
         return of(false);
-      }),
+      })
     );
   }
 
@@ -399,7 +414,7 @@ export class CoreSagaManager implements ISagaManager {
     this.logger.debug(
       `Registered saga event handler: ${handler.name}`,
       LogContext.SYSTEM,
-      { handlerName: handler.name, eventType: handler.eventType },
+      { handlerName: handler.name, eventType: handler.eventType }
     );
   }
 
@@ -412,7 +427,7 @@ export class CoreSagaManager implements ISagaManager {
       this.logger.debug(
         `Unregistered saga event handler: ${handlerName}`,
         LogContext.SYSTEM,
-        { handlerName },
+        { handlerName }
       );
     }
     return removed;
@@ -442,7 +457,7 @@ export class CoreSagaManager implements ISagaManager {
       this.logger.debug(
         `Cleaned up ${expiredContexts.length} expired saga contexts`,
         LogContext.SYSTEM,
-        { expiredCount: expiredContexts.length },
+        { expiredCount: expiredContexts.length }
       );
     }
   }
@@ -452,7 +467,7 @@ export class CoreSagaManager implements ISagaManager {
    */
   private updateStatistics(
     context?: ISagaExecutionContext,
-    action?: string,
+    action?: string
   ): void {
     if (context && action) {
       this.statistics.totalSagas++;
@@ -481,7 +496,7 @@ export class CoreSagaManager implements ISagaManager {
         (this.statistics.byStatus[context.status] || 0) + 1;
 
       // 按租户统计
-      const tenantId = context.context?.getTenantId() || 'unknown';
+      const tenantId = context.context?.getTenantId?.() || 'unknown';
       this.statistics.byTenant[tenantId] =
         (this.statistics.byTenant[tenantId] || 0) + 1;
 
@@ -516,7 +531,7 @@ export class CoreSagaManager implements ISagaManager {
    */
   private emitSagaEvent(
     eventType: string,
-    context: ISagaExecutionContext,
+    context: ISagaExecutionContext
   ): void {
     const event: ISagaEvent = {
       eventType,
@@ -544,7 +559,7 @@ export class CoreSagaManager implements ISagaManager {
                 sagaId: context.sagaId,
                 eventType,
                 handlerName: handler.name,
-              },
+              }
             );
           },
           error: (error) => {
@@ -557,7 +572,7 @@ export class CoreSagaManager implements ISagaManager {
                 handlerName: handler.name,
                 error: (error as Error).message,
               },
-              error as Error,
+              error as Error
             );
           },
         });

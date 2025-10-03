@@ -138,7 +138,10 @@ export class ProjectorManager implements IProjectorManager {
       if (!this.projectorsByEventType.has(eventType)) {
         this.projectorsByEventType.set(eventType, []);
       }
-      this.projectorsByEventType.get(eventType)!.push(registration);
+      const projectors = this.projectorsByEventType.get(eventType);
+      if (projectors) {
+        projectors.push(registration);
+      }
     }
 
     console.log(`投射器 ${projectorName} 注册成功`, {
@@ -161,7 +164,7 @@ export class ProjectorManager implements IProjectorManager {
 
     // 并行执行所有投射器
     const projectionPromises = projectors.map((projector) =>
-      this.executeProjector(projector, event),
+      this.executeProjector(projector, event)
     );
 
     const results = await Promise.allSettled(projectionPromises);
@@ -172,7 +175,7 @@ export class ProjectorManager implements IProjectorManager {
       if (result.status === 'rejected') {
         console.error(
           `投射器 ${projector.getProjectorName()} 执行失败`,
-          result.reason,
+          result.reason
         );
       }
     });
@@ -206,7 +209,7 @@ export class ProjectorManager implements IProjectorManager {
    */
   async rebuildAllReadModels(
     aggregateId: string,
-    events: BaseDomainEvent[],
+    events: BaseDomainEvent[]
   ): Promise<void> {
     console.log(`开始重建聚合根 ${aggregateId} 的所有读模型`);
 
@@ -227,12 +230,12 @@ export class ProjectorManager implements IProjectorManager {
           const relevantEvents = events.filter((e) => projector.canProject(e));
           await readModelProjector.rebuildReadModel(
             aggregateId,
-            relevantEvents,
+            relevantEvents
           );
         } catch (error) {
           console.error(
             `投射器 ${projector.getProjectorName()} 重建失败`,
-            error,
+            error
           );
         }
       });
@@ -295,7 +298,7 @@ export class ProjectorManager implements IProjectorManager {
       const projectors = this.projectorsByEventType.get(eventType);
       if (projectors) {
         const index = projectors.findIndex(
-          (reg) => reg.projector.getProjectorName() === projectorName,
+          (reg) => reg.projector.getProjectorName() === projectorName
         );
         if (index >= 0) {
           projectors.splice(index, 1);
@@ -354,12 +357,15 @@ export class ProjectorManager implements IProjectorManager {
    */
   private async executeProjector(
     projector: IEventProjector<any>,
-    event: BaseDomainEvent,
+    event: BaseDomainEvent
   ): Promise<IProjectionExecutionResult> {
     const startTime = Date.now();
     const registration = this.projectorsByName.get(
-      projector.getProjectorName(),
-    )!;
+      projector.getProjectorName()
+    );
+    if (!registration) {
+      throw new Error(`投射器 ${projector.getProjectorName()} 未注册`);
+    }
 
     try {
       // 更新统计信息
@@ -380,10 +386,10 @@ export class ProjectorManager implements IProjectorManager {
         executionTime,
         affectedReadModels: 1, // 简化实现
         context: {
-          eventId: event.eventId,
+          eventId: event.eventId.toString(),
           startTime: new Date(startTime),
-          aggregateId: event.aggregateId,
-          eventVersion: event.version,
+          aggregateId: event.aggregateId.toString(),
+          eventVersion: (event as any).version,
           projectorName: projector.getProjectorName(),
           retryCount: 0,
           custom: {},

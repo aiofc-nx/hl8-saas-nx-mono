@@ -10,7 +10,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   DatabaseAdapter,
   IDatabaseConfig,
@@ -58,7 +58,7 @@ export class DatabaseManager {
 
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly databaseFactory: DatabaseFactory,
     config: Partial<IDatabaseManagerConfig> = {}
   ) {

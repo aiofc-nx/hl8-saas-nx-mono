@@ -9,7 +9,13 @@
  */
 
 import { Observable } from 'rxjs';
-import type { IAsyncContext } from '../../../common/context/async-context.interface';
+// 简化的上下文类型定义
+interface IAsyncContext {
+  getTenantId?(): string;
+  getUserId?(): string;
+  getOrganizationId?(): string;
+  getDepartmentId?(): string;
+}
 
 /**
  * Saga 状态枚举
@@ -494,7 +500,7 @@ export interface ISaga {
    * 处理超时
    */
   handleTimeout(
-    context: ISagaExecutionContext,
+    context: ISagaExecutionContext
   ): Observable<ISagaExecutionContext>;
 
   /**
@@ -538,7 +544,7 @@ export interface ISagaManager {
   startSaga(
     sagaType: string,
     data: Record<string, unknown>,
-    context?: IAsyncContext,
+    context?: IAsyncContext
   ): Observable<ISagaExecutionContext>;
 
   /**

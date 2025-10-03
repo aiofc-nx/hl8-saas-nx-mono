@@ -9,7 +9,6 @@
 // 领域层仓储适配器
 export * from './base-repository.adapter';
 export * from './base-aggregate-repository.adapter';
-export * from './domain-service.adapter';
 
 // 仓储适配器模块
 export * from './repository-adapters.module';

@@ -122,13 +122,13 @@ describe('元数据常量', () => {
   describe('元数据键名映射', () => {
     it('应该正确映射装饰器类型到元数据键名', () => {
       expect(METADATA_KEYS[DecoratorType.COMMAND_HANDLER]).toBe(
-        COMMAND_HANDLER_METADATA,
+        COMMAND_HANDLER_METADATA
       );
       expect(METADATA_KEYS[DecoratorType.QUERY_HANDLER]).toBe(
-        QUERY_HANDLER_METADATA,
+        QUERY_HANDLER_METADATA
       );
       expect(METADATA_KEYS[DecoratorType.EVENT_HANDLER]).toBe(
-        EVENT_HANDLER_METADATA,
+        EVENT_HANDLER_METADATA
       );
       expect(METADATA_KEYS[DecoratorType.SAGA]).toBe(SAGA_METADATA);
     });
@@ -198,8 +198,8 @@ describe('元数据常量', () => {
     it('getDefaultMetadata 应该返回默认元数据值', () => {
       const defaults = getDefaultMetadata(DecoratorType.COMMAND_HANDLER);
       expect(defaults).toBeDefined();
-      expect(defaults.priority).toBe(0);
-      expect(defaults.timeout).toBe(30000);
+      expect(defaults['priority']).toBe(0);
+      expect(defaults['timeout']).toBe(30000);
     });
 
     it('isValidDecoratorType 应该验证装饰器类型', () => {
@@ -219,13 +219,13 @@ describe('元数据常量', () => {
 
     it('getHandlerType 应该返回对应的处理器类型', () => {
       expect(getHandlerType(DecoratorType.COMMAND_HANDLER)).toBe(
-        HandlerType.COMMAND,
+        HandlerType.COMMAND
       );
       expect(getHandlerType(DecoratorType.QUERY_HANDLER)).toBe(
-        HandlerType.QUERY,
+        HandlerType.QUERY
       );
       expect(getHandlerType(DecoratorType.EVENT_HANDLER)).toBe(
-        HandlerType.EVENT,
+        HandlerType.EVENT
       );
       expect(getHandlerType(DecoratorType.SAGA)).toBe(HandlerType.SAGA);
       expect(getHandlerType(DecoratorType.CACHE)).toBeNull();

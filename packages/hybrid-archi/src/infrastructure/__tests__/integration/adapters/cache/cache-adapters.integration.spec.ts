@@ -218,7 +218,7 @@ describe('CacheAdaptersModule Integration', () => {
       // 获取所有缓存
       const allCaches = cacheManager.getAllCaches();
       expect(allCaches).toHaveLength(1);
-      expect(allCaches[0].serviceName).toBe(cacheName);
+      expect(allCaches[0].cacheName).toBe(cacheName);
     });
 
     it('应该提供缓存统计信息', () => {

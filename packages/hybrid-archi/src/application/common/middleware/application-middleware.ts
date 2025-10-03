@@ -137,7 +137,7 @@ export abstract class BaseMiddleware implements IMiddleware {
   public readonly priority: number;
   public readonly enabled: boolean;
 
-  constructor(name: string, priority: number = 0, enabled: boolean = true) {
+  constructor(name: string, priority = 0, enabled = true) {
     this.name = name;
     this.priority = priority;
     this.enabled = enabled;
@@ -147,7 +147,8 @@ export abstract class BaseMiddleware implements IMiddleware {
    * 前置处理默认实现
    */
   async before(_context: IMiddlewareContext): Promise<boolean> {
-    return true; // 默认允许继续执行
+    // 默认允许继续执行
+    return true;
   }
 
   /**
@@ -158,14 +159,15 @@ export abstract class BaseMiddleware implements IMiddleware {
     _result?: unknown,
     _error?: Error,
   ): Promise<void> {
-    // 默认不做处理
+    // 默认不做处理，参数用于接口兼容性
   }
 
   /**
    * 异常处理默认实现
    */
   async onError(_context: IMiddlewareContext, _error: Error): Promise<boolean> {
-    return false; // 默认不处理异常
+    // 默认不处理异常，参数用于接口兼容性
+    return false;
   }
 
   /**
@@ -283,6 +285,7 @@ export class MiddlewareChain {
       // 如果异常被处理，返回undefined（这种情况很少见）
       return undefined as TResponse;
     }
+    // _result 和 _error 参数用于接口兼容性
   }
 
   /**
@@ -371,7 +374,7 @@ export class AuditLogMiddleware extends BaseMiddleware {
  * 性能监控中间件
  */
 export class PerformanceMonitorMiddleware extends BaseMiddleware {
-  constructor(private readonly slowThreshold: number = 1000) {
+  constructor(private readonly slowThreshold = 1000) {
     super('PerformanceMonitorMiddleware', 200);
   }
 

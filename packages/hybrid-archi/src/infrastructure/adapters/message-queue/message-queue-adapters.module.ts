@@ -63,7 +63,13 @@ export class MessageQueueAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(MessagingModule, CacheModule, LoggerModule);
+    imports.push(
+      MessagingModule.forRoot({ adapter: 'memory' as any }),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(MessageQueueFactory);
@@ -98,7 +104,13 @@ export class MessageQueueAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(MessagingModule, CacheModule, LoggerModule);
+    imports.push(
+      MessagingModule.forRoot({ adapter: 'memory' as any }),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(MessageQueueFactory);

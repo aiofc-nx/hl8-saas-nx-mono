@@ -80,21 +80,30 @@ export class TimeProviderPortAdapter implements ITimeProviderPort {
   }
 
   /**
+   * 获取当前时间的ISO字符串
+   *
+   * @returns ISO格式的时间字符串
+   */
+  isoString(): string {
+    return new Date().toISOString();
+  }
+
+  /**
    * 格式化时间
    *
    * @param date - 要格式化的时间
    * @param format - 格式类型
    * @returns 格式化后的时间字符串
    */
-  format(date: Date, format: TimeFormat = TimeFormat.ISO_8601): string {
+  format(date: Date, format = 'iso8601'): string {
     switch (format) {
-      case TimeFormat.ISO_8601:
+      case 'iso8601':
         return this.formatISO8601(date);
-      case TimeFormat.UNIX_TIMESTAMP:
+      case 'unix_timestamp':
         return Math.floor(date.getTime() / 1000).toString();
-      case TimeFormat.UNIX_TIMESTAMP_MS:
+      case 'unix_timestamp_ms':
         return date.getTime().toString();
-      case TimeFormat.CUSTOM:
+      case 'custom':
         return this.formatCustom(date);
       default:
         return this.formatISO8601(date);
@@ -139,10 +148,10 @@ export class TimeProviderPortAdapter implements ITimeProviderPort {
     year: number,
     month: number,
     day: number,
-    hour: number = 0,
-    minute: number = 0,
-    second: number = 0,
-    millisecond: number = 0
+    hour = 0,
+    minute = 0,
+    second = 0,
+    millisecond = 0
   ): Date {
     return new Date(year, month, day, hour, minute, second, millisecond);
   }
@@ -155,41 +164,24 @@ export class TimeProviderPortAdapter implements ITimeProviderPort {
    * @param unit - 单位
    * @returns 添加后的时间
    */
-  add(
-    date: Date,
-    amount: number,
-    unit:
-      | 'milliseconds'
-      | 'seconds'
-      | 'minutes'
-      | 'hours'
-      | 'days'
-      | 'months'
-      | 'years'
-  ): Date {
+  add(date: Date, amount: number, unit: 'ms' | 's' | 'm' | 'h' | 'd'): Date {
     const result = new Date(date);
 
     switch (unit) {
-      case 'milliseconds':
+      case 'ms':
         result.setMilliseconds(result.getMilliseconds() + amount);
         break;
-      case 'seconds':
+      case 's':
         result.setSeconds(result.getSeconds() + amount);
         break;
-      case 'minutes':
+      case 'm':
         result.setMinutes(result.getMinutes() + amount);
         break;
-      case 'hours':
+      case 'h':
         result.setHours(result.getHours() + amount);
         break;
-      case 'days':
+      case 'd':
         result.setDate(result.getDate() + amount);
-        break;
-      case 'months':
-        result.setMonth(result.getMonth() + amount);
-        break;
-      case 'years':
-        result.setFullYear(result.getFullYear() + amount);
         break;
     }
 

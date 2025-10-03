@@ -34,7 +34,7 @@
  *     private readonly userRepository: IUserRepository,
  *     private readonly eventBus: IDomainEventBus,
  *     tenantContextService: TenantContextService,
- *     logger: Logger
+ *     logger: PinoLogger
  *   ) {
  *     super('CreateUser', '创建用户用例', '1.0.0', ['user:create'], tenantContextService, logger);
  *   }
@@ -62,7 +62,7 @@ import {
   GeneralBadRequestException,
   GeneralInternalServerException,
 } from '@hl8/common';
-import { TENANT_ERROR_CODES } from '../../../common/constants';
+import { TENANT_ERROR_CODES } from '../../../constants';
 
 /**
  * 多租户感知的用例基类
@@ -79,7 +79,7 @@ export abstract class TenantAwareUseCase<
   constructor(
     useCaseName: string,
     useCaseDescription: string,
-    useCaseVersion: string = '1.0.0',
+    useCaseVersion = '1.0.0',
     requiredPermissions: string[] = [],
     tenantContextService: TenantContextService,
     logger?: PinoLogger

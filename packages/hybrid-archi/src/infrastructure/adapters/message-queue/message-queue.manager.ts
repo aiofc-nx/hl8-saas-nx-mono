@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { MessagingService } from '@hl8/messaging';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   MessageQueueAdapter,
   IMessageQueueConfig,
@@ -56,7 +56,7 @@ export class MessageQueueManager {
   constructor(
     private readonly messagingService: MessagingService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly queueFactory: MessageQueueFactory,
     config: Partial<IMessageQueueManagerConfig> = {}
   ) {

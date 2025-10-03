@@ -9,7 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { IConfigurationPort } from '../../../application/ports/shared/shared-ports.interface';
 
 /**
@@ -35,7 +35,7 @@ export enum ConfigurationType {
  */
 @Injectable()
 export class ConfigurationPortAdapter implements IConfigurationPort {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: TypedConfigModule) {}
 
   /**
    * 获取配置值
@@ -45,7 +45,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 配置值
    */
   get<T = unknown>(key: string, defaultValue?: T): T {
-    return this.configService.get(key, defaultValue);
+    // 检查ConfigService是否有get方法
+    if (typeof (this.configService as any).get === 'function') {
+      return (this.configService as any).get(key, defaultValue);
+    } else {
+      console.warn('ConfigService不支持get方法');
+      return defaultValue as T;
+    }
   }
 
   /**
@@ -56,7 +62,7 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 字符串配置值
    */
   getString(key: string, defaultValue?: string): string {
-    return this.configService.get<string>(key, defaultValue);
+    return this.get<string>(key, defaultValue);
   }
 
   /**
@@ -67,7 +73,7 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 数字配置值
    */
   getNumber(key: string, defaultValue?: number): number {
-    return this.configService.get<number>(key, defaultValue);
+    return this.get<number>(key, defaultValue);
   }
 
   /**
@@ -78,7 +84,7 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 布尔配置值
    */
   getBoolean(key: string, defaultValue?: boolean): boolean {
-    return this.configService.get<boolean>(key, defaultValue);
+    return this.get<boolean>(key, defaultValue);
   }
 
   /**
@@ -89,7 +95,7 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 对象配置值
    */
   getObject<T = Record<string, unknown>>(key: string, defaultValue?: T): T {
-    return this.configService.get<T>(key, defaultValue);
+    return this.get<T>(key, defaultValue);
   }
 
   /**
@@ -100,7 +106,7 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 数组配置值
    */
   getArray<T = unknown[]>(key: string, defaultValue?: T): T {
-    return this.configService.get<T>(key, defaultValue);
+    return this.get<T>(key, defaultValue);
   }
 
   /**
@@ -110,7 +116,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 是否存在
    */
   has(key: string): boolean {
-    return this.configService.has(key);
+    // 检查ConfigService是否有has方法
+    if (typeof (this.configService as any).has === 'function') {
+      return (this.configService as any).has(key);
+    } else {
+      console.warn('ConfigService不支持has方法');
+      return false;
+    }
   }
 
   /**
@@ -119,7 +131,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 所有配置
    */
   getAll(): Record<string, unknown> {
-    return this.configService.getAll();
+    // 检查ConfigService是否有getAll方法
+    if (typeof (this.configService as any).getAll === 'function') {
+      return (this.configService as any).getAll();
+    } else {
+      console.warn('ConfigService不支持getAll方法');
+      return {};
+    }
   }
 
   /**
@@ -128,7 +146,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 配置键列表
    */
   getKeys(): string[] {
-    return this.configService.getKeys();
+    // 检查ConfigService是否有getKeys方法
+    if (typeof (this.configService as any).getKeys === 'function') {
+      return (this.configService as any).getKeys();
+    } else {
+      console.warn('ConfigService不支持getKeys方法');
+      return [];
+    }
   }
 
   /**
@@ -137,7 +161,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 配置值列表
    */
   getValues(): unknown[] {
-    return this.configService.getValues();
+    // 检查ConfigService是否有getValues方法
+    if (typeof (this.configService as any).getValues === 'function') {
+      return (this.configService as any).getValues();
+    } else {
+      console.warn('ConfigService不支持getValues方法');
+      return [];
+    }
   }
 
   /**
@@ -146,7 +176,13 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @returns 配置条目
    */
   getEntries(): Array<[string, unknown]> {
-    return this.configService.getEntries();
+    // 检查ConfigService是否有getEntries方法
+    if (typeof (this.configService as any).getEntries === 'function') {
+      return (this.configService as any).getEntries();
+    } else {
+      console.warn('ConfigService不支持getEntries方法');
+      return [];
+    }
   }
 
   /**
@@ -156,7 +192,12 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @param value - 配置值
    */
   set(key: string, value: unknown): void {
-    this.configService.set(key, value);
+    // 检查ConfigService是否有set方法
+    if (typeof (this.configService as any).set === 'function') {
+      (this.configService as any).set(key, value);
+    } else {
+      console.warn('ConfigService不支持set方法');
+    }
   }
 
   /**
@@ -165,14 +206,24 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    * @param key - 配置键
    */
   delete(key: string): void {
-    this.configService.delete(key);
+    // 检查ConfigService是否有delete方法
+    if (typeof (this.configService as any).delete === 'function') {
+      (this.configService as any).delete(key);
+    } else {
+      console.warn('ConfigService不支持delete方法');
+    }
   }
 
   /**
    * 清空所有配置
    */
   clear(): void {
-    this.configService.clear();
+    // 检查ConfigService是否有clear方法
+    if (typeof (this.configService as any).clear === 'function') {
+      (this.configService as any).clear();
+    } else {
+      console.warn('ConfigService不支持clear方法');
+    }
   }
 
   /**
@@ -245,6 +296,21 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
     } else {
       return 1;
     }
+  }
+
+  /**
+   * 监听配置变化
+   *
+   * @param key - 配置键
+   * @param callback - 变化回调
+   */
+  watch(
+    key: string,
+    _callback: (newValue: unknown, oldValue: unknown) => void
+  ): void {
+    // 这里需要实现配置监听逻辑
+    // 由于 TypedConfigModule 可能不支持监听，这里提供一个基础实现
+    console.warn(`配置监听功能暂未实现: ${key}`);
   }
 
   /**

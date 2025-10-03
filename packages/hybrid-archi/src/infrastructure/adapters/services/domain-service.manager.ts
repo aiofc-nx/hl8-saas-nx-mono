@@ -9,7 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
 import {
   DomainServiceAdapter,
@@ -48,7 +48,7 @@ export class DomainServiceManager {
   private healthCheckTimer?: NodeJS.Timeout;
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
     private readonly serviceFactory: DomainServiceFactory,
     config: Partial<IDomainServiceManagerConfig> = {}

@@ -8,17 +8,10 @@
  */
 
 // 重构后的基础设施模块集成
-export { Logger, LoggerModule } from '@hl8/logger';
-export { ConfigService, ConfigModule } from '@hl8/config';
-export { CacheService, CacheModule } from '@hl8/cache';
-export {
-  TenantContextService,
-  TenantIsolationService,
-  MultiTenancyModule,
-} from '@hl8/multi-tenancy';
+// 注意：基础设施模块的导出已统一到 infrastructure 层
+// 如需使用，请从 infrastructure 层导入
 
-// 上下文管理系统
-export * from './context';
+// 上下文管理系统 - 已删除，使用简化的类型定义
 
 // 错误处理机制 - 使用 @hl8/common/exceptions 模块
 export {
@@ -27,28 +20,16 @@ export {
   GeneralInternalServerException,
   AnyExceptionFilter,
   ExceptionModule,
-} from '@hl8/common/exceptions';
+} from '@hl8/common';
 
-// 错误处理机制
-export { ErrorType, CoreErrorBus, CoreExceptionFilter } from './error-handling';
-
-export type {
-  IErrorClassifier,
-  IErrorHandler,
-  IErrorNotifier,
-  IErrorRecovery,
-  IErrorBus,
-  IExceptionFilter,
-} from './error-handling';
+// 错误处理机制 - 已删除，使用 @hl8/common 标准异常处理
 
 // 装饰器系统 - 已从shared层合并到此处
 export * from './decorators';
 
-// 测试工具 - 已从shared层合并到此处
-export * from './testing';
+// 测试工具 - 已删除，使用标准 Jest 和 NestJS 测试工具
 
-// 通用工具函数 - 已从shared层合并到此处
-export * from './utils';
+// 通用工具函数 - 已删除，使用标准工具库
 
 // 多租户技术基础设施 - 已迁移到 @hl8/multi-tenancy
 // export * from './multi-tenant';

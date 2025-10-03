@@ -250,8 +250,8 @@ describe('元数据工具函数', () => {
       expect(summary).toHaveProperty('version');
       expect(summary).toHaveProperty('enabled');
       expect(summary).toHaveProperty('priority');
-      expect(summary.decoratorType).toBe(metadata.decoratorType);
-      expect(summary.priority).toBe(metadata.priority);
+      expect(summary['decoratorType']).toBe(metadata.decoratorType);
+      expect(summary['priority']).toBe(metadata.priority);
     });
   });
 
@@ -301,7 +301,7 @@ describe('元数据工具函数', () => {
       expect(merged.retry?.maxRetries).toBe(5);
       expect(merged.retry?.retryDelay).toBe(2000);
       expect(((merged.customConfig as any)?.nested as any)?.deep?.value).toBe(
-        'test',
+        'test'
       );
     });
 
@@ -322,13 +322,15 @@ describe('元数据工具函数', () => {
       setMetadata(
         TestClass,
         'special-metadata',
-        specialMetadata as unknown as IMetadata,
+        specialMetadata as unknown as IMetadata
       );
       const retrieved = getMetadata(TestClass, 'special-metadata');
 
-      expect(retrieved?.customConfig?.unicode).toBe('测试_José_🚀');
-      expect(retrieved?.customConfig?.special).toBe('"quotes" & <tags>');
-      expect(retrieved?.customConfig?.newlines).toBe('line1\nline2\r\nline3');
+      expect(retrieved?.customConfig?.['unicode']).toBe('测试_José_🚀');
+      expect(retrieved?.customConfig?.['special']).toBe('"quotes" & <tags>');
+      expect(retrieved?.customConfig?.['newlines']).toBe(
+        'line1\nline2\r\nline3'
+      );
     });
 
     it('应该处理大型元数据对象', () => {
@@ -387,7 +389,7 @@ describe('元数据工具函数', () => {
         setCommandHandlerMetadata(
           TestClassConcurrent,
           `ConcurrentCommand${i}`,
-          { priority: i },
+          { priority: i }
         );
         const metadata = getCommandHandlerMetadata(TestClassConcurrent);
         expect(metadata?.priority).toBe(i);
@@ -416,7 +418,7 @@ describe('元数据工具函数', () => {
 
         // 验证每种类型的元数据都能正确获取
         expect(getCommandHandlerMetadata(MultiDecoratorClass)?.priority).toBe(
-          1,
+          1
         );
         expect(getQueryHandlerMetadata(MultiDecoratorClass)?.priority).toBe(2);
         expect(getEventHandlerMetadata(MultiDecoratorClass)?.priority).toBe(3);
@@ -437,7 +439,7 @@ describe('元数据工具函数', () => {
           priority: 1,
         });
         expect(getCommandHandlerMetadata(DynamicClass)?.commandType).toBe(
-          'InitialCommand',
+          'InitialCommand'
         );
 
         // 动态更新
@@ -445,7 +447,7 @@ describe('元数据工具函数', () => {
           priority: 5,
         });
         expect(getCommandHandlerMetadata(DynamicClass)?.commandType).toBe(
-          'UpdatedCommand',
+          'UpdatedCommand'
         );
         expect(getCommandHandlerMetadata(DynamicClass)?.priority).toBe(5);
       });
@@ -501,10 +503,10 @@ describe('元数据工具函数', () => {
         const metadata = getCommandHandlerMetadata(ReportClass)!;
         const summary = getMetadataSummary(metadata);
         expect(summary).toBeDefined();
-        expect(summary.decoratorType).toBe(DecoratorType.COMMAND_HANDLER);
-        expect(summary.version).toBeDefined();
-        expect(summary.createdAt).toBeInstanceOf(Date);
-        expect(summary.enabled).toBe(true);
+        expect(summary['decoratorType']).toBe(DecoratorType.COMMAND_HANDLER);
+        expect(summary['version']).toBeDefined();
+        expect(summary['createdAt']).toBeInstanceOf(Date);
+        expect(summary['enabled']).toBe(true);
       });
     });
 

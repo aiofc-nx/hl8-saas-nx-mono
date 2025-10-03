@@ -17,8 +17,8 @@ interface ITestData {
 class TestQueryResult extends BaseQueryResult<ITestData> {
   constructor(
     data: ITestData[],
-    page: number = 1,
-    pageSize: number = 10,
+    page = 1,
+    pageSize = 10,
     totalCount: number = data.length,
     metadata?: Record<string, unknown>,
   ) {

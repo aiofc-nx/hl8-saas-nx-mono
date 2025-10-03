@@ -65,15 +65,16 @@ describe('Infrastructure Layer E2E', () => {
         }),
         EventStoreAdaptersModule.forRoot({
           enableEventStore: true,
-          enablePostgreSQL: true,
-          enableEventSourcing: true,
-          enableEventReplay: true,
+          enableCache: true,
+          enableCompression: true,
+          enableEncryption: true,
         }),
         MessageQueueAdaptersModule.forRoot({
           enableMessageQueue: true,
-          enableRabbitMQ: true,
-          enableRedis: true,
-          enableMessagePersistence: true,
+          enableCache: true,
+          enableRetry: true,
+          enableDeadLetterQueue: true,
+          enablePersistence: true,
         }),
       ],
     }).compile();

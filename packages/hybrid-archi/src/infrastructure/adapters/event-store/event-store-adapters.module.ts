@@ -57,7 +57,15 @@ export class EventStoreAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(DatabaseModule, CacheModule, LoggerModule);
+    imports.push(
+      DatabaseModule.forRoot({
+        mikroORM: {} as any,
+      }),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(EventStoreFactory);
@@ -89,7 +97,15 @@ export class EventStoreAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(DatabaseModule, CacheModule, LoggerModule);
+    imports.push(
+      DatabaseModule.forRoot({
+        mikroORM: {} as any,
+      }),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(EventStoreFactory);

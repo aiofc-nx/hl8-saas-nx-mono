@@ -60,7 +60,10 @@ export class CacheAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(CacheModule, LoggerModule);
+    imports.push(
+      CacheModule.forRoot({ redis: {} as any }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(CacheFactory);
@@ -90,7 +93,10 @@ export class CacheAdaptersModule {
     const imports: DynamicModule[] = [];
 
     // 添加基础模块
-    imports.push(CacheModule, LoggerModule);
+    imports.push(
+      CacheModule.forRoot({ redis: {} as any }),
+      LoggerModule.forRoot({})
+    );
 
     // 添加管理组件
     providers.push(CacheFactory);

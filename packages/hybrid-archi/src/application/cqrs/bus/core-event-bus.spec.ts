@@ -19,7 +19,7 @@ class TestEvent extends BaseDomainEvent {
     aggregateId: EntityId,
     aggregateVersion: number,
     tenantId: string,
-    public readonly data: string,
+    public readonly data: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
   }
@@ -28,7 +28,7 @@ class TestEvent extends BaseDomainEvent {
     return 'TestEvent';
   }
 
-  get eventData(): Record<string, unknown> {
+  override get eventData(): Record<string, unknown> {
     return { data: this.data };
   }
 }
@@ -100,14 +100,11 @@ class TestMiddleware implements IMiddleware {
   public executedCount = 0;
   public context: IMessageContext | null = null;
 
-  constructor(
-    public name: string,
-    public priority: number = 0,
-  ) {}
+  constructor(public name: string, public priority = 0) {}
 
   async execute(
     context: IMessageContext,
-    next: () => Promise<unknown>,
+    next: () => Promise<unknown>
   ): Promise<unknown> {
     this.executedCount++;
     this.context = context;
@@ -249,7 +246,7 @@ describe('CoreEventBus', () => {
         'TestEvent',
         async (event) => {
           handledEvent = event;
-        },
+        }
       );
 
       expect(subscriptionId).toBeDefined();
@@ -269,7 +266,7 @@ describe('CoreEventBus', () => {
         'TestEvent',
         async (event) => {
           handledEvent = event;
-        },
+        }
       );
 
       // 取消订阅

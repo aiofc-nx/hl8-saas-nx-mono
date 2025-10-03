@@ -51,9 +51,14 @@ export * from './lib/plugins/cors.plugin';
 // 中间件系统
 export * from './lib/middleware/core-fastify.middleware';
 export * from './lib/middleware/tenant.middleware';
+export * from './lib/middleware/rate-limit.middleware';
+export * from './lib/middleware/circuit-breaker.middleware';
+export * from './lib/middleware/security.middleware';
+export * from './lib/middleware/request-interceptor.middleware';
 
 // 监控系统
 export * from './lib/monitoring/health-check.service';
+export * from './lib/monitoring/performance-monitor.service';
 
 // 类型定义
 export * from './lib/types/fastify.types';
@@ -63,3 +68,12 @@ export * from './lib/modules/fastify-pro.module';
 
 // 示例
 export * from './examples/fastify-pro-multi-tenancy-integration.example';
+export {
+  ExampleService,
+  ExampleController,
+  enterpriseConfig,
+  createEnterpriseApp,
+  startEnterpriseApp,
+  getPerformanceMetrics,
+  startMonitoring,
+} from './examples/enterprise-features.example';

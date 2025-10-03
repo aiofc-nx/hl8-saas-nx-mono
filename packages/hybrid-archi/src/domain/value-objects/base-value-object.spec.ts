@@ -15,7 +15,7 @@ import { BaseValueObject } from './base-value-object';
 class TestValueObject extends BaseValueObject {
   constructor(
     private readonly _value: string,
-    private readonly _number: number,
+    private readonly _number: number
   ) {
     super();
     this.validate();
@@ -29,19 +29,19 @@ class TestValueObject extends BaseValueObject {
     return this._number;
   }
 
-  protected arePropertiesEqual(other: TestValueObject): boolean {
+  protected override arePropertiesEqual(other: TestValueObject): boolean {
     return this._value === other._value && this._number === other._number;
   }
 
-  public getHashCode(): string {
+  public override getHashCode(): string {
     return `${this.constructor.name}-${this._value}-${this._number}`;
   }
 
-  public toString(): string {
+  public override toString(): string {
     return `${this.constructor.name}(${this._value}, ${this._number})`;
   }
 
-  public toJSON(): Record<string, unknown> {
+  public override toJSON(): Record<string, unknown> {
     return {
       type: this.constructor.name,
       value: this._value,
@@ -49,11 +49,11 @@ class TestValueObject extends BaseValueObject {
     };
   }
 
-  public isEmpty(): boolean {
+  public override isEmpty(): boolean {
     return !this._value || this._value.trim() === '';
   }
 
-  protected validate(): void {
+  protected override validate(): void {
     if (!this._value) {
       throw new Error('Value cannot be empty');
     }
@@ -75,7 +75,7 @@ class SimpleValueObject extends BaseValueObject {
     return this._data;
   }
 
-  protected arePropertiesEqual(other: SimpleValueObject): boolean {
+  protected override arePropertiesEqual(other: SimpleValueObject): boolean {
     return this._data === other._data;
   }
 }
@@ -101,10 +101,10 @@ describe('BaseValueObject', () => {
 
     it('应该拒绝无效的值', () => {
       expect(() => new TestValueObject('', 10)).toThrow(
-        'Value cannot be empty',
+        'Value cannot be empty'
       );
       expect(() => new TestValueObject('test', -1)).toThrow(
-        'Number must be non-negative',
+        'Number must be non-negative'
       );
     });
   });
@@ -192,14 +192,14 @@ describe('BaseValueObject', () => {
   describe('JSON转换', () => {
     it('应该正确转换为JSON', () => {
       const json = testValueObject.toJSON();
-      expect(json.type).toBe('TestValueObject');
-      expect(json.value).toBe('test');
-      expect(json.number).toBe(42);
+      expect(json['type']).toBe('TestValueObject');
+      expect(json['value']).toBe('test');
+      expect(json['number']).toBe(42);
     });
 
     it('简单值对象应该返回基本JSON', () => {
       const json = simpleValueObject.toJSON();
-      expect(json.type).toBe('SimpleValueObject');
+      expect(json['type']).toBe('SimpleValueObject');
     });
   });
 
@@ -303,7 +303,7 @@ describe('BaseValueObject', () => {
 
     it('应该拒绝负数', () => {
       expect(() => new TestValueObject('test', -1)).toThrow(
-        'Number must be non-negative',
+        'Number must be non-negative'
       );
     });
 

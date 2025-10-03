@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { EventStoreAdapter, IEventStoreConfig } from './event-store.adapter';
 
 /**
@@ -46,7 +46,7 @@ export class EventStoreFactory {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger
+    private readonly logger: PinoLogger
   ) {}
 
   /**
@@ -355,6 +355,11 @@ export class EventStoreFactory {
    */
   private async cleanupStoreCache(storeName: string): Promise<void> {
     const pattern = `event:${storeName}:*`;
-    await this.cacheService.deletePattern(pattern);
+    // 使用兼容性检查调用 deletePattern 方法
+    if (typeof (this.cacheService as any).deletePattern === 'function') {
+      await (this.cacheService as any).deletePattern(pattern);
+    } else {
+      console.warn('CacheService不支持deletePattern方法');
+    }
   }
 }

@@ -48,6 +48,23 @@
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { CoreFastifyAdapter } from './core-fastify.adapter';
 import { IFastifyEnterpriseConfig } from '../types/fastify.types';
+import {
+  RateLimitMiddleware,
+  IRateLimitConfig,
+} from '../middleware/rate-limit.middleware';
+import {
+  CircuitBreakerMiddleware,
+  ICircuitBreakerConfig,
+} from '../middleware/circuit-breaker.middleware';
+import {
+  SecurityMiddleware,
+  ISecurityConfig,
+} from '../middleware/security.middleware';
+import {
+  createPerformanceMonitor,
+  PerformanceMonitorService,
+  IPerformanceMonitorConfig,
+} from '../monitoring/performance-monitor.service';
 
 /**
  * 企业级Fastify选项
@@ -71,6 +88,19 @@ export interface IEnterpriseFastifyOptions {
       level?: string;
       prettyPrint?: boolean;
       serializers?: Record<string, unknown>;
+    };
+
+    // 新增：企业级特性配置
+    rateLimit?: (IRateLimitConfig & { enabled?: boolean }) | false;
+    circuitBreaker?: (ICircuitBreakerConfig & { enabled?: boolean }) | false;
+    security?: (ISecurityConfig & { enabled?: boolean }) | false;
+    performance?: (IPerformanceMonitorConfig & { enabled?: boolean }) | false;
+
+    // 优雅关闭
+    gracefulShutdown?: {
+      enabled?: boolean;
+      timeoutMs?: number;
+      signals?: string[]; // e.g. ['SIGTERM','SIGINT']
     };
   };
 }
@@ -126,6 +156,10 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
   private readonly enterpriseConfig: NonNullable<
     IEnterpriseFastifyOptions['enterprise']
   >;
+  private rateLimitMiddleware?: RateLimitMiddleware;
+  private circuitBreakerMiddleware?: CircuitBreakerMiddleware;
+  private securityMiddleware?: SecurityMiddleware;
+  private perfMonitor?: PerformanceMonitorService;
 
   constructor(options?: IEnterpriseFastifyOptions) {
     // 提取企业级配置，传递标准配置给父类
@@ -188,6 +222,10 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
         // 将enterpriseCore赋值给readonly字段需要类型断言
         (this as unknown as { enterpriseCore: unknown }).enterpriseCore =
           enterpriseCore;
+
+        // 注册中间件与监控
+        this.registerEnterpriseMiddlewares();
+        this.setupGracefulShutdown();
 
         console.log('✅ 企业级Fastify功能已初始化');
       }
@@ -327,6 +365,95 @@ export class EnterpriseFastifyAdapter extends FastifyAdapter {
         prettyPrint: true,
       },
     };
+  }
+
+  /**
+   * 注册企业级中间件与监控
+   */
+  private registerEnterpriseMiddlewares(): void {
+    const app = this.getInstance() as any;
+
+    // 安全
+    if (
+      this.enterpriseConfig.security &&
+      typeof this.enterpriseConfig.security === 'object'
+    ) {
+      const { enabled, ...rest } = this.enterpriseConfig.security;
+      if (enabled !== false) {
+        this.securityMiddleware = new SecurityMiddleware(rest);
+        this.securityMiddleware.register(app);
+      }
+    }
+
+    // 限流
+    if (
+      this.enterpriseConfig.rateLimit &&
+      typeof this.enterpriseConfig.rateLimit === 'object'
+    ) {
+      const { enabled, ...rest } = this.enterpriseConfig.rateLimit;
+      if (enabled !== false) {
+        this.rateLimitMiddleware = new RateLimitMiddleware(rest);
+        this.rateLimitMiddleware.register(app);
+      }
+    }
+
+    // 熔断
+    if (
+      this.enterpriseConfig.circuitBreaker &&
+      typeof this.enterpriseConfig.circuitBreaker === 'object'
+    ) {
+      const { enabled, ...rest } = this.enterpriseConfig.circuitBreaker;
+      if (enabled !== false) {
+        this.circuitBreakerMiddleware = new CircuitBreakerMiddleware(rest);
+        this.circuitBreakerMiddleware.register(app);
+      }
+    }
+
+    // 性能监控
+    if (
+      this.enterpriseConfig.performance &&
+      typeof this.enterpriseConfig.performance === 'object'
+    ) {
+      const { enabled, ...rest } = this.enterpriseConfig.performance;
+      if (enabled !== false) {
+        this.perfMonitor = createPerformanceMonitor(app, rest);
+      }
+    }
+  }
+
+  /**
+   * 优雅关闭（可选）
+   */
+  private setupGracefulShutdown(): void {
+    const cfg = this.enterpriseConfig.gracefulShutdown;
+    if (!cfg || cfg.enabled === false) return;
+
+    const signals = cfg.signals ?? ['SIGTERM', 'SIGINT'];
+    const timeoutMs = cfg.timeoutMs ?? 15_000;
+
+    const handler = async (signal: string) => {
+      try {
+        console.log(`Received ${signal}, starting graceful shutdown...`);
+        const timer = setTimeout(() => {
+          console.warn('Graceful shutdown timed out, forcing exit');
+          // eslint-disable-next-line no-process-exit
+          process.exit(1);
+        }, timeoutMs);
+
+        await this.close();
+        clearTimeout(timer);
+        // eslint-disable-next-line no-process-exit
+        process.exit(0);
+      } catch (e) {
+        console.error('Error during graceful shutdown:', (e as Error).message);
+        // eslint-disable-next-line no-process-exit
+        process.exit(1);
+      }
+    };
+
+    signals.forEach((sig) => {
+      process.on(sig as NodeJS.Signals, () => handler(sig));
+    });
   }
 
   /**

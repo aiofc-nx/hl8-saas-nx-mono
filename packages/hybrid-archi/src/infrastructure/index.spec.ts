@@ -131,6 +131,7 @@ describe('基础设施模块导出', () => {
           expect(key).toBeDefined();
           return value;
         }
+        return undefined;
       }).not.toThrow();
     });
 
@@ -153,7 +154,7 @@ describe('基础设施模块导出', () => {
         (name) =>
           name.toLowerCase().includes('database') ||
           name.toLowerCase().includes('mongo') ||
-          name.toLowerCase().includes('db'),
+          name.toLowerCase().includes('db')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -167,7 +168,7 @@ describe('基础设施模块导出', () => {
         (name) =>
           name.toLowerCase().includes('messaging') ||
           name.toLowerCase().includes('queue') ||
-          name.toLowerCase().includes('broker'),
+          name.toLowerCase().includes('broker')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -181,7 +182,7 @@ describe('基础设施模块导出', () => {
         (name) =>
           name.toLowerCase().includes('storage') ||
           name.toLowerCase().includes('cache') ||
-          name.toLowerCase().includes('file'),
+          name.toLowerCase().includes('file')
       );
 
       // 即使没有实现，也不应该抛出错误
@@ -195,7 +196,7 @@ describe('基础设施模块导出', () => {
         (name) =>
           name.toLowerCase().includes('web') ||
           name.toLowerCase().includes('http') ||
-          name.toLowerCase().includes('api'),
+          name.toLowerCase().includes('api')
       );
 
       // 即使没有实现，也不应该抛出错误

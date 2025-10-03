@@ -64,7 +64,7 @@
  *
  * @since 1.0.0
  */
-import { EntityId } from '../value-objects/entity-id';
+import { EntityId } from '../../value-objects/entity-id';
 
 abstract class BaseDomainEvent {
   private readonly _eventId: EntityId;
@@ -86,7 +86,7 @@ abstract class BaseDomainEvent {
     aggregateId: EntityId,
     aggregateVersion: number,
     tenantId: string,
-    eventVersion: number = 1,
+    eventVersion = 1
   ) {
     this._eventId = EntityId.generate();
     this._aggregateId = aggregateId;
@@ -139,6 +139,29 @@ abstract class BaseDomainEvent {
    */
   public get occurredAt(): Date {
     return this._occurredAt;
+  }
+
+  /**
+   * 获取事件时间戳（别名）
+   *
+   * @returns 事件时间戳
+   */
+  public get timestamp(): Date {
+    return this._occurredAt;
+  }
+
+  /**
+   * 获取事件元数据
+   *
+   * @returns 事件元数据
+   */
+  public get metadata(): Record<string, unknown> {
+    return {
+      tenantId: this._tenantId,
+      userId: undefined, // 子类可以重写此方法提供用户ID
+      timestamp: this._occurredAt,
+      eventVersion: this._eventVersion,
+    };
   }
 
   /**

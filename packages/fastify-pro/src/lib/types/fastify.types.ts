@@ -42,6 +42,27 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
+// 重新导出 Fastify 核心类型
+export { FastifyInstance, FastifyRequest, FastifyReply };
+
+// 扩展 FastifyRequest 类型以包含用户信息
+declare module 'fastify' {
+  interface FastifyRequest {
+    user?: any;
+    tenantId?: string;
+    tenantContext?: {
+      tenantId: string;
+      organizationId?: string;
+      departmentId?: string;
+      userId?: string;
+      isolationLevel?: 'tenant' | 'organization' | 'department' | 'user';
+      metadata?: Record<string, unknown>;
+      userRoles?: string[];
+      userPermissions?: string[];
+    };
+  }
+}
+
 /**
  * Fastify适配器接口
  *

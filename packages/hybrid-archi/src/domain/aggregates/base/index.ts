@@ -16,4 +16,4 @@ export type {
 
 // 重新导出常用类型
 export type { EntityId } from '../../value-objects/entity-id';
-export type { BaseDomainEvent } from '../../events/base/base-domain-event';
+export { BaseDomainEvent } from '../../events/base/base-domain-event';

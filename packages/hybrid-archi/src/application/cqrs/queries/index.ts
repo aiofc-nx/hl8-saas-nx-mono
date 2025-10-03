@@ -9,7 +9,7 @@
 export * from './base';
 
 // 处理器
-export * from './handlers';
+// export * from './handlers'; // 避免重复导出
 
 // 装饰器
 export * from './decorators';

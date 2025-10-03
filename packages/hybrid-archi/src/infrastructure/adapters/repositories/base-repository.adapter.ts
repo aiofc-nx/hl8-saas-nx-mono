@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { EntityId } from '../../../domain/value-objects/entity-id';
 import { IEntity } from '../../../domain/entities/base/entity.interface';
 import {
@@ -51,13 +51,13 @@ export interface IRepositoryConfig {
 export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   implements IRepository<TEntity, TId>
 {
-  private readonly config: IRepositoryConfig;
+  protected readonly config: IRepositoryConfig;
 
   constructor(
-    private readonly databaseService: DatabaseService,
-    private readonly cacheService: CacheService,
-    private readonly logger: Logger,
-    private readonly entityName: string,
+    protected readonly databaseService: DatabaseService,
+    protected readonly cacheService: CacheService,
+    protected readonly logger: PinoLogger,
+    protected readonly entityName: string,
     config: Partial<IRepositoryConfig> = {}
   ) {
     this.config = {
@@ -105,7 +105,8 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
       throw new EntityNotFoundError(
         `实体不存在: ${this.entityName}`,
         this.entityName,
-        String(id)
+        String(id),
+        this.entityName
       );
     }
   }
@@ -128,16 +129,16 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
 
         // 更新缓存
         if (this.config.enableCache) {
-          await this.setCache(entity.getId(), entity);
+          await this.setCache((entity as any).getId(), entity);
         }
 
         this.logger.debug(`保存实体成功: ${this.entityName}`, {
-          id: entity.getId(),
+          id: (entity as any).getId(),
         });
       });
     } catch (error) {
       this.logger.error(`保存实体失败: ${this.entityName}`, error, {
-        id: entity.getId(),
+        id: (entity as any).getId(),
       });
       throw error;
     }
@@ -157,7 +158,8 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
           throw new EntityNotFoundError(
             `实体不存在: ${this.entityName}`,
             this.entityName,
-            String(id)
+            String(id),
+            this.entityName
           );
         }
 
@@ -241,11 +243,20 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   async saveAll(entities: TEntity[]): Promise<void> {
     try {
       if (this.config.enableTransaction) {
-        await this.databaseService.transaction(async (transaction) => {
+        // 使用兼容性检查调用 transaction 方法
+        if (typeof (this.databaseService as any).transaction === 'function') {
+          await (this.databaseService as any).transaction(
+            async (transaction: any) => {
+              for (const entity of entities) {
+                await this.saveToDatabase(entity, transaction);
+              }
+            }
+          );
+        } else {
           for (const entity of entities) {
-            await this.saveToDatabase(entity, transaction);
+            await this.save(entity);
           }
-        });
+        }
       } else {
         for (const entity of entities) {
           await this.save(entity);
@@ -255,7 +266,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
       // 更新缓存
       if (this.config.enableCache) {
         for (const entity of entities) {
-          await this.setCache(entity.getId(), entity);
+          await this.setCache((entity as any).getId(), entity);
         }
       }
 
@@ -276,11 +287,20 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   async deleteAll(ids: TId[]): Promise<void> {
     try {
       if (this.config.enableTransaction) {
-        await this.databaseService.transaction(async (transaction) => {
+        // 使用兼容性检查调用 transaction 方法
+        if (typeof (this.databaseService as any).transaction === 'function') {
+          await (this.databaseService as any).transaction(
+            async (transaction: any) => {
+              for (const id of ids) {
+                await this.deleteFromDatabase(id, transaction);
+              }
+            }
+          );
+        } else {
           for (const id of ids) {
-            await this.deleteFromDatabase(id, transaction);
+            await this.delete(id);
           }
-        });
+        }
       } else {
         for (const id of ids) {
           await this.delete(id);
@@ -308,7 +328,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 执行重试逻辑
    */
-  private async executeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+  protected async executeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
@@ -342,7 +362,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 检查并发冲突
    */
-  private async checkConcurrency(entity: TEntity): Promise<void> {
+  protected async checkConcurrency(entity: TEntity): Promise<void> {
     // 实现乐观锁检查逻辑
     // 这里需要根据具体的实体类型和版本字段来实现
   }
@@ -350,7 +370,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 从缓存获取实体
    */
-  private async getFromCache(id: TId): Promise<TEntity | null> {
+  protected async getFromCache(id: TId): Promise<TEntity | null> {
     const cacheKey = this.getCacheKey(id);
     return await this.cacheService.get<TEntity>(cacheKey);
   }
@@ -358,7 +378,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 设置缓存
    */
-  private async setCache(id: TId, entity: TEntity): Promise<void> {
+  protected async setCache(id: TId, entity: TEntity): Promise<void> {
     const cacheKey = this.getCacheKey(id);
     await this.cacheService.set(cacheKey, entity, this.config.cacheTtl);
   }
@@ -366,7 +386,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 从缓存移除
    */
-  private async removeFromCache(id: TId): Promise<void> {
+  protected async removeFromCache(id: TId): Promise<void> {
     const cacheKey = this.getCacheKey(id);
     await this.cacheService.delete(cacheKey);
   }
@@ -381,7 +401,7 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 从数据库获取实体
    */
-  private async getFromDatabase(id: TId): Promise<TEntity | null> {
+  protected async getFromDatabase(id: TId): Promise<TEntity | null> {
     // 实现具体的数据库查询逻辑
     // 这里需要根据具体的数据库服务来实现
     throw new Error('需要实现具体的数据库查询逻辑');
@@ -402,7 +422,10 @@ export class BaseRepositoryAdapter<TEntity extends IEntity, TId = EntityId>
   /**
    * 从数据库删除
    */
-  private async deleteFromDatabase(id: TId, transaction?: any): Promise<void> {
+  protected async deleteFromDatabase(
+    id: TId,
+    transaction?: any
+  ): Promise<void> {
     // 实现具体的数据库删除逻辑
     // 这里需要根据具体的数据库服务来实现
     throw new Error('需要实现具体的数据库删除逻辑');

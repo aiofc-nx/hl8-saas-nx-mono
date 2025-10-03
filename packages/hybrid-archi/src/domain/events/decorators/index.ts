@@ -7,7 +7,7 @@
 
 // 领域事件装饰器
 export {
-  DomainEvent,
+  DomainEventDecorator as DomainEvent,
   EventHandler,
   getDomainEventMetadata,
   isDomainEvent,

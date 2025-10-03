@@ -10,7 +10,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   DatabaseAdapter,
   IDatabaseConfig,
@@ -50,7 +50,7 @@ export class DatabaseFactory {
 
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly logger: Logger
+    private readonly logger: PinoLogger
   ) {}
 
   /**
@@ -409,7 +409,7 @@ export class DatabaseFactory {
       const testQuery = 'SELECT 1 as test';
       const result = await instance.query(testQuery);
 
-      return result.length > 0 && result[0].test === 1;
+      return result.length > 0 && (result[0] as { test: number }).test === 1;
     } catch {
       return false;
     }

@@ -101,6 +101,11 @@ export interface IEventProjectorOptions {
 }
 
 /**
+ * 构造函数类型定义
+ */
+type Constructor<T = {}> = new (...args: any[]) => T;
+
+/**
  * 事件投射器元数据接口
  */
 export interface IEventProjectorMetadata {
@@ -206,9 +211,9 @@ export const EVENT_PROJECTOR_METADATA_KEY = Symbol('eventProjector');
  */
 export function EventProjector(
   eventTypes: string | string[],
-  options: IEventProjectorOptions = {},
+  options: IEventProjectorOptions = {}
 ): ClassDecorator {
-  return function <T extends new (...args: any[]) => any>(target: T) {
+  return function (target: any): any {
     // 规范化事件类型
     const normalizedEventTypes = Array.isArray(eventTypes)
       ? eventTypes
@@ -223,7 +228,12 @@ export function EventProjector(
       category: options.category,
       tags: options.tags,
       retry: options.retry,
-      timeout: options.timeout,
+      timeout: options.timeout
+        ? {
+            ...options.timeout,
+            alertOnTimeout: options.timeout.alertOnTimeout ?? true,
+          }
+        : undefined,
       monitoring: options.monitoring,
       batch: options.batch,
     };
@@ -250,7 +260,7 @@ export function EventProjector(
  * @returns 事件投射器元数据
  */
 export function getEventProjectorMetadata(
-  target: any,
+  target: Constructor
 ): IEventProjectorMetadata | undefined {
   return Reflect.getMetadata(EVENT_PROJECTOR_METADATA_KEY, target);
 }
@@ -261,7 +271,7 @@ export function getEventProjectorMetadata(
  * @param target - 要检查的目标
  * @returns 如果是事件投射器返回true，否则返回false
  */
-export function isEventProjector(target: any): boolean {
+export function isEventProjector(target: Constructor): boolean {
   return Reflect.hasMetadata(EVENT_PROJECTOR_METADATA_KEY, target);
 }
 
@@ -288,7 +298,7 @@ export function isEventProjector(target: any): boolean {
 export function ReadModelProjector(
   eventTypes: string | string[],
   readModelType: string,
-  options: Omit<IEventProjectorOptions, 'readModelType'> = {},
+  options: Omit<IEventProjectorOptions, 'readModelType'> = {}
 ): ClassDecorator {
   return EventProjector(eventTypes, {
     ...options,
@@ -311,7 +321,7 @@ export function ReadModelProjector(
  * ```
  */
 export function AutoRegisterProjector(): ClassDecorator {
-  return function <T extends new (...args: any[]) => any>(target: T) {
+  return function (target: any): any {
     // 标记为自动注册
     Reflect.defineMetadata('autoRegister', true, target);
     return target;
@@ -324,6 +334,8 @@ export function AutoRegisterProjector(): ClassDecorator {
  * @param target - 要检查的目标
  * @returns 如果是自动注册投射器返回true，否则返回false
  */
-export function isAutoRegisterProjector(target: any): boolean {
+export function isAutoRegisterProjector(
+  target: Constructor
+): boolean {
   return Reflect.getMetadata('autoRegister', target) === true;
 }

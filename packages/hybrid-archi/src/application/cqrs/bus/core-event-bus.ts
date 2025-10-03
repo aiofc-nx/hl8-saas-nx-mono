@@ -169,7 +169,7 @@ export class CoreEventBus implements IEventBus {
         } catch (error) {
           // 记录错误但不中断其他处理器
           // TODO: 使用日志服务替代 console.error
-          // eslint-disable-next-line no-console
+           
           console.error(`Error handling event ${eventType}:`, error);
 
           if (typeof handler !== 'function') {
@@ -447,7 +447,7 @@ export class CoreEventBus implements IEventBus {
    * @returns Promise
    */
   private sleep(ms: number): Promise<void> {
-    // eslint-disable-next-line no-undef
+     
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 

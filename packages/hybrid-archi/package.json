@@ -7,19 +7,28 @@
   "types": "./src/index.d.ts",
   "description": "HL8 SAAS平台混合架构核心模块 - 为业务模块的开发提供统一的混合架构设计模式，以及提供通用的功能组件",
   "dependencies": {
-    "@hl8/multi-tenancy": "workspace:*",
-    "@hl8/logger": "workspace:*",
     "@hl8/cache": "workspace:*",
-    "@hl8/config": "workspace:*",
-    "@hl8/messaging": "workspace:*",
-    "@hl8/database": "workspace:*",
     "@hl8/common": "workspace:*",
+    "@hl8/config": "workspace:*",
+    "@hl8/database": "workspace:*",
+    "@hl8/fastify-pro": "workspace:*",
+    "@hl8/logger": "workspace:*",
+    "@hl8/messaging": "workspace:*",
+    "@hl8/multi-tenancy": "workspace:*",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
-    "nestjs-cls": "^5.0.0",
+    "@nestjs/jwt": "^11.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "reflect-metadata": "^0.2.2",
-    "tslib": "^2.3.0"
+    "rxjs": "^7.8.0",
+    "tslib": "^2.3.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "jest": "^29.5.0"
   }
 }

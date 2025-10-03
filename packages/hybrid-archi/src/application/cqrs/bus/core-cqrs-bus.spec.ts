@@ -18,11 +18,7 @@ import { EntityId } from '../../../domain/value-objects/entity-id';
  * 测试命令类
  */
 class TestCommand extends BaseCommand {
-  constructor(
-    public readonly data: string,
-    tenantId: string,
-    userId: string,
-  ) {
+  constructor(public readonly data: string, tenantId: string, userId: string) {
     super(tenantId, userId);
   }
 
@@ -30,7 +26,7 @@ class TestCommand extends BaseCommand {
     return 'TestCommand';
   }
 
-  get commandData(): Record<string, unknown> {
+  override get commandData(): Record<string, unknown> {
     return { data: this.data };
   }
 }
@@ -43,8 +39,8 @@ class TestQuery extends BaseQuery {
     public readonly filter: string,
     tenantId: string,
     userId: string,
-    page: number = 1,
-    pageSize: number = 10,
+    page = 1,
+    pageSize = 10
   ) {
     super(tenantId, userId, page, pageSize);
   }
@@ -53,7 +49,7 @@ class TestQuery extends BaseQuery {
     return 'TestQuery';
   }
 
-  get queryData(): Record<string, unknown> {
+  override get queryData(): Record<string, unknown> {
     return { filter: this.filter };
   }
 
@@ -104,7 +100,7 @@ class TestEvent extends BaseDomainEvent {
     aggregateId: EntityId,
     aggregateVersion: number,
     tenantId: string,
-    public readonly data: string,
+    public readonly data: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
   }
@@ -113,7 +109,7 @@ class TestEvent extends BaseDomainEvent {
     return 'TestEvent';
   }
 
-  get eventData(): Record<string, unknown> {
+  override get eventData(): Record<string, unknown> {
     return { data: this.data };
   }
 }
@@ -125,6 +121,12 @@ describe('CoreCQRSBus', () => {
   let eventBus: CoreEventBus;
 
   beforeEach(async () => {
+    const mockUseCaseRegistry = {} as any;
+    const mockProjectorManager = {
+      projectEvent: jest.fn().mockResolvedValue(undefined),
+      projectEvents: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoreCommandBus,
@@ -135,8 +137,15 @@ describe('CoreCQRSBus', () => {
           useFactory: (
             commandBus: CoreCommandBus,
             queryBus: CoreQueryBus,
-            eventBus: CoreEventBus,
-          ) => new CoreCQRSBus(commandBus, queryBus, eventBus),
+            eventBus: CoreEventBus
+          ) =>
+            new CoreCQRSBus(
+              commandBus,
+              queryBus,
+              eventBus,
+              mockUseCaseRegistry,
+              mockProjectorManager
+            ),
           inject: [CoreCommandBus, CoreQueryBus, CoreEventBus],
         },
       ],
@@ -167,7 +176,7 @@ describe('CoreCQRSBus', () => {
       expect(cqrsBus.isInitialized).toBe(true);
 
       await expect(cqrsBus.initialize()).rejects.toThrow(
-        'CQRS Bus is already initialized',
+        'CQRS Bus is already initialized'
       );
     });
   });
@@ -184,7 +193,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedCommandType: () => 'TestCommand',
         supports: (type) => type === 'TestCommand',
-        validateCommand: () => {},
+        validateCommand: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -202,7 +213,7 @@ describe('CoreCQRSBus', () => {
       const command = new TestCommand('test-data', 'tenant-1', 'user-1');
 
       await expect(cqrsBus.executeCommand(command)).rejects.toThrow(
-        'CQRS Bus is not initialized. Call initialize() first.',
+        'CQRS Bus is not initialized. Call initialize() first.'
       );
     });
   });
@@ -220,7 +231,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedQueryType: () => 'TestQuery',
         supports: (type) => type === 'TestQuery',
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -231,7 +244,7 @@ describe('CoreCQRSBus', () => {
 
       const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
       const result = await cqrsBus.executeQuery<TestQuery, TestQueryResult>(
-        query,
+        query
       );
 
       expect(executedQueries).toHaveLength(1);
@@ -243,7 +256,7 @@ describe('CoreCQRSBus', () => {
       const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
 
       await expect(cqrsBus.executeQuery(query)).rejects.toThrow(
-        'CQRS Bus is not initialized. Call initialize() first.',
+        'CQRS Bus is not initialized. Call initialize() first.'
       );
     });
   });
@@ -260,7 +273,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedEventType: () => 'TestEvent',
         supports: (type) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -270,11 +285,15 @@ describe('CoreCQRSBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          // 测试用的空处理函数
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          // 测试用的空处理函数
+        },
       });
 
       const aggregateId = EntityId.generate();
@@ -296,7 +315,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedEventType: () => 'TestEvent',
         supports: (type) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -306,11 +327,15 @@ describe('CoreCQRSBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          // 测试用的空处理函数
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          // 测试用的空处理函数
+        },
       });
 
       const aggregateId = EntityId.generate();
@@ -331,7 +356,7 @@ describe('CoreCQRSBus', () => {
       const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
 
       await expect(cqrsBus.publishEvent(event)).rejects.toThrow(
-        'CQRS Bus is not initialized. Call initialize() first.',
+        'CQRS Bus is not initialized. Call initialize() first.'
       );
     });
   });
@@ -347,7 +372,7 @@ describe('CoreCQRSBus', () => {
 
     it('应该防止在未初始化时关闭', async () => {
       await expect(cqrsBus.shutdown()).rejects.toThrow(
-        'CQRS Bus is not initialized',
+        'CQRS Bus is not initialized'
       );
     });
   });
@@ -374,7 +399,9 @@ describe('CoreCQRSBus', () => {
         async execute() {},
         getSupportedCommandType: () => 'TestCommand',
         supports: () => true,
-        validateCommand: () => {},
+        validateCommand: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -387,7 +414,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedQueryType: () => 'TestQuery',
         supports: () => true,
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -400,7 +429,9 @@ describe('CoreCQRSBus', () => {
         async handle() {},
         getSupportedEventType: () => 'TestEvent',
         supports: () => true,
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -410,11 +441,15 @@ describe('CoreCQRSBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          // 测试用的空处理函数
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          // 测试用的空处理函数
+        },
       });
 
       const stats = cqrsBus.getStatistics();
@@ -435,7 +470,9 @@ describe('CoreCQRSBus', () => {
         async execute() {},
         getSupportedCommandType: () => 'TestCommand',
         supports: (type) => type === 'TestCommand',
-        validateCommand: () => {},
+        validateCommand: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -455,7 +492,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedQueryType: () => 'TestQuery',
         supports: (type) => type === 'TestQuery',
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -475,7 +514,9 @@ describe('CoreCQRSBus', () => {
         async handle() {},
         getSupportedEventType: () => 'TestEvent',
         supports: (type) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -485,11 +526,15 @@ describe('CoreCQRSBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          // 测试用的空处理函数
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          // 测试用的空处理函数
+        },
       });
 
       expect(cqrsBus.supportsEvent('TestEvent')).toBe(true);
@@ -505,7 +550,9 @@ describe('CoreCQRSBus', () => {
         async execute() {},
         getSupportedCommandType: () => 'Command1',
         supports: () => true,
-        validateCommand: () => {},
+        validateCommand: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -516,7 +563,9 @@ describe('CoreCQRSBus', () => {
         async execute() {},
         getSupportedCommandType: () => 'Command2',
         supports: () => true,
-        validateCommand: () => {},
+        validateCommand: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -537,7 +586,9 @@ describe('CoreCQRSBus', () => {
         },
         getSupportedQueryType: () => 'Query1',
         supports: () => true,
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -557,7 +608,9 @@ describe('CoreCQRSBus', () => {
         async handle() {},
         getSupportedEventType: () => 'Event1',
         supports: () => true,
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         async canHandle() {
           return true;
@@ -567,11 +620,15 @@ describe('CoreCQRSBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          // 测试用的空处理函数
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          // 测试用的空处理函数
+        },
       });
 
       const types = cqrsBus.getSupportedEventTypes();

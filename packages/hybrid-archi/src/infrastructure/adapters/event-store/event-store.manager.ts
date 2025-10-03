@@ -11,7 +11,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
 import { CacheService } from '@hl8/cache';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { EventStoreAdapter, IEventStoreConfig } from './event-store.adapter';
 import {
   EventStoreFactory,
@@ -53,7 +53,7 @@ export class EventStoreManager {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly storeFactory: EventStoreFactory,
     config: Partial<IEventStoreManagerConfig> = {}
   ) {

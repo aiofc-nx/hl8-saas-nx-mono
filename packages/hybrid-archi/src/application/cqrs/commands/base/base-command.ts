@@ -83,7 +83,7 @@ export abstract class BaseCommand {
   protected constructor(
     tenantId: string,
     userId: string,
-    commandVersion: number = 1,
+    commandVersion = 1,
     metadata: Record<string, unknown> = {},
   ) {
     this._commandId = EntityId.generate();

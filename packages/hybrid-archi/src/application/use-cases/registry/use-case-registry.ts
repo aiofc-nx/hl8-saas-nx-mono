@@ -50,6 +50,7 @@ import {
   IUseCase,
   IUseCaseContext,
   IUseCaseRegistry,
+  IUseCaseFactory,
 } from '../base/use-case.interface';
 import {
   getUseCaseMetadata,
@@ -132,36 +133,43 @@ export class UseCaseRegistry implements IUseCaseRegistry {
    * @param factory - 用例实例工厂（可选）
    */
   register<TRequest, TResponse>(
-    useCaseClass: new (...args: any[]) => IUseCase<TRequest, TResponse>,
-    factory?: () => IUseCase<TRequest, TResponse>,
+    useCaseName: string,
+    useCaseFactory: IUseCaseFactory<IUseCase<TRequest, TResponse>>
   ): void {
-    const metadata = getUseCaseMetadata(useCaseClass);
-    if (!metadata) {
-      throw new Error(`类 ${useCaseClass.name} 没有@UseCase装饰器`);
-    }
-
-    if (this.useCases.has(metadata.name)) {
-      throw new Error(`用例名称 "${metadata.name}" 已经被注册`);
+    if (this.useCases.has(useCaseName)) {
+      throw new Error(`用例名称 "${useCaseName}" 已经被注册`);
     }
 
     const registration: IUseCaseRegistration = {
-      useCaseClass,
-      factory: factory || (() => new useCaseClass()),
-      metadata,
+      useCaseClass: useCaseFactory.create,
+      factory: () => useCaseFactory.create(),
+      metadata: {
+        name: useCaseName,
+        type: 'command', // 默认类型，实际应该从工厂获取
+        description: '',
+        version: '1.0.0',
+        category: 'default',
+        tags: [],
+        permissions: [],
+        timeout: { execution: 30000 },
+        cache: { enabled: false, ttl: 300 },
+        critical: false,
+        monitored: true,
+      },
       registeredAt: new Date(),
     };
 
-    this.useCases.set(metadata.name, registration);
+    this.useCases.set(useCaseName, registration);
 
     // 初始化执行统计
-    this.executionStats.set(metadata.name, {
+    this.executionStats.set(useCaseName, {
       executionCount: 0,
       successCount: 0,
       failureCount: 0,
       averageExecutionTime: 0,
     });
 
-    console.info(`用例已注册: ${metadata.name} (${metadata.type})`);
+    console.info(`用例已注册: ${useCaseName}`);
   }
 
   /**
@@ -171,7 +179,7 @@ export class UseCaseRegistry implements IUseCaseRegistry {
    * @returns 用例实例
    */
   get<TRequest, TResponse>(
-    useCaseName: string,
+    useCaseName: string
   ): IUseCase<TRequest, TResponse> | undefined {
     const registration = this.useCases.get(useCaseName);
     if (!registration) {
@@ -279,7 +287,7 @@ export class UseCaseRegistry implements IUseCaseRegistry {
   async execute<TRequest, TResponse>(
     useCaseName: string,
     request: TRequest,
-    context?: IUseCaseContext,
+    context?: IUseCaseContext
   ): Promise<TResponse> {
     const useCase = this.get<TRequest, TResponse>(useCaseName);
     if (!useCase) {
@@ -368,7 +376,7 @@ export class UseCaseRegistry implements IUseCaseRegistry {
       stats.averageExecutionTime = this.calculateAverageExecutionTime(
         stats.averageExecutionTime,
         executionTime,
-        stats.executionCount,
+        stats.executionCount
       );
     }
   }
@@ -384,7 +392,7 @@ export class UseCaseRegistry implements IUseCaseRegistry {
       stats.averageExecutionTime = this.calculateAverageExecutionTime(
         stats.averageExecutionTime,
         executionTime,
-        stats.executionCount,
+        stats.executionCount
       );
     }
   }
@@ -395,7 +403,7 @@ export class UseCaseRegistry implements IUseCaseRegistry {
   private calculateAverageExecutionTime(
     currentAverage: number,
     newExecutionTime: number,
-    totalExecutions: number,
+    totalExecutions: number
   ): number {
     return (
       (currentAverage * (totalExecutions - 1) + newExecutionTime) /

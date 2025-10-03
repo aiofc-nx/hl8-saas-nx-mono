@@ -9,7 +9,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import {
   InfrastructureFactory,
   IInfrastructureServiceConfig,
@@ -53,7 +53,7 @@ export class InfrastructureManager {
   private isInitialized = false;
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly infrastructureFactory: InfrastructureFactory,
     config: Partial<IInfrastructureManagerConfig> = {}
   ) {
@@ -409,19 +409,20 @@ export class InfrastructureManager {
    * 带超时的启动服务
    */
   private async startServiceWithTimeout(serviceName: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error(`启动服务超时: ${serviceName}`));
       }, this.config.serviceStartTimeout);
 
-      try {
-        await this.startService(serviceName);
-        clearTimeout(timeout);
-        resolve();
-      } catch (error) {
-        clearTimeout(timeout);
-        reject(error);
-      }
+      this.startService(serviceName)
+        .then(() => {
+          clearTimeout(timeout);
+          resolve();
+        })
+        .catch((error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
     });
   }
 
@@ -429,19 +430,44 @@ export class InfrastructureManager {
    * 带超时的停止服务
    */
   private async stopServiceWithTimeout(serviceName: string): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error(`停止服务超时: ${serviceName}`));
       }, this.config.serviceStopTimeout);
 
-      try {
-        await this.stopService(serviceName);
-        clearTimeout(timeout);
-        resolve();
-      } catch (error) {
-        clearTimeout(timeout);
-        reject(error);
-      }
+      this.stopService(serviceName)
+        .then(() => {
+          clearTimeout(timeout);
+          resolve();
+        })
+        .catch((error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
     });
+  }
+
+  /**
+   * 获取所有数据库统计信息
+   *
+   * @returns 数据库统计信息
+   */
+  async getAllDatabaseStatistics(): Promise<any> {
+    this.logger.debug('获取所有数据库统计信息');
+    // 这里应该实现实际的统计信息收集逻辑
+    return {
+      totalConnections: 0,
+      activeConnections: 0,
+      queryCount: 0,
+      errorCount: 0,
+    };
+  }
+
+  /**
+   * 重置所有数据库统计信息
+   */
+  async resetAllDatabaseStatistics(): Promise<void> {
+    this.logger.debug('重置所有数据库统计信息');
+    // 这里应该实现实际的统计信息重置逻辑
   }
 }

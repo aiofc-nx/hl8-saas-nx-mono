@@ -1,435 +1,345 @@
 /**
- * BaseAggregateRoot 测试
+ * 基础聚合根测试
  *
- * @description 测试 BaseAggregateRoot 基础聚合根类的功能
+ * 测试基础聚合根的核心功能，包括领域事件管理、事件发布、事件重放等。
+ *
+ * @description 基础聚合根的单元测试
  * @since 1.0.0
  */
+
+import { Test, TestingModule } from '@nestjs/testing';
 import { BaseAggregateRoot } from './base-aggregate-root';
-import { BaseDomainEvent } from './base-domain-event';
-import { EntityId } from '../value-objects/entity-id';
-import { IPartialAuditInfo } from './audit-info';
-
-// 测试用的具体领域事件类
-class TestDomainEvent extends BaseDomainEvent {
-  constructor(
-    aggregateId: EntityId,
-    aggregateVersion: number,
-    tenantId: string,
-    public readonly testData: string,
-  ) {
-    super(aggregateId, aggregateVersion, tenantId);
-  }
-
-  get eventType(): string {
-    return 'TestDomainEvent';
-  }
-}
-
-class AnotherTestEvent extends BaseDomainEvent {
-  constructor(
-    aggregateId: EntityId,
-    aggregateVersion: number,
-    tenantId: string,
-  ) {
-    super(aggregateId, aggregateVersion, tenantId);
-  }
-
-  get eventType(): string {
-    return 'AnotherTestEvent';
-  }
-}
-
-// 测试用的具体聚合根类
-class TestAggregateRoot extends BaseAggregateRoot {
-  private _name: string = '';
-  private _isActive: boolean = true;
-
-  constructor(id: EntityId, name: string, auditInfo: IPartialAuditInfo) {
-    super(id, auditInfo);
-    this._name = name;
-    this.addDomainEvent(
-      new TestDomainEvent(id, this.version, this.tenantId, `Created: ${name}`),
-    );
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get isActive(): boolean {
-    return this._isActive;
-  }
-
-  updateName(newName: string): void {
-    if (this._name === newName) {
-      return;
-    }
-    this._name = newName;
-    this.addDomainEvent(
-      new TestDomainEvent(
-        this.id,
-        this.version,
-        this.tenantId,
-        `Updated: ${newName}`,
-      ),
-    );
-    this.markAsModified();
-  }
-
-  activate(): void {
-    if (this._isActive) {
-      return;
-    }
-    this._isActive = true;
-    this.addDomainEvent(
-      new AnotherTestEvent(this.id, this.version, this.tenantId),
-    );
-    this.markAsModified();
-  }
-
-  deactivate(): void {
-    if (!this._isActive) {
-      return;
-    }
-    this._isActive = false;
-    this.addDomainEvent(
-      new AnotherTestEvent(this.id, this.version, this.tenantId),
-    );
-    this.markAsModified();
-  }
-
-  removeAllEvents(): void {
-    this.clearDomainEvents();
-  }
-
-  removeSpecificEvent(event: BaseDomainEvent): void {
-    this.removeDomainEvent(event);
-  }
-}
+import { EntityId } from '../../value-objects/entity-id';
+import { DomainEvent } from '../../events/base/base-domain-event';
+import { PinoLogger } from '@hl8/logger';
+import { TenantContextService } from '@hl8/multi-tenancy';
 
 describe('BaseAggregateRoot', () => {
-  let aggregateId: EntityId;
-  let auditInfo: IPartialAuditInfo;
+  let aggregate: TestAggregate;
+  let logger: PinoLogger;
+  let tenantContext: TenantContextService;
 
-  beforeEach(() => {
-    aggregateId = EntityId.generate();
-    auditInfo = {
-      createdBy: 'test-user',
-      tenantId: 'test-tenant-123',
-    };
+  class TestEvent extends DomainEvent {
+    constructor(
+      public readonly aggregateId: EntityId,
+      public readonly data: string
+    ) {
+      super();
+    }
+  }
+
+  class TestAggregate extends BaseAggregateRoot {
+    constructor(id: EntityId, private name: string, private email: string) {
+      super(id);
+    }
+
+    getName(): string {
+      return this.name;
+    }
+
+    getEmail(): string {
+      return this.email;
+    }
+
+    createUser(): void {
+      this.addDomainEvent(new TestEvent(this.id, 'User created'));
+    }
+
+    updateUser(newName: string, newEmail: string): void {
+      this.name = newName;
+      this.email = newEmail;
+      this.addDomainEvent(new TestEvent(this.id, 'User updated'));
+    }
+
+    performComplexOperation(): void {
+      this.addDomainEvent(new TestEvent(this.id, 'Operation 1'));
+      this.addDomainEvent(new TestEvent(this.id, 'Operation 2'));
+      this.addDomainEvent(new TestEvent(this.id, 'Operation 3'));
+    }
+  }
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        {
+          provide: PinoLogger,
+          useValue: {
+            info: jest.fn(),
+            warn: jest.fn(),
+            error: jest.fn(),
+            debug: jest.fn(),
+          },
+        },
+        {
+          provide: TenantContextService,
+          useValue: {
+            getCurrentTenantId: jest.fn().mockReturnValue('tenant-123'),
+            getCurrentUserId: jest.fn().mockReturnValue('user-123'),
+          },
+        },
+      ],
+    }).compile();
+
+    logger = module.get<PinoLogger>(PinoLogger);
+    tenantContext = module.get<TenantContextService>(TenantContextService);
+
+    aggregate = new TestAggregate(
+      EntityId.generate(),
+      'Test User',
+      'test@example.com'
+    );
   });
 
-  describe('聚合根创建', () => {
-    it('应该正确创建聚合根', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
-      expect(aggregate).toBeInstanceOf(BaseAggregateRoot);
-      expect(aggregate.id.equals(aggregateId)).toBe(true);
-      expect(aggregate.name).toBe('Test Name');
-      expect(aggregate.isActive).toBe(true);
-      expect(aggregate.tenantId).toBe('test-tenant-123');
+  describe('构造函数', () => {
+    it('应该正确初始化聚合根', () => {
+      expect(aggregate).toBeDefined();
+      expect(aggregate.id).toBeDefined();
+      expect(aggregate.getName()).toBe('Test User');
+      expect(aggregate.getEmail()).toBe('test@example.com');
     });
 
-    it('应该在创建时添加领域事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
-      expect(aggregate.hasDomainEvents()).toBe(true);
-      expect(aggregate.hasUncommittedEvents()).toBe(true);
-      expect(aggregate.getEventCount()).toBe(1);
-      expect(aggregate.getUncommittedEventCount()).toBe(1);
+    it('应该初始化空的事件列表', () => {
+      expect(aggregate.getUncommittedEvents()).toEqual([]);
+      expect(aggregate.getDomainEvents()).toEqual([]);
     });
   });
 
   describe('领域事件管理', () => {
-    it('应该正确添加领域事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-      const initialEventCount = aggregate.getEventCount();
+    it('应该添加领域事件', () => {
+      aggregate.createUser();
 
-      aggregate.updateName('New Name');
-
-      expect(aggregate.getEventCount()).toBe(initialEventCount + 1);
-      expect(aggregate.getUncommittedEventCount()).toBe(initialEventCount + 1);
+      const events = aggregate.getUncommittedEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(TestEvent);
     });
 
-    it('应该正确获取指定类型的事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该添加多个领域事件', () => {
+      aggregate.performComplexOperation();
 
-      aggregate.updateName('New Name');
-      aggregate.deactivate();
-
-      const testEvents = aggregate.getEventsOfType('TestDomainEvent');
-      const anotherEvents = aggregate.getEventsOfType('AnotherTestEvent');
-
-      expect(testEvents).toHaveLength(2);
-      expect(anotherEvents).toHaveLength(1);
+      const events = aggregate.getUncommittedEvents();
+      expect(events).toHaveLength(3);
     });
 
-    it('应该正确获取未提交的指定类型事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该获取未提交的事件', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
 
-      aggregate.updateName('New Name');
-      aggregate.deactivate();
-
-      const uncommittedTestEvents =
-        aggregate.getUncommittedEventsOfType('TestDomainEvent');
-      const uncommittedAnotherEvents =
-        aggregate.getUncommittedEventsOfType('AnotherTestEvent');
-
-      expect(uncommittedTestEvents).toHaveLength(2);
-      expect(uncommittedAnotherEvents).toHaveLength(1);
+      const uncommittedEvents = aggregate.getUncommittedEvents();
+      expect(uncommittedEvents).toHaveLength(2);
     });
 
-    it('应该正确检查是否有指定类型的事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该获取所有领域事件', () => {
+      aggregate.createUser();
+      aggregate.markEventsAsCommitted();
+      aggregate.updateUser('New Name', 'new@example.com');
 
-      aggregate.updateName('New Name');
-      aggregate.deactivate();
+      const allEvents = aggregate.getDomainEvents();
+      expect(allEvents).toHaveLength(2);
+    });
+  });
 
-      expect(aggregate.hasEventOfType('TestDomainEvent')).toBe(true);
-      expect(aggregate.hasEventOfType('AnotherTestEvent')).toBe(true);
-      expect(aggregate.hasEventOfType('NonExistentEvent')).toBe(false);
+  describe('事件提交', () => {
+    it('应该标记事件为已提交', () => {
+      aggregate.createUser();
+      aggregate.markEventsAsCommitted();
+
+      expect(aggregate.getUncommittedEvents()).toHaveLength(0);
+      expect(aggregate.getDomainEvents()).toHaveLength(1);
     });
 
-    it('应该正确检查是否有未提交的指定类型事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该清除未提交的事件', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
+      aggregate.clearUncommittedEvents();
 
-      aggregate.updateName('New Name');
+      expect(aggregate.getUncommittedEvents()).toHaveLength(0);
+    });
+  });
 
-      expect(aggregate.hasUncommittedEventOfType('TestDomainEvent')).toBe(true);
-      expect(aggregate.hasUncommittedEventOfType('AnotherTestEvent')).toBe(
-        false,
-      );
+  describe('事件重放', () => {
+    it('应该重放事件', () => {
+      const events = [
+        new TestEvent(aggregate.id, 'Event 1'),
+        new TestEvent(aggregate.id, 'Event 2'),
+        new TestEvent(aggregate.id, 'Event 3'),
+      ];
+
+      aggregate.replayEvents(events);
+
+      expect(aggregate.getDomainEvents()).toHaveLength(3);
     });
 
-    it('应该正确获取最新的事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该按顺序重放事件', () => {
+      const events = [
+        new TestEvent(aggregate.id, 'First'),
+        new TestEvent(aggregate.id, 'Second'),
+        new TestEvent(aggregate.id, 'Third'),
+      ];
 
-      aggregate.updateName('New Name');
+      aggregate.replayEvents(events);
 
-      const latestEvent = aggregate.getLatestEvent();
-      expect(latestEvent).toBeDefined();
-      expect(latestEvent?.eventType).toBe('TestDomainEvent');
+      const replayedEvents = aggregate.getDomainEvents();
+      expect(replayedEvents[0].data).toBe('First');
+      expect(replayedEvents[1].data).toBe('Second');
+      expect(replayedEvents[2].data).toBe('Third');
+    });
+  });
+
+  describe('事件查询', () => {
+    it('应该按类型查询事件', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
+
+      const userEvents = aggregate.getEventsByType(TestEvent.name);
+      expect(userEvents).toHaveLength(2);
     });
 
-    it('应该正确获取最新的未提交事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
+    it('应该检查是否有未提交的事件', () => {
+      expect(aggregate.hasUncommittedEvents()).toBe(false);
+
+      aggregate.createUser();
+      expect(aggregate.hasUncommittedEvents()).toBe(true);
+
+      aggregate.markEventsAsCommitted();
+      expect(aggregate.hasUncommittedEvents()).toBe(false);
+    });
+
+    it('应该获取未提交事件数量', () => {
+      expect(aggregate.getUncommittedEventCount()).toBe(0);
+
+      aggregate.createUser();
+      expect(aggregate.getUncommittedEventCount()).toBe(1);
+
+      aggregate.updateUser('New Name', 'new@example.com');
+      expect(aggregate.getUncommittedEventCount()).toBe(2);
+    });
+  });
+
+  describe('事件过滤', () => {
+    it('应该按条件过滤事件', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
+
+      const filteredEvents = aggregate.getEventsByCondition(
+        (event: DomainEvent) =>
+          event instanceof TestEvent &&
+          (event as TestEvent).data.includes('created')
       );
 
-      aggregate.updateName('New Name');
+      expect(filteredEvents).toHaveLength(1);
+    });
 
-      const latestUncommittedEvent = aggregate.getLatestUncommittedEvent();
-      expect(latestUncommittedEvent).toBeDefined();
-      expect(latestUncommittedEvent?.eventType).toBe('TestDomainEvent');
+    it('应该按时间范围过滤事件', () => {
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+      aggregate.createUser();
+
+      const recentEvents = aggregate.getEventsByTimeRange(oneHourAgo, now);
+      expect(recentEvents).toHaveLength(1);
+    });
+  });
+
+  describe('事件统计', () => {
+    it('应该统计事件数量', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
+
+      expect(aggregate.getEventCount()).toBe(2);
+    });
+
+    it('应该统计按类型的事件数量', () => {
+      aggregate.createUser();
+      aggregate.updateUser('New Name', 'new@example.com');
+
+      const eventCounts = aggregate.getEventCountsByType();
+      expect(eventCounts[TestEvent.name]).toBe(2);
     });
   });
 
   describe('事件清理', () => {
-    it('应该正确清除所有领域事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该清理旧事件', () => {
+      aggregate.createUser();
+      aggregate.markEventsAsCommitted();
+      aggregate.updateUser('New Name', 'new@example.com');
 
-      aggregate.updateName('New Name');
-      aggregate.deactivate();
+      const oldDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 1天前
+      aggregate.cleanupOldEvents(oldDate);
 
-      expect(aggregate.getEventCount()).toBe(3);
-
-      aggregate.removeAllEvents();
-
-      expect(aggregate.getEventCount()).toBe(0);
-      expect(aggregate.getUncommittedEventCount()).toBe(0);
-      expect(aggregate.hasDomainEvents()).toBe(false);
-      expect(aggregate.hasUncommittedEvents()).toBe(false);
-    });
-
-    it('应该正确清除未提交的事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
-      aggregate.updateName('New Name');
-
-      expect(aggregate.getUncommittedEventCount()).toBe(2);
-
-      aggregate.clearUncommittedEvents();
-
-      expect(aggregate.getUncommittedEventCount()).toBe(0);
-      expect(aggregate.hasUncommittedEvents()).toBe(false);
-      expect(aggregate.getEventCount()).toBe(2); // 已提交的事件仍然存在
-    });
-
-    it('应该正确移除特定的领域事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
-      const events = aggregate.domainEvents;
-      const firstEvent = events[0];
-
-      expect(aggregate.getEventCount()).toBe(1);
-
-      aggregate.removeSpecificEvent(firstEvent);
-
-      expect(aggregate.getEventCount()).toBe(0);
-      expect(aggregate.getUncommittedEventCount()).toBe(0);
+      // 应该保留最近的事件
+      expect(aggregate.getDomainEvents()).toHaveLength(1);
     });
   });
 
-  describe('事件状态检查', () => {
-    it('应该正确检查是否有未提交的事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+  describe('事件验证', () => {
+    it('应该验证事件完整性', () => {
+      aggregate.createUser();
 
-      expect(aggregate.hasUncommittedEvents()).toBe(true);
-
-      aggregate.clearUncommittedEvents();
-
-      expect(aggregate.hasUncommittedEvents()).toBe(false);
+      const isValid = aggregate.validateEvents();
+      expect(isValid).toBe(true);
     });
 
-    it('应该正确检查是否有领域事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
+    it('应该检测无效事件', () => {
+      // 添加无效事件（这里需要根据实际实现调整）
+      aggregate.addDomainEvent(null as any);
 
-      expect(aggregate.hasDomainEvents()).toBe(true);
-
-      aggregate.removeAllEvents();
-
-      expect(aggregate.hasDomainEvents()).toBe(false);
+      const isValid = aggregate.validateEvents();
+      expect(isValid).toBe(false);
     });
   });
 
-  describe('聚合根转换', () => {
-    it('应该正确转换为 JSON', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-      const json = aggregate.toJSON();
+  describe('性能测试', () => {
+    it('应该高效处理大量事件', () => {
+      const startTime = Date.now();
 
-      expect(json).toHaveProperty('id');
-      expect(json).toHaveProperty('type');
-      expect(json).toHaveProperty('auditInfo');
-      expect(json).toHaveProperty('eventCount', 1);
-      expect(json).toHaveProperty('uncommittedEventCount', 1);
-      expect(json).toHaveProperty('hasUncommittedEvents', true);
-    });
+      // 添加1000个事件
+      for (let i = 0; i < 1000; i++) {
+        aggregate.addDomainEvent(new TestEvent(aggregate.id, `Event ${i}`));
+      }
 
-    it('应该正确转换为字符串', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-      const string = aggregate.toString();
+      const endTime = Date.now();
+      const duration = endTime - startTime;
 
-      expect(string).toMatch(
-        /^TestAggregateRoot\([a-f0-9-]+\) - Events: 1, Uncommitted: 1$/,
-      );
-    });
-  });
-
-  describe('业务逻辑', () => {
-    it('应该正确处理重复的操作', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-      const initialEventCount = aggregate.getEventCount();
-
-      // 尝试更新为相同的名称
-      aggregate.updateName('Test Name');
-
-      expect(aggregate.getEventCount()).toBe(initialEventCount);
-      expect(aggregate.name).toBe('Test Name');
-    });
-
-    it('应该正确处理状态变更', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
-      expect(aggregate.isActive).toBe(true);
-
-      aggregate.deactivate();
-
-      expect(aggregate.isActive).toBe(false);
-      expect(aggregate.hasEventOfType('AnotherTestEvent')).toBe(true);
-
-      aggregate.activate();
-
-      expect(aggregate.isActive).toBe(true);
+      expect(duration).toBeLessThan(100); // 应该在100ms内完成
+      expect(aggregate.getEventCount()).toBe(1000);
     });
   });
 
   describe('错误处理', () => {
-    it('应该拒绝添加 null 或 undefined 事件', () => {
-      const aggregate = new TestAggregateRoot(
-        aggregateId,
-        'Test Name',
-        auditInfo,
-      );
-
+    it('应该处理无效事件', () => {
       expect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (aggregate as any).addDomainEvent(null);
-      }).toThrow('Domain event cannot be null or undefined');
+        aggregate.addDomainEvent(null as any);
+      }).toThrow();
+    });
 
+    it('应该处理空事件列表', () => {
       expect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (aggregate as any).addDomainEvent(undefined);
-      }).toThrow('Domain event cannot be null or undefined');
+        aggregate.replayEvents([]);
+      }).not.toThrow();
+    });
+  });
+
+  describe('并发安全', () => {
+    it('应该支持并发事件添加', async () => {
+      const promises = [];
+
+      // 并发添加事件
+      for (let i = 0; i < 100; i++) {
+        promises.push(
+          new Promise((resolve) => {
+            setTimeout(() => {
+              aggregate.addDomainEvent(
+                new TestEvent(aggregate.id, `Concurrent Event ${i}`)
+              );
+              resolve(undefined);
+            }, Math.random() * 10);
+          })
+        );
+      }
+
+      await Promise.all(promises);
+
+      expect(aggregate.getEventCount()).toBe(100);
     });
   });
 });

@@ -128,7 +128,7 @@ export class MapperRegistry {
     sourceType: string,
     targetType: string,
     mapper: unknown,
-    singleton: boolean = true,
+    singleton = true
   ): void {
     const mapperKey = this.createMapperKey(sourceType, targetType);
 
@@ -206,7 +206,7 @@ export class MapperRegistry {
    */
   public getMapper<TDomain, TPersistence>(
     sourceType: string,
-    targetType: string,
+    targetType: string
   ): IDomainMapper<TDomain, TPersistence> {
     const registration = this.getMapperRegistration(sourceType, targetType);
     return registration.mapper as IDomainMapper<TDomain, TPersistence>;
@@ -223,7 +223,7 @@ export class MapperRegistry {
    */
   public getAggregateMapper<TAggregateRoot, TPersistence>(
     sourceType: string,
-    targetType: string,
+    targetType: string
   ): IAggregateMapper<TAggregateRoot, TPersistence> {
     const registration = this.getMapperRegistration(sourceType, targetType);
 
@@ -248,7 +248,7 @@ export class MapperRegistry {
    */
   public getValueObjectMapper<TValueObject, TPrimitive>(
     sourceType: string,
-    targetType: string,
+    targetType: string
   ): IValueObjectMapper<TValueObject, TPrimitive> {
     const registration = this.getMapperRegistration(sourceType, targetType);
 
@@ -270,7 +270,7 @@ export class MapperRegistry {
    */
   public getDtoMapper<TDomain, TDTO>(
     sourceType: string,
-    targetType: string,
+    targetType: string
   ): IDtoMapper<TDomain, TDTO> {
     const registration = this.getMapperRegistration(sourceType, targetType);
 
@@ -359,7 +359,7 @@ export class MapperRegistry {
    */
   private getMapperRegistration(
     sourceType: string,
-    targetType: string,
+    targetType: string
   ): IMapperRegistration {
     const mapperKey = this.createMapperKey(sourceType, targetType);
     const registration = this.mappers.get(mapperKey);
@@ -424,7 +424,7 @@ export class MapperRegistry {
    */
   private filterMappers(
     registrations: IMapperRegistration[],
-    options: IMapperLookupOptions,
+    options: IMapperLookupOptions
   ): IMapperRegistration[] {
     return registrations.filter((registration) => {
       const metadata = registration.metadata;
@@ -443,7 +443,7 @@ export class MapperRegistry {
       if (options.tags && options.tags.length > 0) {
         const mapperTags = metadata.tags || [];
         const hasMatchingTag = options.tags.some((tag) =>
-          mapperTags.includes(tag),
+          mapperTags.includes(tag)
         );
         if (!hasMatchingTag) {
           return false;
@@ -470,7 +470,7 @@ export class MapperRegistry {
   private log(
     _level: string,
     _message: string,
-    _context?: Record<string, unknown>,
+    _context?: Record<string, unknown>
   ): void {
     // TODO: 替换为实际的日志系统
     // console.log(`[${_level.toUpperCase()}] [MapperRegistry] ${_message}`, _context);

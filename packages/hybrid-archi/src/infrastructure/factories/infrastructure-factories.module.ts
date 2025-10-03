@@ -59,11 +59,18 @@ export class InfrastructureFactoriesModule {
 
     // 添加基础模块
     imports.push(
-      LoggerModule,
-      CacheModule,
-      DatabaseModule,
-      MessagingModule,
-      MultiTenancyModule
+      LoggerModule.forRoot({}),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      DatabaseModule.forRoot({ mikroORM: {} as any }),
+      MessagingModule.forRoot({ adapter: 'memory' as any }),
+      MultiTenancyModule.forRoot({
+        context: {} as any,
+        isolation: {} as any,
+        middleware: {} as any,
+        security: {} as any,
+      })
     );
 
     // 添加管理组件
@@ -97,11 +104,18 @@ export class InfrastructureFactoriesModule {
 
     // 添加基础模块
     imports.push(
-      LoggerModule,
-      CacheModule,
-      DatabaseModule,
-      MessagingModule,
-      MultiTenancyModule
+      LoggerModule.forRoot({}),
+      CacheModule.forRoot({
+        redis: {} as any,
+      }),
+      DatabaseModule.forRoot({ mikroORM: {} as any }),
+      MessagingModule.forRoot({ adapter: 'memory' as any }),
+      MultiTenancyModule.forRoot({
+        context: {} as any,
+        isolation: {} as any,
+        middleware: {} as any,
+        security: {} as any,
+      })
     );
 
     // 添加管理组件

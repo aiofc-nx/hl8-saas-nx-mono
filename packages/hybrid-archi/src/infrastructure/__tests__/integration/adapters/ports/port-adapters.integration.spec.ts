@@ -7,7 +7,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from '@hl8/logger';
-import { ConfigModule } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { MessagingModule } from '@hl8/messaging';
 import { PortAdaptersModule } from '../../../../adapters/ports/port-adapters.module';
 import { LoggerPortAdapter } from '../../../../adapters/ports/logger-port.adapter';
@@ -24,7 +24,7 @@ describe('PortAdaptersModule Integration', () => {
     module = await Test.createTestingModule({
       imports: [
         LoggerModule,
-        ConfigModule,
+        TypedConfigModule,
         MessagingModule,
         PortAdaptersModule.forRoot({
           enableLogger: true,

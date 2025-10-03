@@ -22,8 +22,8 @@ class TestQuery extends BaseQuery {
     public readonly filter: string,
     tenantId: string,
     userId: string,
-    page: number = 1,
-    pageSize: number = 10,
+    page = 1,
+    pageSize = 10
   ) {
     super(tenantId, userId, page, pageSize);
   }
@@ -32,7 +32,7 @@ class TestQuery extends BaseQuery {
     return 'TestQuery';
   }
 
-  get queryData(): Record<string, unknown> {
+  override get queryData(): Record<string, unknown> {
     return { filter: this.filter };
   }
 
@@ -47,7 +47,7 @@ class TestQuery extends BaseQuery {
 class TestQueryResult implements IQueryResult {
   constructor(
     private readonly data: unknown[],
-    private readonly pagination: IPaginationInfo,
+    private readonly pagination: IPaginationInfo
   ) {}
 
   getData(): unknown[] {
@@ -134,14 +134,11 @@ class TestMiddleware implements IMiddleware {
   public executedCount = 0;
   public context: IMessageContext | null = null;
 
-  constructor(
-    public name: string,
-    public priority: number = 0,
-  ) {}
+  constructor(public name: string, public priority = 0) {}
 
   async execute(
     context: IMessageContext,
-    next: () => Promise<unknown>,
+    next: () => Promise<unknown>
   ): Promise<unknown> {
     this.executedCount++;
     this.context = context;
@@ -184,7 +181,7 @@ describe('CoreQueryBus', () => {
       const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
 
       await expect(queryBus.execute(query)).rejects.toThrow(
-        'No handler registered for query type: TestQuery',
+        'No handler registered for query type: TestQuery'
       );
     });
 
@@ -195,7 +192,7 @@ describe('CoreQueryBus', () => {
       const invalidQuery = new TestQuery('', 'tenant-1', 'user-1');
 
       await expect(queryBus.execute(invalidQuery)).rejects.toThrow(
-        'Query filter is required',
+        'Query filter is required'
       );
     });
 
@@ -226,7 +223,7 @@ describe('CoreQueryBus', () => {
       const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
 
       await expect(queryBus.execute(query)).rejects.toThrow(
-        'Handler cannot process query: TestQuery',
+        'Handler cannot process query: TestQuery'
       );
     });
   });

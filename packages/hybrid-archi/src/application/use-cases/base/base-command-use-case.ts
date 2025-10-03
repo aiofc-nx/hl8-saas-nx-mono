@@ -89,7 +89,7 @@ export abstract class BaseCommandUseCase<
   constructor(
     useCaseName: string,
     useCaseDescription: string,
-    useCaseVersion: string = '1.0.0',
+    useCaseVersion = '1.0.0',
     requiredPermissions: string[] = [],
   ) {
     super(useCaseName, useCaseDescription, useCaseVersion, requiredPermissions);

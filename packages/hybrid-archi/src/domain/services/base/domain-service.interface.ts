@@ -233,8 +233,8 @@ export abstract class BaseDomainService implements IDomainService {
 
   constructor(
     serviceName: string,
-    serviceVersion: string = '1.0.0',
-    serviceDescription: string = '',
+    serviceVersion = '1.0.0',
+    serviceDescription = '',
   ) {
     this.serviceName = serviceName;
     this.serviceVersion = serviceVersion;

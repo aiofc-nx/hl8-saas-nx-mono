@@ -207,7 +207,9 @@ export const DOMAIN_EVENT_METADATA_KEY = Symbol('domainEvent');
  * }
  * ```
  */
-export function DomainEvent(options: DomainEventOptions): ClassDecorator {
+export function DomainEventDecorator(
+  options: DomainEventOptions
+): ClassDecorator {
   return function <T extends Function>(target: T): T {
     // 验证配置选项
     validateDomainEventOptions(options);
@@ -251,7 +253,7 @@ export function DomainEvent(options: DomainEventOptions): ClassDecorator {
  * ```
  */
 export function getDomainEventMetadata(
-  target: any,
+  target: any
 ): Required<DomainEventOptions> | undefined {
   const targetClass =
     typeof target === 'function' ? target : target.constructor;
@@ -299,7 +301,7 @@ export function EventHandler(eventTypes: string[]): MethodDecorator {
   return function (
     target: any,
     propertyKey: string | symbol,
-    descriptor: PropertyDescriptor,
+    descriptor: PropertyDescriptor
   ) {
     const existingHandlers =
       Reflect.getMetadata('eventHandlers', target.constructor) || [];
@@ -311,7 +313,7 @@ export function EventHandler(eventTypes: string[]): MethodDecorator {
     Reflect.defineMetadata(
       'eventHandlers',
       existingHandlers,
-      target.constructor,
+      target.constructor
     );
   };
 }

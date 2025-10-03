@@ -55,7 +55,8 @@
  * @since 1.0.0
  */
 import { Injectable } from '@nestjs/common';
-import type { CoreConfigService } from '../../../infrastructure/config/core-config.service';
+// import type { CoreTypedTypedConfigModule } from '../../../infrastructure/config/core-config.service';
+import type { TypedConfigModule } from '@hl8/config';
 import type { BaseCommand } from '../commands/base/base-command';
 import type { BaseQuery, IQueryResult } from '../queries/base/base-query';
 import type { BaseDomainEvent } from '../../../domain/events/base/base-domain-event';
@@ -111,7 +112,7 @@ export class CoreCQRSBus implements ICQRSBus {
     private readonly _eventBus: IEventBus,
     private readonly _useCaseRegistry: IUseCaseRegistry,
     private readonly _projectorManager: ProjectorManager,
-    private readonly configService?: CoreConfigService,
+    private readonly configService?: TypedConfigModule
   ) {}
 
   /**
@@ -139,19 +140,28 @@ export class CoreCQRSBus implements ICQRSBus {
     }
 
     try {
-      const config = await this.configService.getCQRSConfig();
+      // const config = await this.configService.getCQRSConfig();
+      const config = {} as Record<string, unknown>; // 临时模拟配置
       return {
-        enabled: config.enabled,
+        enabled: (config['enabled'] as boolean) ?? true,
         commandBus: {
-          timeout: config.commandBus?.timeout || 30000,
+          timeout:
+            ((config['commandBus'] as Record<string, unknown>)?.[
+              'timeout'
+            ] as number) || 30000,
           maxRetries: 3, // 暂时硬编码
         },
         queryBus: {
-          enableCache: config.queryBus?.enableCache || false,
+          enableCache:
+            ((config['queryBus'] as Record<string, unknown>)?.[
+              'enableCache'
+            ] as boolean) || false,
           cacheTTL: 300000, // 暂时硬编码
         },
         eventBus: {
-          enableAsync: !config.eventBus?.enablePersistence, // 基于现有字段推断
+          enableAsync: !((config['eventBus'] as Record<string, unknown>)?.[
+            'enablePersistence'
+          ] as boolean), // 基于现有字段推断
           maxConcurrency: 10, // 暂时硬编码
         },
       };
@@ -198,7 +208,7 @@ export class CoreCQRSBus implements ICQRSBus {
    * @throws {Error} 当总线未初始化或命令执行失败时
    */
   public async executeCommand<TCommand extends BaseCommand>(
-    command: TCommand,
+    command: TCommand
   ): Promise<void> {
     this.ensureInitialized();
     await this._commandBus.execute(command);
@@ -213,7 +223,7 @@ export class CoreCQRSBus implements ICQRSBus {
    */
   public async executeQuery<
     TQuery extends BaseQuery,
-    TResult extends IQueryResult,
+    TResult extends IQueryResult
   >(query: TQuery): Promise<TResult> {
     this.ensureInitialized();
     return await this._queryBus.execute<TQuery, TResult>(query);
@@ -227,7 +237,7 @@ export class CoreCQRSBus implements ICQRSBus {
    * @throws {Error} 当总线未初始化或事件发布失败时
    */
   public async publishEvent<TEvent extends BaseDomainEvent>(
-    event: TEvent,
+    event: TEvent
   ): Promise<void> {
     this.ensureInitialized();
     await this._eventBus.publish(event);
@@ -244,7 +254,7 @@ export class CoreCQRSBus implements ICQRSBus {
    * @throws {Error} 当总线未初始化或事件发布失败时
    */
   public async publishEvents<TEvent extends BaseDomainEvent>(
-    events: TEvent[],
+    events: TEvent[]
   ): Promise<void> {
     this.ensureInitialized();
     await this._eventBus.publishAll(events);
@@ -263,7 +273,7 @@ export class CoreCQRSBus implements ICQRSBus {
    */
   public async executeUseCase<TRequest, TResponse>(
     useCaseName: string,
-    request: TRequest,
+    request: TRequest
   ): Promise<TResponse> {
     this.ensureInitialized();
 

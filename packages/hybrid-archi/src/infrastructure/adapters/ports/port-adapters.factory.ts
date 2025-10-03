@@ -9,9 +9,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
-import { ConfigService } from '@hl8/config';
+import { TypedConfigModule } from '@hl8/config';
 import { EventService } from '@hl8/messaging';
 
 import { LoggerPortAdapter } from './logger-port.adapter';
@@ -61,9 +61,9 @@ export class PortAdaptersFactory {
   >();
 
   constructor(
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
-    private readonly configService: ConfigService,
+    private readonly configService: TypedConfigModule,
     private readonly eventService: EventService
   ) {}
 
@@ -346,14 +346,16 @@ export class PortAdaptersFactory {
           // 检查日志适配器
           instance.debug('健康检查');
           return true;
-        case 'idGenerator':
+        case 'idGenerator': {
           // 检查ID生成器适配器
           const id = instance.generate();
           return typeof id === 'string' && id.length > 0;
-        case 'timeProvider':
+        }
+        case 'timeProvider': {
           // 检查时间提供者适配器
           const time = instance.now();
           return time instanceof Date;
+        }
         case 'validation':
           // 检查验证适配器
           return typeof instance.validate === 'function';

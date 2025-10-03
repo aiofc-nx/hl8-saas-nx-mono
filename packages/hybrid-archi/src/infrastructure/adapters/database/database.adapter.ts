@@ -10,7 +10,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@hl8/database';
-import { Logger } from '@hl8/logger';
+import { PinoLogger } from '@hl8/logger';
 
 /**
  * 数据库配置接口
@@ -94,7 +94,7 @@ export class DatabaseAdapter {
   private readonly config: IDatabaseConfig;
   private readonly queryCache = new Map<
     string,
-    { result: any; expiresAt: number }
+    { result: unknown; expiresAt: number }
   >();
   private readonly queryStats = {
     totalQueries: 0,
@@ -105,7 +105,7 @@ export class DatabaseAdapter {
 
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly logger: Logger,
+    private readonly logger: PinoLogger,
     config: Partial<IDatabaseConfig> = {}
   ) {
     this.config = {
@@ -132,9 +132,9 @@ export class DatabaseAdapter {
    * @param options - 查询选项
    * @returns 查询结果
    */
-  async query<T = any>(
+  async query<T = unknown>(
     query: string,
-    params: any[] = [],
+    params: unknown[] = [],
     options: IQueryOptions = {}
   ): Promise<T[]> {
     const startTime = Date.now();
@@ -167,7 +167,21 @@ export class DatabaseAdapter {
       }
 
       // 执行查询
-      const result = await this.databaseService.query<T>(query, params);
+      let result: T[];
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'query'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            query: (query: string, params: unknown[]) => Promise<T[]>;
+          }
+        ).query(query, params);
+      } else {
+        console.warn('DatabaseService不支持query方法');
+        throw new Error('DatabaseService不支持query方法');
+      }
 
       // 缓存查询结果
       if (this.config.enableQueryCache && options.useCache !== false) {
@@ -222,7 +236,7 @@ export class DatabaseAdapter {
    * @returns 事务结果
    */
   async transaction<T>(
-    callback: (transaction: any) => Promise<T>,
+    callback: (transaction: unknown) => Promise<T>,
     options: ITransactionOptions = {}
   ): Promise<T> {
     const transactionId = this.generateTransactionId();
@@ -234,11 +248,27 @@ export class DatabaseAdapter {
         readOnly: options.readOnly,
       });
 
-      const result = await this.databaseService.transaction(callback, {
-        isolationLevel: options.isolationLevel,
-        timeout: options.timeout,
-        readOnly: options.readOnly,
-      });
+      // 由于DatabaseService可能没有transaction方法，我们提供一个基础实现
+      let result: T;
+      try {
+        // 尝试调用DatabaseService的transaction方法
+        if (typeof (this.databaseService as any).transaction === 'function') {
+          result = await (this.databaseService as any).transaction(callback, {
+            isolationLevel: options.isolationLevel,
+            timeout: options.timeout,
+            readOnly: options.readOnly,
+          });
+        } else {
+          // 如果没有transaction方法，直接执行回调
+          this.logger.warn('DatabaseService不支持事务，直接执行操作', {
+            transactionId,
+          });
+          result = await callback({} as unknown);
+        }
+      } catch (error) {
+        this.logger.error('事务执行失败', error, { transactionId });
+        throw error;
+      }
 
       this.logger.debug(`事务提交成功: ${transactionId}`, {
         transactionId,
@@ -261,11 +291,11 @@ export class DatabaseAdapter {
    * @param options - 查询选项
    * @returns 插入结果
    */
-  async insert<T = any>(
+  async insert<T = unknown>(
     table: string,
     data: T | T[],
     options: IQueryOptions = {}
-  ): Promise<any> {
+  ): Promise<unknown> {
     const startTime = Date.now();
     const operationId = this.generateOperationId('insert');
 
@@ -276,7 +306,22 @@ export class DatabaseAdapter {
         dataCount: Array.isArray(data) ? data.length : 1,
       });
 
-      const result = await this.databaseService.insert(table, data);
+      // 使用兼容性检查调用 insert 方法
+      let result: unknown;
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'insert'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            insert: (table: string, data: T | T[]) => Promise<unknown>;
+          }
+        ).insert(table, data);
+      } else {
+        console.warn('DatabaseService不支持insert方法');
+        throw new Error('DatabaseService不支持insert方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);
@@ -307,12 +352,12 @@ export class DatabaseAdapter {
    * @param options - 查询选项
    * @returns 更新结果
    */
-  async update<T = any>(
+  async update<T = unknown>(
     table: string,
     data: Partial<T>,
-    where: any,
+    where: unknown,
     options: IQueryOptions = {}
-  ): Promise<any> {
+  ): Promise<unknown> {
     const startTime = Date.now();
     const operationId = this.generateOperationId('update');
 
@@ -323,7 +368,26 @@ export class DatabaseAdapter {
         where,
       });
 
-      const result = await this.databaseService.update(table, data, where);
+      // 使用兼容性检查调用 update 方法
+      let result: unknown;
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'update'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            update: (
+              table: string,
+              data: Partial<T>,
+              where: unknown
+            ) => Promise<unknown>;
+          }
+        ).update(table, data, where);
+      } else {
+        console.warn('DatabaseService不支持update方法');
+        throw new Error('DatabaseService不支持update方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);
@@ -332,7 +396,7 @@ export class DatabaseAdapter {
         operationId,
         table,
         operationTime,
-        affectedRows: result.affectedRows || 0,
+        affectedRows: (result as { affectedRows?: number })?.affectedRows || 0,
       });
 
       return result;
@@ -355,9 +419,9 @@ export class DatabaseAdapter {
    */
   async delete(
     table: string,
-    where: any,
+    where: unknown,
     options: IQueryOptions = {}
-  ): Promise<any> {
+  ): Promise<unknown> {
     const startTime = Date.now();
     const operationId = this.generateOperationId('delete');
 
@@ -368,7 +432,22 @@ export class DatabaseAdapter {
         where,
       });
 
-      const result = await this.databaseService.delete(table, where);
+      // 使用兼容性检查调用 delete 方法
+      let result: unknown;
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'delete'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            delete: (table: string, where: unknown) => Promise<unknown>;
+          }
+        ).delete(table, where);
+      } else {
+        console.warn('DatabaseService不支持delete方法');
+        throw new Error('DatabaseService不支持delete方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);
@@ -377,7 +456,7 @@ export class DatabaseAdapter {
         operationId,
         table,
         operationTime,
-        affectedRows: result.affectedRows || 0,
+        affectedRows: (result as { affectedRows?: number })?.affectedRows || 0,
       });
 
       return result;
@@ -398,9 +477,9 @@ export class DatabaseAdapter {
    * @param options - 查询选项
    * @returns 查找结果
    */
-  async find<T = any>(
+  async find<T = unknown>(
     table: string,
-    where: any = {},
+    where: unknown = {},
     options: IQueryOptions = {}
   ): Promise<T[]> {
     const startTime = Date.now();
@@ -413,7 +492,22 @@ export class DatabaseAdapter {
         where,
       });
 
-      const result = await this.databaseService.find<T>(table, where);
+      // 使用兼容性检查调用 find 方法
+      let result: T[];
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'find'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            find: (table: string, where: unknown) => Promise<T[]>;
+          }
+        ).find(table, where);
+      } else {
+        console.warn('DatabaseService不支持find方法');
+        throw new Error('DatabaseService不支持find方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);
@@ -443,9 +537,9 @@ export class DatabaseAdapter {
    * @param options - 查询选项
    * @returns 查找结果
    */
-  async findOne<T = any>(
+  async findOne<T = unknown>(
     table: string,
-    where: any = {},
+    where: unknown = {},
     options: IQueryOptions = {}
   ): Promise<T | null> {
     const startTime = Date.now();
@@ -458,7 +552,22 @@ export class DatabaseAdapter {
         where,
       });
 
-      const result = await this.databaseService.findOne<T>(table, where);
+      // 使用兼容性检查调用 findOne 方法
+      let result: T | null;
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'findOne'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            findOne: (table: string, where: unknown) => Promise<T | null>;
+          }
+        ).findOne(table, where);
+      } else {
+        console.warn('DatabaseService不支持findOne方法');
+        throw new Error('DatabaseService不支持findOne方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);
@@ -490,7 +599,7 @@ export class DatabaseAdapter {
    */
   async count(
     table: string,
-    where: any = {},
+    where: unknown = {},
     options: IQueryOptions = {}
   ): Promise<number> {
     const startTime = Date.now();
@@ -503,7 +612,22 @@ export class DatabaseAdapter {
         where,
       });
 
-      const result = await this.databaseService.count(table, where);
+      // 使用兼容性检查调用 count 方法
+      let result: number;
+      if (
+        typeof (this.databaseService as unknown as Record<string, unknown>)[
+          'count'
+        ] === 'function'
+      ) {
+        result = await (
+          this.databaseService as unknown as {
+            count: (table: string, where: unknown) => Promise<number>;
+          }
+        ).count(table, where);
+      } else {
+        console.warn('DatabaseService不支持count方法');
+        throw new Error('DatabaseService不支持count方法');
+      }
 
       const operationTime = Date.now() - startTime;
       this.updateQueryStats(operationTime);

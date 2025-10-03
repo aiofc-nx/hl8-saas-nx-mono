@@ -4,22 +4,40 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/logger"
+      "path": "./tsconfig.app.json"
     },
     {
-      "path": "../../packages/fastify-pro"
+      "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "../../packages/hybrid-archi"
+    },
+    {
+      "path": "../../packages/multi-tenancy"
     },
     {
       "path": "../../packages/config"
     },
     {
+      "path": "../../packages/logger"
+    },
+    {
+      "path": "../../packages/utils"
+    },
+    {
       "path": "../../packages/common"
     },
     {
-      "path": "./tsconfig.app.json"
+      "path": "../../packages/database"
     },
     {
-      "path": "./tsconfig.spec.json"
+      "path": "../../packages/cache"
+    },
+    {
+      "path": "../../packages/messaging"
+    },
+    {
+      "path": "../../packages/user-management"
     }
   ],
   "compilerOptions": {

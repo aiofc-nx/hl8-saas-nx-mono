@@ -105,7 +105,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
   constructor(
     projectorName: string,
     eventTypes: string[],
-    projectorVersion: string = '1.0.0',
+    projectorVersion = '1.0.0'
   ) {
     this.projectorName = projectorName;
     this.eventTypes = eventTypes;
@@ -187,7 +187,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected abstract executeProjection(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    context: IProjectionExecutionContext
   ): Promise<void>;
 
   /**
@@ -201,7 +201,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected async validateEvent(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    _context: IProjectionExecutionContext
   ): Promise<void> {
     // 1. 基础验证
     if (!event.eventId) {
@@ -223,7 +223,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
     // 2. 事件类型验证
     if (!this.canProject(event)) {
       throw new Error(
-        `投射器 ${this.projectorName} 无法处理事件类型 ${event.eventType}`,
+        `投射器 ${this.projectorName} 无法处理事件类型 ${event.eventType}`
       );
     }
 
@@ -244,8 +244,8 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    * @returns 如果已处理返回true，否则返回false
    */
   protected async checkIdempotency(
-    event: TEvent,
-    context: IProjectionExecutionContext,
+    _event: TEvent,
+    _context: IProjectionExecutionContext
   ): Promise<boolean> {
     // 幂等性检查逻辑将在具体实现中注入
     // 这里可以检查投射状态表或使用其他机制
@@ -262,7 +262,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected async recordProjectionState(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    _context: IProjectionExecutionContext
   ): Promise<void> {
     // 投射状态记录逻辑将在具体实现中注入
     this.log('debug', '投射状态已记录', {
@@ -279,7 +279,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected async scheduleRetry(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    context: IProjectionExecutionContext
   ): Promise<void> {
     const delay = this.calculateRetryDelay(context.retryCount);
 
@@ -304,7 +304,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
   protected async handleDeadLetter(
     event: TEvent,
     error: unknown,
-    context: IProjectionExecutionContext,
+    context: IProjectionExecutionContext
   ): Promise<void> {
     this.log('error', '投射失败，记录到死信队列', {
       eventId: event.eventId,
@@ -335,10 +335,10 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected createExecutionContext(event: TEvent): IProjectionExecutionContext {
     return {
-      eventId: event.eventId,
+      eventId: event.eventId.toString(),
       startTime: new Date(),
-      aggregateId: event.aggregateId,
-      eventVersion: event.version,
+      aggregateId: event.aggregateId.toString(),
+      eventVersion: event.eventVersion,
       projectorName: this.projectorName,
       retryCount: 0,
       custom: {},
@@ -353,7 +353,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected logIdempotencySkip(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    _context: IProjectionExecutionContext
   ): void {
     this.log('debug', '事件已投射，跳过处理', {
       projectorName: this.projectorName,
@@ -370,7 +370,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
    */
   protected logSuccess(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    context: IProjectionExecutionContext
   ): void {
     const executionTime = Date.now() - context.startTime.getTime();
 
@@ -393,7 +393,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
   protected logError(
     event: TEvent,
     error: unknown,
-    context: IProjectionExecutionContext,
+    context: IProjectionExecutionContext
   ): void {
     const executionTime = Date.now() - context.startTime.getTime();
 
@@ -418,12 +418,12 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
   protected log(
     level: string,
     message: string,
-    context?: Record<string, unknown>,
+    context?: Record<string, unknown>
   ): void {
     // 日志记录将在运行时注入
     console.log(
       `[${level.toUpperCase()}] [${this.projectorName}] ${message}`,
-      context,
+      context
     );
   }
 }
@@ -436,7 +436,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
  */
 export abstract class BaseReadModelProjector<
     TEvent extends BaseDomainEvent,
-    TReadModel,
+    TReadModel
   >
   extends BaseEventProjector<TEvent>
   implements IReadModelProjector<TEvent, TReadModel>
@@ -450,7 +450,7 @@ export abstract class BaseReadModelProjector<
     projectorName: string,
     eventTypes: string[],
     readModelType: string,
-    projectorVersion: string = '1.0.0',
+    projectorVersion = '1.0.0'
   ) {
     super(projectorName, eventTypes, projectorVersion);
     this.readModelType = readModelType;
@@ -481,7 +481,9 @@ export abstract class BaseReadModelProjector<
       await this.deleteExistingReadModel(aggregateId);
 
       // 2. 按顺序重放事件
-      for (const event of events.sort((a, b) => a.version - b.version)) {
+      for (const event of events.sort(
+        (a, b) => a.eventVersion - b.eventVersion
+      )) {
         await this.project(event);
       }
 
@@ -507,7 +509,7 @@ export abstract class BaseReadModelProjector<
    */
   protected async executeProjection(
     event: TEvent,
-    context: IProjectionExecutionContext,
+    _context: IProjectionExecutionContext
   ): Promise<void> {
     // 1. 提取事件数据
     const eventData = this.extractEventData(event);
@@ -543,7 +545,7 @@ export abstract class BaseReadModelProjector<
    */
   protected abstract findOrCreateReadModel(
     eventData: Record<string, unknown>,
-    event: TEvent,
+    event: TEvent
   ): Promise<TReadModel>;
 
   /**
@@ -559,7 +561,7 @@ export abstract class BaseReadModelProjector<
   protected abstract updateReadModel(
     readModel: TReadModel,
     eventData: Record<string, unknown>,
-    event: TEvent,
+    event: TEvent
   ): Promise<void>;
 
   /**
@@ -573,7 +575,7 @@ export abstract class BaseReadModelProjector<
    */
   protected abstract saveReadModel(
     readModel: TReadModel,
-    event: TEvent,
+    event: TEvent
   ): Promise<void>;
 
   /**
@@ -597,12 +599,14 @@ export abstract class BaseReadModelProjector<
    * @param event - 事件实例
    * @returns 执行上下文
    */
-  protected createExecutionContext(event: TEvent): IProjectionExecutionContext {
+  protected override createExecutionContext(
+    event: TEvent
+  ): IProjectionExecutionContext {
     return {
-      eventId: event.eventId,
+      eventId: event.eventId.toString(),
       startTime: new Date(),
-      aggregateId: event.aggregateId,
-      eventVersion: event.version,
+      aggregateId: event.aggregateId.toString(),
+      eventVersion: event.eventVersion,
       projectorName: this.projectorName,
       readModelType: this.readModelType,
       retryCount: 0,

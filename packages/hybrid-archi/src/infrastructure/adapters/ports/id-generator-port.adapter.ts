@@ -60,7 +60,7 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
    *
    * @returns 生成的唯一ID
    */
-  generate(): string {
+  generate(): EntityId {
     switch (this.config.strategy) {
       case IdGenerationStrategy.UUID:
         return this.generateUUID();
@@ -90,12 +90,49 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
    * @param count - 生成数量
    * @returns ID数组
    */
-  generateBatch(count: number): string[] {
-    const ids: string[] = [];
+  generateBatch(count: number): EntityId[] {
+    const ids: EntityId[] = [];
     for (let i = 0; i < count; i++) {
       ids.push(this.generate());
     }
     return ids;
+  }
+
+  /**
+   * 生成UUID
+   *
+   * @returns UUID字符串
+   */
+  generateUuid(): string {
+    return this.generateUUID().toString();
+  }
+
+  /**
+   * 生成数字ID
+   *
+   * @returns 数字ID
+   */
+  generateNumericId(): number {
+    return Date.now() + Math.floor(Math.random() * 1000);
+  }
+
+  /**
+   * 生成短ID
+   *
+   * @returns 短ID字符串
+   */
+  generateShortId(): string {
+    return this.generateAutoIncrement().toString();
+  }
+
+  /**
+   * 验证ID是否有效
+   *
+   * @param id - 要验证的ID
+   * @returns 是否有效
+   */
+  isValidId(id: string): boolean {
+    return Boolean(id && id.length > 0);
   }
 
   /**
@@ -146,7 +183,7 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
   /**
    * 生成UUID
    */
-  private generateUUID(): string {
+  private generateUUID(): EntityId {
     const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
       /[xy]/g,
       (c) => {
@@ -156,42 +193,42 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
       }
     );
 
-    return this.formatId(uuid);
+    return EntityId.fromString(this.formatId(uuid));
   }
 
   /**
    * 生成雪花算法ID
    */
-  private generateSnowflake(): string {
+  private generateSnowflake(): EntityId {
     // 简化的雪花算法实现
     const timestamp = Date.now();
     const machineId = Math.floor(Math.random() * 1024);
     const sequence = Math.floor(Math.random() * 4096);
 
     const snowflakeId = (timestamp << 22) | (machineId << 12) | sequence;
-    return this.formatId(snowflakeId.toString());
+    return EntityId.fromString(this.formatId(snowflakeId.toString()));
   }
 
   /**
    * 生成自增ID
    */
-  private generateAutoIncrement(): string {
+  private generateAutoIncrement(): EntityId {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 10000);
-    return this.formatId(`${timestamp}${random}`);
+    return EntityId.fromString(this.formatId(`${timestamp}${random}`));
   }
 
   /**
    * 生成自定义ID
    */
-  private generateCustom(): string {
+  private generateCustom(): EntityId {
     // 使用自定义配置生成ID
     const customConfig = this.config.customConfig || {};
-    const prefix = customConfig.prefix || '';
-    const suffix = customConfig.suffix || '';
+    const prefix = (customConfig as any).prefix || '';
+    const suffix = (customConfig as any).suffix || '';
     const baseId = this.generateUUID();
 
-    return `${prefix}${baseId}${suffix}`;
+    return EntityId.fromString(`${prefix}${baseId}${suffix}`);
   }
 
   /**
@@ -241,6 +278,6 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
    */
   private validateCustom(id: string): boolean {
     // 自定义验证逻辑
-    return id && id.length > 0;
+    return Boolean(id && id.length > 0);
   }
 }

@@ -135,6 +135,19 @@ export interface IDomainEvent {
   readonly version: string;
 
   /**
+   * 租户标识符
+   *
+   * @description 事件所属的租户标识符，用于：
+   * - 多租户数据隔离
+   * - 租户级别的事件过滤
+   * - 跨租户权限控制
+   * - 租户级别的事件统计
+   *
+   * @readonly
+   */
+  readonly tenantId: string;
+
+  /**
    * 事件元数据
    *
    * @description 事件的元数据信息，包含：
