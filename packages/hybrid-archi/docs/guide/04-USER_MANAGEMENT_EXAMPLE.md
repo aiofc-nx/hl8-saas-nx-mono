@@ -61,13 +61,17 @@ packages/user-management/src/
 │   ├── commands/             # 命令
 │   │   ├── create-user.command.ts
 │   │   ├── update-user.command.ts
-│   │   └── activate-user.command.ts
+│   │   ├── activate-user.command.ts
+│   │   └── handlers/         # 命令处理器
+│   │       ├── create-user.handler.ts
+│   │       ├── update-user.handler.ts
+│   │       └── activate-user.handler.ts
 │   ├── queries/              # 查询
 │   │   ├── get-user.query.ts
-│   │   └── get-users.query.ts
-│   ├── handlers/             # 处理器
-│   │   ├── create-user.handler.ts
-│   │   └── get-user.handler.ts
+│   │   ├── get-users.query.ts
+│   │   └── handlers/         # 查询处理器
+│   │       ├── get-user.handler.ts
+│   │       └── get-users.handler.ts
 │   └── use-cases/            # 用例
 │       ├── create-user.use-case.ts
 │       └── update-user.use-case.ts
@@ -617,7 +621,7 @@ export class CreateUserUseCase extends BaseUseCase<CreateUserRequest, CreateUser
 #### 3.4.1 创建用户命令处理器
 
 ```typescript
-// application/handlers/create-user.handler.ts
+// application/commands/handlers/create-user.handler.ts
 import { ICommandHandler } from '@hl8/hybrid-archi';
 import { CreateUserCommand } from '../commands/create-user.command';
 import { CreateUserUseCase } from '../use-cases/create-user.use-case';
@@ -642,6 +646,35 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand, str
 
     const response = await this.createUserUseCase.execute(request);
     return response.userId;
+  }
+}
+```
+
+#### 3.4.2 获取用户查询处理器
+
+```typescript
+// application/queries/handlers/get-user.handler.ts
+import { IQueryHandler } from '@hl8/hybrid-archi';
+import { GetUserQuery } from '../queries/get-user.query';
+import { GetUserUseCase } from '../use-cases/get-user.use-case';
+
+/**
+ * 获取用户查询处理器
+ * 
+ * @description 处理获取用户查询
+ */
+export class GetUserHandler implements IQueryHandler<GetUserQuery, any> {
+  constructor(
+    private readonly getUserUseCase: GetUserUseCase
+  ) {}
+
+  async handle(query: GetUserQuery): Promise<any> {
+    const request = {
+      userId: query.userId
+    };
+
+    const response = await this.getUserUseCase.execute(request);
+    return response.user;
   }
 }
 ```
@@ -1075,8 +1108,8 @@ import { UserController } from './interface/controllers/user.controller';
 import { UserRepository } from './infrastructure/adapters/user.repository';
 import { UserMapper } from './infrastructure/mappers/user.mapper';
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
-import { CreateUserHandler } from './application/handlers/create-user.handler';
-import { GetUserHandler } from './application/handlers/get-user.handler';
+import { CreateUserHandler } from './application/commands/handlers/create-user.handler';
+import { GetUserHandler } from './application/queries/handlers/get-user.handler';
 
 @Module({
   imports: [
