@@ -108,15 +108,24 @@ importers:
       '@hl8/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@hl8/user-management':
+        specifier: workspace:*
+        version: link:../../packages/user-management
       '@nestjs/common':
         specifier: ^11.1.6
         version: 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^11.1.6
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.6)(@nestjs/websockets@11.1.6)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/graphql':
+        specifier: ^13.2.0
+        version: 13.2.0(@apollo/subgraph@2.11.2(graphql@16.11.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.2.2)(ts-morph@21.0.1)
       '@nestjs/platform-fastify':
         specifier: ^11.1.6
         version: 11.1.6(@fastify/static@8.2.0)(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.9
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -126,6 +135,9 @@ importers:
       fastify:
         specifier: ^5.6.1
         version: 5.6.1
+      ioredis:
+        specifier: ^5.8.0
+        version: 5.8.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -133,15 +145,24 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@apollo/subgraph':
+        specifier: ^2.6.0
+        version: 2.11.2(graphql@16.11.0)
       '@nestjs/testing':
         specifier: ^11.1.6
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(@nestjs/platform-express@11.1.6)
+      '@types/amqplib':
+        specifier: ^0.10.4
+        version: 0.10.7
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
       '@types/node':
         specifier: ^24.5.2
         version: 24.5.2
+      ts-morph:
+        specifier: ^21.0.1
+        version: 21.0.1
 
   apps/api-e2e: {}
 
@@ -543,7 +564,7 @@ importers:
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.6)(@nestjs/websockets@11.1.6)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/graphql':
         specifier: ^13.2.0
-        version: 13.2.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.2.2)
+        version: 13.2.0(@apollo/subgraph@2.11.2(graphql@16.11.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.2.2)(ts-morph@21.0.1)
       '@nestjs/websockets':
         specifier: ^11.1.6
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -599,6 +620,23 @@ packages:
   '@angular-devkit/schematics@19.2.15':
     resolution: {integrity: sha512-kNOJ+3vekJJCQKWihNmxBkarJzNW09kP5a9E1SRNiQVNOUEeSwcRR0qYotM65nx821gNzjjhJXnAZ8OazWldrg==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
+
+  '@apollo/cache-control-types@1.0.3':
+    resolution: {integrity: sha512-F17/vCp7QVwom9eG7ToauIKdAxpSoadsJnqIfyryLFSkLSOEqu+eC5Z3N8OXcUVStuOMcNHlyraRsA6rRICu4g==}
+    peerDependencies:
+      graphql: 14.x || 15.x || 16.x
+
+  '@apollo/federation-internals@2.11.2':
+    resolution: {integrity: sha512-GSFGL2fLox3EBszWKJvRkVLFA0hkJF9PHGMQH+WdB/12KVB3QHKwDyW1T9VZtxe2SJhNU3puleSxCsO16Bf3iA==}
+    engines: {node: '>=14.15.0'}
+    peerDependencies:
+      graphql: ^16.5.0
+
+  '@apollo/subgraph@2.11.2':
+    resolution: {integrity: sha512-S14osF5Zc8pd6lzeNtX1QHboMcQK5PXcN9EumZyRYBF0TRbnEFLF8Me9zMcfR3QP7GCiggjd6PA2IAaPC9uCSQ==}
+    engines: {node: '>=14.15.0'}
+    peerDependencies:
+      graphql: ^16.5.0
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -2187,6 +2225,9 @@ packages:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
 
+  '@ts-morph/common@0.22.0':
+    resolution: {integrity: sha512-HqNBuV/oIlMKdkLshXd1zKBqNQCsuPEsgQOkfFQ/eUKjRlwndXW1AjN9LVkBEIukm00gGXSRmfkl0Wv5VXLnlw==}
+
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -3093,6 +3134,9 @@ packages:
   co@4.6.0:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
+
+  code-block-writer@12.0.0:
+    resolution: {integrity: sha512-q4dMFMlXtKR3XNBHyMHt/3pwYNA69EDk00lloMOaaUMKPUXBw6lpXtbu3MMVG6/uOihGnRDOlkyqsONEUj60+w==}
 
   collect-v8-coverage@1.0.2:
     resolution: {integrity: sha512-lHl4d5/ONEbLlJvaJNtsF/Lz+WvB07u2ycqTYbdrq7UypDXailES4valYb2eWiJFxZlVmpGekfqoxQhzyFdT4Q==}
@@ -4644,6 +4688,10 @@ packages:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
     engines: {node: '>=10'}
 
+  js-levenshtein@1.1.6:
+    resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
+    engines: {node: '>=0.10.0'}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -5026,6 +5074,11 @@ packages:
     resolution: {integrity: sha512-FP+p8RB8OWpF3YZBCrP5gtADmtXApB5AMLn+vdyA+PyxCjrCs00mjyUozssO33cwDeT3wNGdLxJ5M//YqtHAJw==}
     hasBin: true
 
+  mkdirp@3.0.1:
+    resolution: {integrity: sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg==}
+    engines: {node: '>=10'}
+    hasBin: true
+
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
 
@@ -5260,6 +5313,9 @@ packages:
   parseurl@1.3.3:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
+
+  path-browserify@1.0.1:
+    resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
 
   path-exists@4.0.0:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
@@ -6446,6 +6502,9 @@ packages:
       typescript: '*'
       webpack: ^5.0.0
 
+  ts-morph@21.0.1:
+    resolution: {integrity: sha512-dbDtVdEAncKctzrVZ+Nr7kHpHkv+0JDJb2MjjpBaj8bFeCkePU9rHfMklmhuLFnpeq/EJZk2IhStY6NzqgjOkg==}
+
   ts-node@10.9.1:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
@@ -6848,6 +6907,24 @@ snapshots:
       rxjs: 7.8.1
     transitivePeerDependencies:
       - chokidar
+
+  '@apollo/cache-control-types@1.0.3(graphql@16.11.0)':
+    dependencies:
+      graphql: 16.11.0
+
+  '@apollo/federation-internals@2.11.2(graphql@16.11.0)':
+    dependencies:
+      '@types/uuid': 9.0.8
+      chalk: 4.1.2
+      graphql: 16.11.0
+      js-levenshtein: 1.1.6
+      uuid: 9.0.1
+
+  '@apollo/subgraph@2.11.2(graphql@16.11.0)':
+    dependencies:
+      '@apollo/cache-control-types': 1.0.3(graphql@16.11.0)
+      '@apollo/federation-internals': 2.11.2(graphql@16.11.0)
+      graphql: 16.11.0
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -8347,7 +8424,7 @@ snapshots:
       '@nestjs/platform-express': 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)
       '@nestjs/websockets': 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(reflect-metadata@0.2.2)(rxjs@7.8.2)
 
-  '@nestjs/graphql@13.2.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.2.2)':
+  '@nestjs/graphql@13.2.0(@apollo/subgraph@2.11.2(graphql@16.11.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.2.2)(ts-morph@21.0.1)':
     dependencies:
       '@graphql-tools/merge': 9.1.1(graphql@16.11.0)
       '@graphql-tools/schema': 10.0.25(graphql@16.11.0)
@@ -8367,8 +8444,10 @@ snapshots:
       tslib: 2.8.1
       ws: 8.18.3
     optionalDependencies:
+      '@apollo/subgraph': 2.11.2(graphql@16.11.0)
       class-transformer: 0.5.1
       class-validator: 0.14.2
+      ts-morph: 21.0.1
     transitivePeerDependencies:
       - '@fastify/websocket'
       - bufferutil
@@ -9013,6 +9092,13 @@ snapshots:
   '@tokenizer/token@0.3.0': {}
 
   '@trysound/sax@0.2.0': {}
+
+  '@ts-morph/common@0.22.0':
+    dependencies:
+      fast-glob: 3.3.3
+      minimatch: 9.0.5
+      mkdirp: 3.0.1
+      path-browserify: 1.0.1
 
   '@tsconfig/node10@1.0.11': {}
 
@@ -10019,6 +10105,8 @@ snapshots:
   cluster-key-slot@1.1.2: {}
 
   co@4.6.0: {}
+
+  code-block-writer@12.0.0: {}
 
   collect-v8-coverage@1.0.2: {}
 
@@ -12025,6 +12113,8 @@ snapshots:
 
   joycon@3.1.1: {}
 
+  js-levenshtein@1.1.6: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@3.14.1:
@@ -12365,6 +12455,8 @@ snapshots:
       minimist: 1.2.8
     optional: true
 
+  mkdirp@3.0.1: {}
+
   ms@2.0.0: {}
 
   ms@2.1.2: {}
@@ -12639,6 +12731,8 @@ snapshots:
   parse5@4.0.0: {}
 
   parseurl@1.3.3: {}
+
+  path-browserify@1.0.1: {}
 
   path-exists@4.0.0: {}
 
@@ -13847,6 +13941,11 @@ snapshots:
       source-map: 0.7.6
       typescript: 5.9.2
       webpack: 5.101.3(@swc/core@1.5.29(@swc/helpers@0.5.17))(webpack-cli@6.0.1)
+
+  ts-morph@21.0.1:
+    dependencies:
+      '@ts-morph/common': 0.22.0
+      code-block-writer: 12.0.0
 
   ts-node@10.9.1(@swc/core@1.5.29(@swc/helpers@0.5.17))(@types/node@20.19.9)(typescript@5.9.2):
     dependencies:

@@ -106,11 +106,11 @@ export type {
 // 导出枚举值
 export { MessagingAdapterType } from './lib/types/messaging.types';
 
-// 使用示例导出
-export * from './examples/cache-integration.example';
-export * from './examples/exception-usage.example';
-export * from './examples/config-integration.example';
-export * from './examples/complete-usage.example';
-export * from './examples/performance-benchmark.example';
-export * from './examples/advanced-cache-integration.example';
-export * from './examples/cache-performance-benchmark.example';
+// 使用示例导出 - 注释掉以避免在导入时执行
+// export * from './examples/cache-integration.example';
+// export * from './examples/exception-usage.example';
+// export * from './examples/config-integration.example';
+// export * from './examples/complete-usage.example';
+// export * from './examples/performance-benchmark.example';
+// export * from './examples/advanced-cache-integration.example';
+// export * from './examples/cache-performance-benchmark.example';

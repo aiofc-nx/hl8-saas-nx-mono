@@ -32,19 +32,10 @@ module.exports = {
       resourceRegExp: /^@grpc\/proto-loader$/,
     }),
     new webpack.IgnorePlugin({
-      resourceRegExp: /^kafkajs$/,
-    }),
-    new webpack.IgnorePlugin({
       resourceRegExp: /^mqtt$/,
     }),
     new webpack.IgnorePlugin({
       resourceRegExp: /^nats$/,
-    }),
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^ioredis$/,
-    }),
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^amqplib$/,
     }),
     new webpack.IgnorePlugin({
       resourceRegExp: /^amqp-connection-manager$/,
