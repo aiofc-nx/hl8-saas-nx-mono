@@ -8,4 +8,6 @@
 // 通用值对象
 export * from './email.vo';
 export * from './password.vo';
+export * from './tenant-id.vo';
+export * from './user-id.vo';
 export * from './username.vo';

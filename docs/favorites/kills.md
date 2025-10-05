@@ -11,3 +11,11 @@
 <https://github.com/softkitit/softkit-core>
 <https://github.com/twentyhq/twenty>
 <https://github.com/ever-co/ever-gauzy>
+
+[Better Chatbot](https://github.com/cgoinglove/better-chatbot)
+
+[Horizon UI Boilerplate](https://horizon-ui.com/docs-boilerplate)
+
+[Swagger2MCP](https://github.com/Gabriel-Pasternak/Swagger2MCP/tree/main)
+
+[nestjs-saas-tenant-boilerplate](https://github.com/Khidir-Karawita/nestjs-saas-tenant-boilerplate/tree/main)

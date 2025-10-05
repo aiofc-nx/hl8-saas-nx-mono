@@ -1,8 +1,3 @@
----
-description: HL8 SAAS平台 AI助手开发规范
-globs:
-alwaysApply: true
----
 # HL8 SAAS 平台 AI 助手提示词工程
 
 > **版本**: 1.0.0 | **创建日期**: 2025-01-27 | **用途**: AI助手开发指导
