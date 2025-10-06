@@ -14,12 +14,6 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/common"
-    },
-    {
-      "path": "../../packages/logger"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

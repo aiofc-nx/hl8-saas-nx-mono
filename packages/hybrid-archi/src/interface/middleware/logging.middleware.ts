@@ -27,7 +27,7 @@ export class LoggingMiddleware implements NestMiddleware {
    * @param res - HTTP响应
    * @param next - 下一个中间件
    */
-  use(req: any, res: any, next: any): void {
+  use(req: { [key: string]: unknown }, res: { [key: string]: unknown }, next: () => void): void {
     const startTime = Date.now();
     const requestId = this.generateRequestId();
 
@@ -37,23 +37,23 @@ export class LoggingMiddleware implements NestMiddleware {
     // 记录请求日志
     this.logger.info('HTTP请求开始', {
       requestId,
-      method: req.method,
-      url: req.url,
-      userAgent: req.headers['user-agent'],
-      ip: req.ip,
+      method: req['method'],
+      url: req['url'],
+      userAgent: (req['headers'] as { 'user-agent'?: string })?.['user-agent'],
+      ip: req['ip'],
       timestamp: new Date(),
     });
 
     // 监听响应完成
-    res.on('finish', () => {
+    (res as { on: (event: string, callback: () => void) => void })['on']('finish', () => {
       const duration = Date.now() - startTime;
-      const statusCode = res.statusCode;
+      const statusCode = res['statusCode'];
 
       // 记录响应日志
       this.logger.info('HTTP请求完成', {
         requestId,
-        method: req.method,
-        url: req.url,
+        method: req['method'],
+        url: req['url'],
         statusCode,
         duration,
         timestamp: new Date(),

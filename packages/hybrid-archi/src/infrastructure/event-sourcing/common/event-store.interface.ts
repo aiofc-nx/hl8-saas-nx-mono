@@ -70,7 +70,7 @@ export interface IEventStore {
    */
   saveEvents(
     aggregateId: string,
-    events: any[],
+    events: unknown[],
     expectedVersion: number
   ): Promise<void>;
 
@@ -81,7 +81,7 @@ export interface IEventStore {
    * @param aggregateId - 聚合ID
    * @returns 事件列表
    */
-  getEvents(aggregateId: string): Promise<any[]>;
+  getEvents(aggregateId: string): Promise<unknown[]>;
 
   /**
    * 从指定版本获取事件
@@ -94,7 +94,7 @@ export interface IEventStore {
   getEventsFromVersion(
     aggregateId: string,
     fromVersion: number
-  ): Promise<any[]>;
+  ): Promise<unknown[]>;
 
   /**
    * 按事件类型获取事件
@@ -109,7 +109,7 @@ export interface IEventStore {
     eventType: string,
     fromDate?: Date,
     toDate?: Date
-  ): Promise<any[]>;
+  ): Promise<unknown[]>;
 
   /**
    * 按租户获取事件
@@ -124,7 +124,7 @@ export interface IEventStore {
     tenantId: string,
     fromDate?: Date,
     toDate?: Date
-  ): Promise<any[]>;
+  ): Promise<unknown[]>;
 
   /**
    * 获取聚合版本号

@@ -26,7 +26,6 @@
       "@hl8/messaging": ["packages/messaging/src/index.ts"],
       "@hl8/multi-tenancy": ["packages/multi-tenancy/src/index.ts"],
       "@hl8/saas-core": ["packages/saas-core/src/index.ts"],
-      "@hl8/user-management": ["packages/system/user-management/src/index.ts"],
       "@hl8/utils": ["packages/utils/src/index.ts"]
     }
   },

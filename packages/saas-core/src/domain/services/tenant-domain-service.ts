@@ -1,148 +1,80 @@
 /**
  * 租户领域服务
- * 
- * @description 处理租户相关的跨聚合业务逻辑
- * 负责租户的唯一性验证、资源使用统计等复杂业务规则
- * 
+ *
+ * @description 租户相关的领域服务
+ * 处理跨聚合的业务逻辑和复杂的业务规则
+ *
  * @since 1.0.0
  */
 
-import { TenantId } from '@hl8/hybrid-archi';
-import { TenantType } from '../tenant/entities/tenant.entity';
+import { IDomainService } from '@hl8/hybrid-archi';
 
 /**
- * 租户仓储接口
- * 
- * @description 定义租户数据访问接口
+ * 租户领域服务接口
+ *
+ * @description 定义租户相关的领域服务操作
  */
-export interface ITenantRepository {
-  findByCode(code: string): Promise<any>;
-  countByType(type: TenantType): Promise<number>;
-  getResourceUsage(tenantId: TenantId): Promise<ResourceUsage>;
-}
-
-/**
- * 资源使用情况接口
- * 
- * @description 定义租户资源使用情况
- */
-export interface ResourceUsage {
-  userCount: number;
-  organizationCount: number;
-  storageUsed: number; // MB
-  apiCallsToday: number;
-}
-
-/**
- * 租户领域服务
- * 
- * @description 处理租户相关的复杂业务逻辑
- */
-export class TenantDomainService {
-  constructor(
-    private readonly tenantRepository: ITenantRepository
-  ) {}
-
+export interface ITenantDomainService extends IDomainService {
   /**
    * 验证租户代码唯一性
-   * 
-   * @param code 租户代码
-   * @returns true如果代码唯一，否则false
+   *
+   * @param code - 租户代码
+   * @param excludeTenantId - 排除的租户ID（用于更新时验证）
+   * @returns 是否唯一
    */
-  public async validateTenantCodeUniqueness(code: string): Promise<boolean> {
-    const existingTenant = await this.tenantRepository.findByCode(code);
-    return existingTenant === null;
-  }
+  isTenantCodeUnique(code: string, excludeTenantId?: string): Promise<boolean>;
 
   /**
-   * 验证租户类型数量限制
-   * 
-   * @description 验证系统中某种类型租户的数量是否超出限制
-   * 
-   * @param type 租户类型
-   * @param maxCount 最大数量限制
-   * @returns true如果未超出限制，否则false
+   * 验证租户管理员
+   *
+   * @param adminId - 管理员ID
+   * @returns 是否有效
    */
-  public async validateTenantTypeLimit(type: TenantType, maxCount: number): Promise<boolean> {
-    const currentCount = await this.tenantRepository.countByType(type);
-    return currentCount < maxCount;
-  }
+  validateTenantAdmin(adminId: string): Promise<boolean>;
 
   /**
-   * 检查租户资源使用情况
-   * 
-   * @param tenantId 租户ID
+   * 计算租户资源使用情况
+   *
+   * @param tenantId - 租户ID
    * @returns 资源使用情况
    */
-  public async checkResourceUsage(tenantId: TenantId): Promise<ResourceUsage> {
-    return await this.tenantRepository.getResourceUsage(tenantId);
+  calculateResourceUsage(tenantId: string): Promise<Record<string, number>>;
+}
+
+/**
+ * 租户领域服务实现
+ *
+ * @description 租户领域服务的具体实现
+ */
+export class TenantDomainService implements ITenantDomainService {
+  /**
+   * 验证租户代码唯一性
+   */
+  async isTenantCodeUnique(code: string, excludeTenantId?: string): Promise<boolean> {
+    // TODO: 实现租户代码唯一性验证逻辑
+    return true;
   }
 
   /**
-   * 验证租户是否可以创建新用户
-   * 
-   * @param tenantId 租户ID
-   * @param maxUsers 最大用户数限制
-   * @returns true如果可以创建，否则false
+   * 验证租户管理员
    */
-  public async canCreateUser(tenantId: TenantId, maxUsers: number): Promise<boolean> {
-    if (maxUsers === -1) return true; // 无限制
-    
-    const usage = await this.checkResourceUsage(tenantId);
-    return usage.userCount < maxUsers;
+  async validateTenantAdmin(adminId: string): Promise<boolean> {
+    // TODO: 实现租户管理员验证逻辑
+    return true;
   }
 
   /**
-   * 验证租户是否可以创建新组织
-   * 
-   * @param tenantId 租户ID
-   * @param maxOrganizations 最大组织数限制
-   * @returns true如果可以创建，否则false
+   * 计算租户资源使用情况
    */
-  public async canCreateOrganization(tenantId: TenantId, maxOrganizations: number): Promise<boolean> {
-    if (maxOrganizations === -1) return true; // 无限制
-    
-    const usage = await this.checkResourceUsage(tenantId);
-    return usage.organizationCount < maxOrganizations;
+  async calculateResourceUsage(tenantId: string): Promise<Record<string, number>> {
+    // TODO: 实现资源使用情况计算逻辑
+    return {};
   }
 
   /**
-   * 验证租户是否可以执行API调用
-   * 
-   * @param tenantId 租户ID
-   * @param maxApiCalls 最大API调用次数限制
-   * @returns true如果可以执行，否则false
+   * 获取服务名称
    */
-  public async canMakeApiCall(tenantId: TenantId, maxApiCalls: number): Promise<boolean> {
-    if (maxApiCalls === -1) return true; // 无限制
-    
-    const usage = await this.checkResourceUsage(tenantId);
-    return usage.apiCallsToday < maxApiCalls;
-  }
-
-  /**
-   * 计算租户资源使用百分比
-   * 
-   * @param tenantId 租户ID
-   * @param limits 资源限制
-   * @returns 资源使用百分比
-   */
-  public async calculateResourceUsagePercentage(
-    tenantId: TenantId, 
-    limits: { maxUsers: number; maxOrganizations: number; maxStorage: number; maxApiCalls: number }
-  ): Promise<{ userPercentage: number; orgPercentage: number; storagePercentage: number; apiPercentage: number }> {
-    const usage = await this.checkResourceUsage(tenantId);
-    
-    const calculatePercentage = (used: number, limit: number): number => {
-      if (limit === -1) return 0; // 无限制
-      return Math.round((used / limit) * 100);
-    };
-    
-    return {
-      userPercentage: calculatePercentage(usage.userCount, limits.maxUsers),
-      orgPercentage: calculatePercentage(usage.organizationCount, limits.maxOrganizations),
-      storagePercentage: calculatePercentage(usage.storageUsed, limits.maxStorage),
-      apiPercentage: calculatePercentage(usage.apiCallsToday, limits.maxApiCalls)
-    };
+  getServiceName(): string {
+    return 'TenantDomainService';
   }
 }

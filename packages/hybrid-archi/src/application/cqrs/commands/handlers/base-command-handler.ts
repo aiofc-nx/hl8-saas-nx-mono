@@ -311,7 +311,7 @@ export abstract class BaseCommandHandler<
         id: this.generateTransactionId(),
         isolationLevel: 'READ_COMMITTED',
       },
-      custom: {},
+      custom: {} as Record<string, unknown>,
     };
   }
 

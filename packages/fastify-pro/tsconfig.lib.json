@@ -12,5 +12,9 @@
     "src/**/*.test.ts",
     "src/test/**/*"
   ],
-
+  "references": [
+    {
+      "path": "../multi-tenancy/tsconfig.lib.json"
+    }
+  ]
 }

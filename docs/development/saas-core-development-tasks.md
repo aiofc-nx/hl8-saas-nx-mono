@@ -170,7 +170,41 @@ gantt
   - [ ] `UserStatus` - 用户状态枚举
   - [ ] `UserPermission` - 用户权限值对象
 
-#### 2.3 组织部门子领域
+#### 2.3 权限与角色子领域
+
+- [x] **权限实体 (Permission Entity)**
+  - [x] 实现权限基础属性
+  - [x] 添加权限验证逻辑
+  - [x] 实现权限级别管理
+  - [x] 添加权限范围检查
+  - [x] 实现权限激活/停用逻辑
+- [x] **权限聚合根 (PermissionAggregate)**
+  - [x] 实现聚合根管理职责
+  - [x] 协调内部实体操作
+  - [x] 发布权限领域事件
+  - [x] 验证权限业务规则
+- [x] **角色实体 (Role Entity)**
+  - [x] 实现角色基础属性
+  - [x] 添加权限管理逻辑
+  - [x] 实现角色继承功能
+  - [x] 添加角色状态管理
+  - [x] 实现权限检查逻辑
+- [x] **角色聚合根 (RoleAggregate)**
+  - [x] 管理角色生命周期
+  - [x] 处理权限分配
+  - [x] 发布角色事件
+  - [x] 验证角色规则
+- [x] **用户角色关联实体 (UserRole Entity)**
+  - [x] 管理用户与角色关系
+  - [x] 实现角色有效期管理
+  - [x] 添加角色分配逻辑
+  - [x] 实现角色状态检查
+- [x] **权限与角色值对象**
+  - [x] `PermissionScope` - 权限范围枚举
+  - [x] `PermissionProps` - 权限属性接口
+  - [x] 权限验证值对象
+
+#### 2.4 组织部门子领域
 
 - [ ] **组织实体和聚合根**
   - [ ] `Organization` 实体
@@ -185,7 +219,7 @@ gantt
   - [ ] `DepartmentLevel` - 部门层级
   - [ ] `OrganizationConfig` - 组织配置
 
-#### 2.4 领域事件系统
+#### 2.5 领域事件系统
 
 - [ ] **租户相关事件**
   - [ ] `TenantCreatedEvent` - 租户创建事件
@@ -197,11 +231,23 @@ gantt
   - [ ] `UserActivatedEvent` - 用户激活事件
   - [ ] `UserAuthenticatedEvent` - 用户认证事件
   - [ ] `UserAssignedToTenantEvent` - 用户分配事件
+- [x] **权限与角色相关事件**
+  - [x] `PermissionCreatedEvent` - 权限创建事件
+  - [x] `PermissionUpdatedEvent` - 权限更新事件
+  - [x] `PermissionDeletedEvent` - 权限删除事件
+  - [x] `RoleCreatedEvent` - 角色创建事件
+  - [x] `RolePermissionAddedEvent` - 角色权限添加事件
+  - [x] `RolePermissionRemovedEvent` - 角色权限移除事件
+  - [x] `RoleParentAddedEvent` - 角色父角色添加事件
+  - [x] `RoleParentRemovedEvent` - 角色父角色移除事件
+  - [x] `UserRoleAssignedEvent` - 用户角色分配事件
+  - [x] `UserRoleRemovedEvent` - 用户角色移除事件
+  - [x] `PermissionCheckedEvent` - 权限验证事件
 - [ ] **组织部门相关事件**
   - [ ] `OrganizationCreatedEvent` - 组织创建事件
   - [ ] `DepartmentCreatedEvent` - 部门创建事件
 
-#### 2.5 业务规则引擎
+#### 2.6 业务规则引擎
 
 - [ ] **租户业务规则验证器**
   - [ ] 租户代码唯一性验证
@@ -211,6 +257,15 @@ gantt
   - [ ] 邮箱唯一性验证
   - [ ] 用户名唯一性验证
   - [ ] 密码强度验证
+- [x] **权限与角色业务规则验证器**
+  - [x] 权限名称唯一性验证
+  - [x] 权限级别范围验证
+  - [x] 权限格式验证
+  - [x] 角色代码唯一性验证
+  - [x] 角色名称验证
+  - [x] 角色继承循环检测
+  - [x] 系统权限/角色保护规则
+  - [x] 权限继承规则验证
 - [ ] **跨聚合业务规则**
   - [ ] 租户用户限制验证
   - [ ] 组织部门层级验证
@@ -253,27 +308,70 @@ gantt
 - [ ] **GetUserUseCase** - 查询用户用例
 - [ ] **GetUserListUseCase** - 用户列表用例
 
-#### 3.3 组织部门用例服务
+#### 3.3 权限与角色用例服务
+
+- [ ] **CreatePermissionUseCase** - 创建权限用例
+  - [ ] 验证权限名称唯一性
+  - [ ] 创建权限聚合根
+  - [ ] 持久化权限数据
+  - [ ] 发布创建事件
+- [ ] **UpdatePermissionUseCase** - 更新权限用例
+  - [ ] 获取权限聚合根
+  - [ ] 执行更新业务逻辑
+  - [ ] 持久化变更数据
+  - [ ] 发布更新事件
+- [ ] **DeletePermissionUseCase** - 删除权限用例
+- [ ] **CreateRoleUseCase** - 创建角色用例
+  - [ ] 验证角色代码唯一性
+  - [ ] 创建角色聚合根
+  - [ ] 持久化角色数据
+  - [ ] 发布创建事件
+- [ ] **UpdateRoleUseCase** - 更新角色用例
+- [ ] **AssignPermissionToRoleUseCase** - 分配权限给角色用例
+- [ ] **RemovePermissionFromRoleUseCase** - 从角色移除权限用例
+- [ ] **AssignRoleToUserUseCase** - 分配角色给用户用例
+- [ ] **RemoveRoleFromUserUseCase** - 从用户移除角色用例
+- [ ] **CheckPermissionUseCase** - 检查权限用例
+- [ ] **GetPermissionUseCase** - 查询权限用例
+- [ ] **GetRoleUseCase** - 查询角色用例
+- [ ] **GetUserRolesUseCase** - 查询用户角色用例
+
+#### 3.4 组织部门用例服务
 
 - [ ] **CreateOrganizationUseCase** - 创建组织用例
 - [ ] **CreateDepartmentUseCase** - 创建部门用例
 - [ ] **GetOrganizationUseCase** - 查询组织用例
 - [ ] **GetDepartmentUseCase** - 查询部门用例
 
-#### 3.4 命令查询分离 (CQRS)
+#### 3.5 命令查询分离 (CQRS)
 
 - [ ] **命令对象设计**
   - [ ] 租户相关命令
   - [ ] 用户相关命令
+  - [x] 权限与角色相关命令
+    - [x] `CreatePermissionCommand`
+    - [x] `UpdatePermissionCommand`
+    - [x] `DeletePermissionCommand`
+    - [x] `CreateRoleCommand`
+    - [x] `UpdateRoleCommand`
+    - [x] `AssignPermissionToRoleCommand`
+    - [x] `RemovePermissionFromRoleCommand`
+    - [x] `AssignRoleToUserCommand`
+    - [x] `RemoveRoleFromUserCommand`
   - [ ] 组织部门相关命令
 - [ ] **查询对象设计**
   - [ ] 租户相关查询
   - [ ] 用户相关查询
+  - [x] 权限与角色相关查询
+    - [x] `GetPermissionQuery`
+    - [x] `GetRoleQuery`
+    - [x] `GetUserRolesQuery`
+    - [x] `CheckPermissionQuery`
   - [ ] 组织部门相关查询
 - [ ] **命令处理器实现**
 - [ ] **查询处理器实现**
 
-#### 3.5 事件处理器
+#### 3.6 事件处理器
 
 - [ ] **租户事件处理器**
   - [ ] 租户创建事件处理
@@ -283,6 +381,14 @@ gantt
   - [ ] 用户注册事件处理
   - [ ] 用户认证事件处理
   - [ ] 用户分配事件处理
+- [x] **权限与角色事件处理器**
+  - [x] 权限创建事件处理
+  - [x] 权限更新事件处理
+  - [x] 权限删除事件处理
+  - [x] 角色创建事件处理
+  - [x] 角色权限变更事件处理
+  - [x] 用户角色分配事件处理
+  - [x] 权限验证事件处理
 
 **预计完成时间**: 5天
 
@@ -616,7 +722,8 @@ gantt
 - [ ] **业务功能验证**
   - [ ] 租户管理功能完整
   - [ ] 用户管理功能完整
-  - [ ] 权限控制功能完整
+  - [x] 权限与角色管理功能完整
+  - [x] 权限控制功能完整
 - [ ] **非功能需求验证**
   - [ ] 性能指标达标
   - [ ] 安全性要求满足
@@ -641,8 +748,8 @@ gantt
 
 | 阶段 | 状态 | 开始时间 | 预计完成时间 | 实际完成时间 | 完成度 |
 |------|------|----------|--------------|--------------|--------|
-| 第一阶段：基础架构搭建 | 🟡 进行中 | 2025-01-27 | 2025-01-30 | - | 60% |
-| 第二阶段：领域层开发 | ⏳ 待开始 | 2025-01-30 | 2025-02-06 | - | 0% |
+| 第一阶段：基础架构搭建 | ✅ 已完成 | 2025-01-27 | 2025-01-30 | 2025-01-27 | 100% |
+| 第二阶段：领域层开发 | 🟡 进行中 | 2025-01-27 | 2025-02-06 | - | 40% |
 | 第三阶段：应用层开发 | ⏳ 待开始 | 2025-02-06 | 2025-02-11 | - | 0% |
 | 第四阶段：基础设施层开发 | ⏳ 待开始 | 2025-02-11 | 2025-02-15 | - | 0% |
 | 第五阶段：接口层开发 | ⏳ 待开始 | 2025-02-15 | 2025-02-19 | - | 0% |

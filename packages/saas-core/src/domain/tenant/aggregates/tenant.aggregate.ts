@@ -1,7 +1,7 @@
 import { BaseAggregateRoot, EntityId } from '@hl8/hybrid-archi';
 import { Tenant } from '../entities/tenant.entity';
-import { TenantStatus } from '../value-objects/tenant-status.vo';
-import { TenantType } from '../value-objects/tenant-type.vo';
+import { TenantStatus } from '@hl8/hybrid-archi';
+import { TenantType } from '@hl8/hybrid-archi';
 import { TenantConfig } from '../value-objects/tenant-config.vo';
 import { ResourceLimits } from '../value-objects/resource-limits.vo';
 import { TenantCreatedEvent } from '../../events/tenant-events';
@@ -56,10 +56,19 @@ export class TenantAggregate extends BaseAggregateRoot {
    * @param tenant - 租户实体
    */
   constructor(
-    private readonly tenantId: EntityId,
+    private readonly _tenantId: EntityId,
     private readonly tenant: Tenant
   ) {
-    super(tenantId, { createdBy: 'system' });
+    super(_tenantId, { createdBy: 'system' });
+  }
+
+  /**
+   * 获取租户ID
+   *
+   * @returns 租户ID
+   */
+  public getTenantId(): EntityId {
+    return this._tenantId;
   }
 
   /**
@@ -122,7 +131,8 @@ export class TenantAggregate extends BaseAggregateRoot {
       code,
       name,
       type,
-      adminId
+      adminId,
+      id.toString() // tenantIdParam
     ));
 
     return aggregate;
@@ -146,7 +156,10 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.activate();
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantActivatedEvent(this.tenantId));
+    this.addDomainEvent(new TenantActivatedEvent(
+      this._tenantId,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -168,7 +181,11 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.suspend(reason);
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantSuspendedEvent(this.tenantId, reason));
+    this.addDomainEvent(new TenantSuspendedEvent(
+      this._tenantId,
+      reason,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -190,7 +207,11 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.disable(reason);
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantDisabledEvent(this.tenantId, reason));
+    this.addDomainEvent(new TenantDisabledEvent(
+      this._tenantId,
+      reason,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -219,9 +240,10 @@ export class TenantAggregate extends BaseAggregateRoot {
     
     // 发布领域事件（聚合根职责）
     this.addDomainEvent(new TenantUpgradedEvent(
-      this.tenantId,
+      this._tenantId,
       currentType,
-      newType
+      newType,
+      this._tenantId.toString() // tenantIdParam
     ));
   }
 
@@ -244,7 +266,11 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.updateName(newName);
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantNameUpdatedEvent(this.tenantId, newName));
+    this.addDomainEvent(new TenantNameUpdatedEvent(
+      this._tenantId,
+      newName,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -266,7 +292,11 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.updateAdmin(newAdminId);
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantAdminUpdatedEvent(this.tenantId, newAdminId));
+    this.addDomainEvent(new TenantAdminUpdatedEvent(
+      this._tenantId,
+      newAdminId,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -288,7 +318,11 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.tenant.updateConfig(newConfig);
     
     // 发布领域事件（聚合根职责）
-    this.addDomainEvent(new TenantConfigUpdatedEvent(this.tenantId, newConfig));
+    this.addDomainEvent(new TenantConfigUpdatedEvent(
+      this._tenantId,
+      newConfig,
+      this._tenantId.toString() // tenantIdParam
+    ));
   }
 
   /**
@@ -311,8 +345,9 @@ export class TenantAggregate extends BaseAggregateRoot {
     
     // 发布领域事件（聚合根职责）
     this.addDomainEvent(new TenantResourceLimitsUpdatedEvent(
-      this.tenantId,
-      newResourceLimits
+      this._tenantId,
+      newResourceLimits,
+      this._tenantId.toString() // tenantIdParam
     ));
   }
 
@@ -336,18 +371,6 @@ export class TenantAggregate extends BaseAggregateRoot {
     return this.tenant;
   }
 
-  /**
-   * 获取租户ID
-   *
-   * @description 获取聚合根的标识符
-   *
-   * @returns 租户ID
-   *
-   * @since 1.0.0
-   */
-  public getTenantId(): EntityId {
-    return this.tenantId;
-  }
 
   /**
    * 创建默认配置
@@ -441,6 +464,30 @@ export class TenantAggregate extends BaseAggregateRoot {
         maxDepartments: -1,
         maxApiCalls: -1,
         maxDataTransfer: -1
+      },
+      [TenantType.PERSONAL]: {
+        maxUsers: 1,
+        maxStorage: 2,
+        maxOrganizations: 1,
+        maxDepartments: 3,
+        maxApiCalls: 5000,
+        maxDataTransfer: 10
+      },
+      [TenantType.TEAM]: {
+        maxUsers: 20,
+        maxStorage: 20,
+        maxOrganizations: 5,
+        maxDepartments: 20,
+        maxApiCalls: 50000,
+        maxDataTransfer: 100
+      },
+      [TenantType.COMMUNITY]: {
+        maxUsers: 100,
+        maxStorage: 50,
+        maxOrganizations: 10,
+        maxDepartments: 50,
+        maxApiCalls: 200000,
+        maxDataTransfer: 200
       }
     };
 
@@ -449,5 +496,5 @@ export class TenantAggregate extends BaseAggregateRoot {
 }
 
 // 导入必要的依赖
-import { TenantTypeUtils } from '../value-objects/tenant-type.vo';
+import { TenantTypeUtils } from '@hl8/hybrid-archi';
 import { TenantActivatedEvent, TenantSuspendedEvent, TenantDisabledEvent, TenantUpgradedEvent, TenantNameUpdatedEvent, TenantAdminUpdatedEvent, TenantConfigUpdatedEvent, TenantResourceLimitsUpdatedEvent } from '../../events/tenant-events';

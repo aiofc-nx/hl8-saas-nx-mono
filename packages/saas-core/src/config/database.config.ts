@@ -1,27 +1,28 @@
 /**
  * 数据库配置
  * 
- * @description 配置PostgreSQL数据库连接参数和TypeORM设置
+ * @description 配置PostgreSQL数据库连接参数和MikroORM设置
  * 支持开发、测试、生产环境的不同配置
  * 
  * @since 1.0.0
  */
 
 export interface DatabaseConfig {
-  type: 'postgres';
+  type: 'postgresql';
   host: string;
   port: number;
-  username: string;
+  user: string;
   password: string;
-  database: string;
+  dbName: string;
   entities: string[];
-  synchronize: boolean;
-  logging: boolean;
-  extra: {
-    max: number;
+  migrations: {
+    path: string;
+    pattern: RegExp;
+  };
+  debug: boolean;
+  pool: {
     min: number;
-    acquire: number;
-    idle: number;
+    max: number;
   };
 }
 
@@ -35,20 +36,21 @@ export interface DatabaseConfig {
  */
 export const getDatabaseConfig = (): DatabaseConfig => {
   return {
-    type: 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_DATABASE || 'saas_core_dev',
+    type: 'postgresql',
+    host: process.env['DB_HOST'] || 'localhost',
+    port: parseInt(process.env['DB_PORT'] || '5432'),
+    user: process.env['DB_USERNAME'] || 'postgres',
+    password: process.env['DB_PASSWORD'] || 'password',
+    dbName: process.env['DB_DATABASE'] || 'saas_core_dev',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: process.env.NODE_ENV !== 'production',
-    logging: process.env.NODE_ENV === 'development',
-    extra: {
-      max: 20, // 最大连接数
+    migrations: {
+      path: __dirname + '/../migrations',
+      pattern: /^[\w-]+\d+\.(ts|js)$/,
+    },
+    debug: process.env['NODE_ENV'] === 'development',
+    pool: {
       min: 5,  // 最小连接数
-      acquire: 30000, // 获取连接超时时间
-      idle: 10000,    // 连接空闲时间
+      max: 20, // 最大连接数
     },
   };
 };

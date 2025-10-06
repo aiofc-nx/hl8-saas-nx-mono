@@ -188,7 +188,7 @@ export function RequireMultiplePermissions(
  * @returns 装饰器
  */
 export function RequireDynamicPermissions(
-  permissionResolver: (context: any) => string[]
+  permissionResolver: (context: unknown) => string[]
 ): MethodDecorator {
   return SetMetadata('dynamic_permissions', permissionResolver);
 }
@@ -221,7 +221,7 @@ export function ExcludePermissions(
  * @returns 装饰器
  */
 export function RequirePermissionsIf(
-  condition: (context: any) => boolean,
+  condition: (context: unknown) => boolean,
   permissions: string | string[]
 ): MethodDecorator {
   return SetMetadata('conditional_permissions', {

@@ -246,7 +246,7 @@ export const USE_CASE_METADATA_KEY = Symbol('useCase');
  * ```
  */
 export function UseCase(options: IUseCaseOptions): ClassDecorator {
-  return function <T extends Function>(target: T): T {
+  return function (target: any): any {
     // 验证配置选项
     validateUseCaseOptions(options);
 
@@ -316,7 +316,7 @@ export function getUseCaseMetadata(
  * }
  * ```
  */
-export function isUseCase(target: any): boolean {
+export function isUseCase(target: unknown): boolean {
   return getUseCaseMetadata(target) !== undefined;
 }
 

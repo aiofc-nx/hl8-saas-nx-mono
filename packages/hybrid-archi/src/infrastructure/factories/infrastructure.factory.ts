@@ -63,7 +63,7 @@ export interface IInfrastructureServiceConfig {
   /** 是否启用 */
   enabled: boolean;
   /** 配置选项 */
-  options: Record<string, any>;
+  options: Record<string, unknown>;
   /** 依赖服务 */
   dependencies: string[];
   /** 初始化优先级 */
@@ -83,7 +83,7 @@ export interface IInfrastructureServiceRegistration {
   /** 服务配置 */
   config: IInfrastructureServiceConfig;
   /** 服务实例 */
-  instance?: any;
+  instance?: unknown;
   /** 是否已初始化 */
   initialized: boolean;
   /** 创建时间 */
@@ -109,7 +109,7 @@ export class InfrastructureFactory {
   >();
   private readonly serviceConstructors = new Map<
     InfrastructureServiceType,
-    any
+    unknown
   >();
 
   constructor(
@@ -129,7 +129,7 @@ export class InfrastructureFactory {
    * @param config - 服务配置
    * @returns 服务实例
    */
-  createService(config: IInfrastructureServiceConfig): any {
+  createService(config: IInfrastructureServiceConfig): unknown {
     // 检查服务是否已存在
     if (this.services.has(config.serviceName)) {
       const registration = this.services.get(config.serviceName)!;
@@ -146,7 +146,7 @@ export class InfrastructureFactory {
         throw new Error(`未知的服务类型: ${config.serviceType}`);
       }
 
-      const instance = this.instantiateService(ServiceConstructor, config);
+      const instance = this.instantiateService(ServiceConstructor as { new (...args: unknown[]): unknown }, config);
 
       // 注册服务
       const registration: IInfrastructureServiceRegistration = {
@@ -183,7 +183,7 @@ export class InfrastructureFactory {
    * @param serviceName - 服务名称
    * @returns 服务实例
    */
-  getService(serviceName: string): any | null {
+  getService(serviceName: string): unknown | null {
     const registration = this.services.get(serviceName);
     if (!registration) {
       return null;
@@ -199,7 +199,7 @@ export class InfrastructureFactory {
    * @param config - 服务配置
    * @returns 服务实例
    */
-  getOrCreateService(config: IInfrastructureServiceConfig): any {
+  getOrCreateService(config: IInfrastructureServiceConfig): unknown {
     const existingService = this.getService(config.serviceName);
     if (existingService) {
       return existingService;
@@ -229,9 +229,9 @@ export class InfrastructureFactory {
       // 初始化服务
       if (
         registration.instance &&
-        typeof registration.instance.initialize === 'function'
+        typeof (registration.instance as { initialize?: () => Promise<void> }).initialize === 'function'
       ) {
-        await registration.instance.initialize();
+        await (registration.instance as { initialize: () => Promise<void> }).initialize();
       }
 
       registration.initialized = true;
@@ -263,9 +263,9 @@ export class InfrastructureFactory {
       // 启动服务
       if (
         registration.instance &&
-        typeof registration.instance.start === 'function'
+        typeof (registration.instance as { start?: () => Promise<void> }).start === 'function'
       ) {
-        await registration.instance.start();
+        await (registration.instance as { start: () => Promise<void> }).start();
       }
 
       registration.status = 'running';
@@ -296,9 +296,9 @@ export class InfrastructureFactory {
       // 停止服务
       if (
         registration.instance &&
-        typeof registration.instance.stop === 'function'
+        typeof (registration.instance as { stop?: () => Promise<void> }).stop === 'function'
       ) {
-        await registration.instance.stop();
+        await (registration.instance as { stop: () => Promise<void> }).stop();
       }
 
       registration.status = 'stopped';
@@ -329,9 +329,9 @@ export class InfrastructureFactory {
       // 销毁服务
       if (
         registration.instance &&
-        typeof registration.instance.destroy === 'function'
+        typeof (registration.instance as { destroy?: () => Promise<void> }).destroy === 'function'
       ) {
-        await registration.instance.destroy();
+        await (registration.instance as { destroy: () => Promise<void> }).destroy();
       }
 
       // 移除服务注册
@@ -526,7 +526,7 @@ export class InfrastructureFactory {
    * 实例化服务
    */
   private instantiateService(
-    ServiceConstructor: any,
+    ServiceConstructor: new (...args: unknown[]) => unknown,
     config: IInfrastructureServiceConfig
   ): any {
     const serviceType = config.serviceType;
@@ -564,8 +564,8 @@ export class InfrastructureFactory {
   /**
    * 创建端口适配器
    */
-  private createPortAdapter(serviceName: string, options: any): any {
-    const adapterType = options.adapterType || 'logger';
+  private createPortAdapter(serviceName: string, options: Record<string, unknown>): any {
+    const adapterType = options['adapterType'] || 'logger';
 
     switch (adapterType) {
       case 'logger':
@@ -577,7 +577,7 @@ export class InfrastructureFactory {
       case 'validation':
         return new ValidationPortAdapter();
       case 'configuration':
-        return new ConfigurationPortAdapter(options.configService);
+        return new ConfigurationPortAdapter(options['configService'] as any);
       case 'eventBus':
         return new EventBusPortAdapter(this.eventService);
       default:
@@ -588,8 +588,8 @@ export class InfrastructureFactory {
   /**
    * 创建仓储适配器
    */
-  private createRepositoryAdapter(serviceName: string, options: any): any {
-    const adapterType = options.adapterType || 'base';
+  private createRepositoryAdapter(serviceName: string, options: Record<string, unknown>): any {
+    const adapterType = options['adapterType'] || 'base';
 
     switch (adapterType) {
       case 'base':
@@ -597,7 +597,7 @@ export class InfrastructureFactory {
           this.databaseService,
           this.cacheService,
           this.logger,
-          options.entityName || 'Entity',
+          (options['entityName'] as string) || 'Entity',
           options
         );
       case 'aggregate':
@@ -606,7 +606,7 @@ export class InfrastructureFactory {
           this.cacheService,
           this.logger,
           this.eventService,
-          options.entityName || 'Aggregate',
+          (options['entityName'] as string) || 'Aggregate',
           options
         );
       default:
@@ -617,7 +617,7 @@ export class InfrastructureFactory {
   /**
    * 创建领域服务适配器
    */
-  private createDomainServiceAdapter(serviceName: string, options: any): any {
+  private createDomainServiceAdapter(serviceName: string, options: Record<string, unknown>): any {
     return new DomainServiceAdapter(
       this.logger,
       this.cacheService,

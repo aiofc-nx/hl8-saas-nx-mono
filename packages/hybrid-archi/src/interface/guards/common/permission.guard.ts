@@ -111,7 +111,7 @@ export class PermissionGuard implements CanActivate {
    * @returns 是否具有角色
    * @private
    */
-  private checkUserRoles(user: any, requiredRoles: string[]): boolean {
+  private checkUserRoles(user: { roles?: string[] }, requiredRoles: string[]): boolean {
     const userRoles = user.roles || [];
     return requiredRoles.some((role) => userRoles.includes(role));
   }
@@ -126,7 +126,7 @@ export class PermissionGuard implements CanActivate {
    * @private
    */
   private checkUserPermissions(
-    user: any,
+    user: { permissions?: string[] },
     requiredPermissions: string[]
   ): boolean {
     const userPermissions = user.permissions || [];

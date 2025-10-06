@@ -60,7 +60,6 @@ import { TypedConfigModule, fileLoader } from '@hl8/config';
 import { LoggerModule } from '@hl8/logger';
 import { ExceptionModule } from '@hl8/common';
 import { FastifyProModule } from '@hl8/fastify-pro';
-import { UserManagementModule } from '@hl8/user-management';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppConfig } from './config/app.config';
@@ -162,8 +161,6 @@ import { join } from 'path';
     // 性能指标模块 - 提供性能监控和指标收集功能
     MetricsModule,
 
-    // 用户管理模块 - 提供用户管理功能
-    UserManagementModule,
   ],
   controllers: [AppController],
   providers: [

@@ -8,36 +8,6 @@
     },
     {
       "path": "./tsconfig.spec.json"
-    },
-    {
-      "path": "../../packages/hybrid-archi"
-    },
-    {
-      "path": "../../packages/multi-tenancy"
-    },
-    {
-      "path": "../../packages/config"
-    },
-    {
-      "path": "../../packages/logger"
-    },
-    {
-      "path": "../../packages/utils"
-    },
-    {
-      "path": "../../packages/common"
-    },
-    {
-      "path": "../../packages/database"
-    },
-    {
-      "path": "../../packages/cache"
-    },
-    {
-      "path": "../../packages/messaging"
-    },
-    {
-      "path": "../../packages/user-management"
     }
   ],
   "compilerOptions": {

@@ -360,43 +360,43 @@ describe('EventHandler装饰器', () => {
     it('应该正确设置完整配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
       expect(metadata).toBeDefined();
-      expect(metadata!.eventType).toBe('AdvancedTestEvent');
-      expect(metadata!.priority).toBe(10);
-      expect(metadata!.timeout).toBe(5000);
-      expect(metadata!.retry).toBeDefined();
-      expect(metadata!.multiTenant).toBeDefined();
-      expect(metadata!.performanceMonitor).toBeDefined();
-      expect(metadata!.enableLogging).toBe(true);
-      expect(metadata!.enableAudit).toBe(true);
-      expect(metadata!.enablePerformanceMonitor).toBe(true);
-      expect(metadata!.enableIdempotency).toBe(true);
-      expect(metadata!.enableDeadLetterQueue).toBe(true);
-      expect(metadata!.orderingKey).toBe('aggregateId');
-      expect(metadata!.customConfig).toBeDefined();
+      expect(metadata?.eventType).toBe('AdvancedTestEvent');
+      expect(metadata?.priority).toBe(10);
+      expect(metadata?.timeout).toBe(5000);
+      expect(metadata?.retry).toBeDefined();
+      expect(metadata?.multiTenant).toBeDefined();
+      expect(metadata?.performanceMonitor).toBeDefined();
+      expect(metadata?.enableLogging).toBe(true);
+      expect(metadata?.enableAudit).toBe(true);
+      expect(metadata?.enablePerformanceMonitor).toBe(true);
+      expect(metadata?.enableIdempotency).toBe(true);
+      expect(metadata?.enableDeadLetterQueue).toBe(true);
+      expect(metadata?.orderingKey).toBe('aggregateId');
+      expect(metadata?.customConfig).toBeDefined();
     });
 
     it('应该正确设置重试配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      const retry = metadata!.retry;
-      expect(retry!.maxRetries).toBe(5);
-      expect(retry!.retryDelay).toBe(2000);
-      expect(retry!.backoffMultiplier).toBe(1.5);
+      const retry = metadata?.retry;
+      expect(retry?.maxRetries).toBe(5);
+      expect(retry?.retryDelay).toBe(2000);
+      expect(retry?.backoffMultiplier).toBe(1.5);
     });
 
     it('应该正确设置多租户配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      const multiTenant = metadata!.multiTenant;
-      expect(typeof multiTenant!.tenantResolver).toBe('function');
+      const multiTenant = metadata?.multiTenant;
+      expect(typeof multiTenant?.tenantResolver).toBe('function');
     });
 
     it('应该正确设置性能监控配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      const performanceMonitor = metadata!.performanceMonitor;
-      expect(performanceMonitor!.thresholds).toEqual({
+      const performanceMonitor = metadata?.performanceMonitor;
+      expect(performanceMonitor?.thresholds).toEqual({
         warning: 1000,
         error: 5000,
       });
-      expect(performanceMonitor!.metrics).toEqual([
+      expect(performanceMonitor?.metrics).toEqual([
         'processing_time',
         'event_count',
       ]);
@@ -404,7 +404,7 @@ describe('EventHandler装饰器', () => {
 
     it('应该正确设置事件过滤器', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      const eventFilter = metadata!.eventFilter;
+      const eventFilter = metadata?.eventFilter;
       expect(typeof eventFilter).toBe('function');
 
       if (eventFilter) {
@@ -416,9 +416,9 @@ describe('EventHandler装饰器', () => {
 
     it('应该正确设置自定义配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      const customConfig = metadata!.customConfig;
-      expect(customConfig!['batchSize']).toBe(10);
-      expect(customConfig!['enableBatching']).toBe(true);
+      const customConfig = metadata?.customConfig;
+      expect(customConfig?.['batchSize']).toBe(10);
+      expect(customConfig?.['enableBatching']).toBe(true);
     });
   });
 
@@ -780,8 +780,8 @@ describe('EventHandler装饰器', () => {
       }
 
       const metadata = getEventHandlerMetadata(LargeNumbersHandler);
-      expect(metadata!.priority).toBe(Number.MAX_SAFE_INTEGER);
-      expect(metadata!.timeout).toBe(Number.MAX_SAFE_INTEGER);
+      expect(metadata?.priority).toBe(Number.MAX_SAFE_INTEGER);
+      expect(metadata?.timeout).toBe(Number.MAX_SAFE_INTEGER);
     });
 
     it('应该处理复杂的事件过滤器', () => {
@@ -868,7 +868,7 @@ describe('EventHandler装饰器', () => {
       }
 
       const metadata = getEventHandlerMetadata(ComplexFilterHandler);
-      const eventFilter = metadata!.eventFilter;
+      const eventFilter = metadata?.eventFilter;
       expect(typeof eventFilter).toBe('function');
 
       if (eventFilter) {
@@ -980,17 +980,17 @@ describe('EventHandler装饰器', () => {
   describe('事件处理特性测试', () => {
     it('应该正确处理幂等性配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      expect(metadata!.enableIdempotency).toBe(true);
+      expect(metadata?.enableIdempotency).toBe(true);
     });
 
     it('应该正确处理死信队列配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      expect(metadata!.enableDeadLetterQueue).toBe(true);
+      expect(metadata?.enableDeadLetterQueue).toBe(true);
     });
 
     it('应该正确处理排序键配置', () => {
       const metadata = getEventHandlerMetadata(AdvancedTestEventHandler);
-      expect(metadata!.orderingKey).toBe('aggregateId');
+      expect(metadata?.orderingKey).toBe('aggregateId');
     });
 
     it('应该正确处理批量处理配置', () => {
@@ -1073,10 +1073,10 @@ describe('EventHandler装饰器', () => {
       }
 
       const metadata = getEventHandlerMetadata(BatchEventHandler);
-      const customConfig = metadata!.customConfig;
-      expect(customConfig!['enableBatching']).toBe(true);
-      expect(customConfig!['batchSize']).toBe(50);
-      expect(customConfig!['batchTimeout']).toBe(5000);
+      const customConfig = metadata?.customConfig;
+      expect(customConfig?.['enableBatching']).toBe(true);
+      expect(customConfig?.['batchSize']).toBe(50);
+      expect(customConfig?.['batchTimeout']).toBe(5000);
     });
   });
 });

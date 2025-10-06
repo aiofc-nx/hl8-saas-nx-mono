@@ -26,30 +26,43 @@ alwaysApply: true
 ### 1.1 项目基本信息
 
 **项目名称**: HL8 SAAS 平台  
-**架构模式**: 混合架构 = Clean Architecture + CQRS + 事件溯源（ES）+ 事件驱动架构（EDA）  
-**技术栈**: TypeScript + NestJS + Fastify + Nx + pnpm + PostgreSQL + Redis  
+**架构模式**: 混合架构 = Clean Architecture + DDD + CQRS + 事件溯源（ES）+ 事件驱动架构（EDA）  
+**技术栈**: TypeScript + NestJS + Fastify + Pino + Nx + pnpm + PostgreSQL + MongoDB + MikroORM + Redis  
 **项目类型**: Monorepo 多租户 SAAS 平台  
 
 ### 1.2 核心设计原则
 
 1. **充血模型**: 业务逻辑在实体内，服务层只协调
 2. **分层架构**: Interface → Application → Domain → Infrastructure
-3. **事件驱动**: 通过领域事件实现松耦合
-4. **多租户**: 完整的多租户架构支持
-5. **类型安全**: 严格的TypeScript类型系统
+3. **CQRS**: 命令查询职责分离，命令端处理写操作，查询端处理读操作
+4. **事件溯源（ES）**: 聚合状态通过事件流重建，支持完整的审计追踪和历史查询
+5. **事件驱动**: 通过领域事件实现松耦合
+6. **多租户**: 完整的多租户架构支持
+7. **类型安全**: 严格的TypeScript类型系统
+8. **实体与聚合根分离**: 业务实体与聚合根分离，不能用聚合根替代业务实体，业务实体作为聚合根的内部实体
+9. **实体开发遵循充血模型模式**: 所有实体必须遵循充血模型，包含完整的业务逻辑和方法
 
 ### 1.3 项目结构
 
 ```text
 hl8-saas-nx-mono/
 ├── apps/                    # 应用程序
+│   ├── api/                # API应用程序
+│   └── api-e2e/            # API端到端测试
 ├── packages/               # 共享库包
-│   ├── hybrid-archi/      # 混合架构核心模块
-│   ├── multi-tenancy/     # 多租户架构模块
-│   ├── fastify-pro/       # 企业级Fastify集成
-│   └── ...                # 其他基础设施模块
-├── docs/                  # 项目文档
-└── examples/             # 示例代码
+│   ├── cache/              # 缓存模块
+│   ├── common/             # 通用模块
+│   ├── config/             # 配置模块
+│   ├── database/           # 数据库模块
+│   ├── fastify-pro/        # 企业级Fastify集成
+│   ├── hybrid-archi/       # 混合架构核心模块
+│   ├── logger/             # 日志模块
+│   ├── messaging/          # 消息模块
+│   ├── multi-tenancy/      # 多租户架构模块
+│   ├── saas-core/          # SAAS核心业务模块
+│   └── utils/              # 工具模块
+├── docs/                   # 项目文档
+└── examples/               # 示例代码
 ```
 
 ---
@@ -61,7 +74,7 @@ hl8-saas-nx-mono/
 **核心提示词**:
 
 ```text
-本项目采用混合架构模式，将四种强大的架构模式有机结合：
+本项目采用混合架构模式，将五种强大的架构模式有机结合：
 - Clean Architecture: 提供清晰的分层架构和依赖方向
 - Domain-Driven Design (DDD): 提供充血模型和领域建模
 - Command Query Responsibility Segregation (CQRS): 分离命令和查询职责
@@ -72,6 +85,59 @@ hl8-saas-nx-mono/
 Interface Layer (接口层) → Application Layer (应用层) → Domain Layer (领域层) → Infrastructure Layer (基础设施层)
 
 依赖方向：外层依赖内层，内层不依赖外层
+
+CQRS架构要求：
+- 命令端 (Command Side): 处理写操作，通过聚合根执行业务逻辑
+- 查询端 (Query Side): 处理读操作，通过读模型提供数据
+- 命令处理器: 接收命令，验证业务规则，执行聚合根操作
+- 查询处理器: 接收查询，从读模型返回数据
+- 命令查询分离: 命令和查询使用不同的数据模型和接口
+
+事件溯源（ES）架构要求：
+- 事件存储: 所有领域事件持久化到事件存储
+- 状态重建: 聚合根能够从事件流重建当前状态
+- 事件版本: 支持事件版本管理和向后兼容
+- 快照机制: 支持聚合状态的快照，提高重建性能
+- 审计追踪: 完整的事件历史记录，支持审计和调试
+
+领域层功能组件要求：
+- 实体 (Entities): 业务实体与聚合根分离，实体作为聚合根的内部实体
+- 聚合根 (Aggregate Roots): 管理聚合一致性边界，协调内部实体操作，支持事件溯源
+- 值对象 (Value Objects): 不可变对象，封装业务概念和验证逻辑
+- 领域服务 (Domain Services): 处理跨实体的复杂业务逻辑
+- 领域事件 (Domain Events): 表示领域内重要业务变化的事件，支持事件溯源
+- 业务规则 (Business Rules): 领域内的业务规则和约束
+- 仓储接口 (Repository Interfaces): 定义数据访问契约，支持事件存储
+- 工厂 (Factories): 创建复杂对象的工厂方法
+- 命令对象 (Commands): 封装写操作的输入参数
+- 查询对象 (Queries): 封装读操作的输入参数
+
+包职责分工：
+
+**核心架构包（hybrid-archi）**：
+- **hybrid-archi**: 混合架构核心模块，是所有业务模块开发的基础
+  - 统一了业务模块开发的基本模式
+  - 集成了logger、config、cache、database、fastify-pro、multi-tenancy、messaging、common、utils等自定义模块
+  - 提供混合架构开发所需要的通用功能组件
+  - 包含领域层、应用层、基础设施层基础组件
+  - 业务模块开发必须基于hybrid-archi的结构和模式
+
+**业务模块包**：
+- **saas-core**: SAAS核心业务模块，包含用户、租户、组织、部门等业务领域
+  - 必须基于hybrid-archi开发
+  - 优先使用hybrid-archi提供的通用功能组件
+  - 不能偏离hybrid-archi的结构和模式
+
+**基础设施包（已集成到hybrid-archi）**：
+- **multi-tenancy**: 多租户架构模块，提供租户隔离和数据分离能力
+- **fastify-pro**: 企业级Fastify集成，提供高性能Web框架支持
+- **cache**: 缓存模块，提供Redis缓存和分布式缓存能力
+- **messaging**: 消息模块，提供事件总线和消息队列支持
+- **database**: 数据库模块，提供数据访问和持久化能力
+- **logger**: 日志模块，提供结构化日志和审计日志能力
+- **config**: 配置模块，提供类型安全的配置管理
+- **common**: 通用模块，提供共享工具和通用组件
+- **utils**: 工具模块，提供通用工具函数和辅助方法
 ```
 
 ### 2.2 充血模型设计
@@ -113,16 +179,33 @@ class User extends BaseEntity {
 - 协调内部实体操作
 - 发布领域事件
 - 验证业务规则
+- 支持事件溯源（ES）
+- 支持事件驱动架构（EDA）
+- 确保多租户数据隔离
+- 支持CQRS命令处理
+- 维护事件流完整性
 
 实体（被管理者）职责：
 - 执行具体业务操作
 - 维护自身状态
 - 实现业务逻辑
 - 遵循聚合根指令
+- 遵循充血模型模式
+- 包含完整的业务方法
+- 支持CQRS查询操作
+- 响应聚合根命令
 
 设计模式：
 聚合根作为管理者，负责协调和管理内部实体
 实体作为被管理者，执行具体的业务操作
+
+混合架构模式要求：
+- CQRS: 聚合根支持命令处理，实体支持查询操作，命令查询完全分离
+- ES: 聚合根必须支持事件溯源和状态重建，所有状态变更通过事件记录
+- EDA: 实体变更必须通过领域事件通知，支持异步事件处理
+- 多租户: 聚合根必须包含租户标识，确保数据隔离
+- 事件存储: 所有领域事件必须持久化到事件存储
+- 状态重建: 聚合根必须能够从事件流重建完整状态
 ```
 
 ---
@@ -194,6 +277,57 @@ TypeScript严格模式：启用所有严格检查
 禁止使用any类型
 ```
 
+### 3.4 包导入规范
+
+**核心提示词**:
+
+```text
+包导入顺序和规范：
+
+1. 导入顺序：
+   - 第三方库导入
+   - 项目内部包导入（按依赖层级）
+   - 相对路径导入
+
+2. 包导入规范：
+   - hybrid-archi: @hl8/hybrid-archi (优先使用，核心架构包)
+   - saas-core: @hl8/saas-core
+   - multi-tenancy: @hl8/multi-tenancy (已集成到hybrid-archi)
+   - fastify-pro: @hl8/fastify-pro (已集成到hybrid-archi)
+   - cache: @hl8/cache (已集成到hybrid-archi)
+   - messaging: @hl8/messaging (已集成到hybrid-archi)
+   - database: @hl8/database (已集成到hybrid-archi)
+   - logger: @hl8/logger (已集成到hybrid-archi)
+   - config: @hl8/config (已集成到hybrid-archi)
+   - common: @hl8/common (已集成到hybrid-archi)
+   - utils: @hl8/utils (已集成到hybrid-archi)
+
+3. hybrid-archi优先使用原则：
+   - 业务模块开发必须优先使用hybrid-archi提供的通用功能组件
+   - 值对象、实体、聚合根等基础组件优先从hybrid-archi导入
+   - 不能偏离hybrid-archi的结构和模式
+   - 只有在hybrid-archi没有提供时才考虑直接导入其他基础设施包
+
+4. 导入示例：
+```typescript
+// 第三方库
+import { Injectable } from '@nestjs/common';
+
+// 项目内部包（按依赖层级，优先使用hybrid-archi）
+import { 
+  BaseAggregateRoot, 
+  EntityId, 
+  BaseEntity,
+  BaseValueObject,
+  BaseDomainService 
+} from '@hl8/hybrid-archi';
+import { TenantContext } from '@hl8/multi-tenancy';
+import { UserAggregate } from '@hl8/saas-core';
+
+// 相对路径导入
+import { UserCreatedEvent } from '../events/user-events';
+```
+
 ---
 
 ## 4. 术语定义提示词
@@ -205,7 +339,7 @@ TypeScript严格模式：启用所有严格检查
 ```text
 平台 (Platform): SAAS服务的提供商，负责开发系统、提供技术支持和通用的商业服务
 租户 (Tenant): SAAS平台中的独立客户单位，拥有独立的数据空间和配置环境
-组织 (Organization): 租户内设的横向部门管理单位，负责管理下属部门的特定职能及业务
+组织 (Organization): 租户内设的横向部门管理单位，负责管理下属部门的特定职能及业务，组织之间无上下级从属关系
 部门 (Department): 组织内设的纵向管理机构，具有明确的上下级从属关系
 用户 (User): SAAS平台的使用者，是系统中最基本的身份单位
 
@@ -242,6 +376,12 @@ TypeScript严格模式：启用所有严格检查
 ```text
 生成充血模型实体时，遵循以下模板：
 
+```typescript
+// 优先使用hybrid-archi提供的基础组件
+import { BaseEntity, EntityId } from '@hl8/hybrid-archi';
+import { EntityStatus, EntityStatusUtils } from '../value-objects/entity-status.vo';
+import { EntityCreatedEvent } from '../../events/entity-events';
+
 class EntityName extends BaseEntity {
   private constructor(
     private readonly _id: EntityId,
@@ -275,34 +415,173 @@ class EntityName extends BaseEntity {
 }
 ```
 
-### 5.2 服务生成模板
+### 5.2 聚合根生成模板
+
+**核心提示词**:
+
+```text
+生成聚合根时，遵循以下模板：
+
+```typescript
+// 优先使用hybrid-archi提供的混合架构基础组件
+import { BaseAggregateRoot, EntityId } from '@hl8/hybrid-archi';
+import { Entity } from '../entities/entity.entity';
+import { EntityCreatedEvent, EntityUpdatedEvent } from '../../events/entity-events';
+import { CreateEntityCommand, UpdateEntityCommand } from '../commands/entity-commands';
+
+class EntityAggregate extends BaseAggregateRoot {
+  private constructor(
+    private readonly _id: EntityId,
+    private readonly _tenantId: EntityId,
+    private _entity: Entity,
+    private _status: EntityStatus
+  ) {
+    super(_id, _tenantId);
+  }
+
+  static create(...params): EntityAggregate {
+    const aggregate = new EntityAggregate(...);
+    aggregate.addDomainEvent(new EntityCreatedEvent(...));
+    return aggregate;
+  }
+
+  // 聚合根方法：协调内部实体操作
+  updateEntity(command: UpdateEntityCommand): void {
+    this.ensureBusinessRules(command);
+    this._entity.update(command.data);
+    this.addDomainEvent(new EntityUpdatedEvent(...));
+  }
+
+  // 聚合根方法：管理一致性边界
+  private ensureBusinessRules(command: UpdateEntityCommand): void {
+    if (!this.canUpdate()) {
+      throw new EntityUpdateException();
+    }
+  }
+
+  // 支持事件溯源：从事件流重建状态
+  static fromEvents(events: DomainEvent[]): EntityAggregate {
+    const aggregate = new EntityAggregate(...);
+    events.forEach(event => aggregate.apply(event));
+    return aggregate;
+  }
+
+  // 支持事件溯源：应用事件到聚合根
+  apply(event: DomainEvent): void {
+    switch (event.type) {
+      case 'EntityCreated':
+        this.handleEntityCreated(event);
+        break;
+      case 'EntityUpdated':
+        this.handleEntityUpdated(event);
+        break;
+      // 其他事件类型...
+    }
+  }
+
+  // 支持事件溯源：获取未提交的事件
+  getUncommittedEvents(): DomainEvent[] {
+    return this._uncommittedEvents;
+  }
+
+  // 支持事件溯源：标记事件为已提交
+  markEventsAsCommitted(): void {
+    this._uncommittedEvents = [];
+  }
+
+  // 支持CQRS：处理命令
+  handleCommand(command: Command): void {
+    this.ensureBusinessRules(command);
+    // 执行命令逻辑
+    this.addDomainEvent(new CommandProcessedEvent(...));
+  }
+
+  // 支持多租户
+  getTenantId(): EntityId {
+    return this._tenantId;
+  }
+}
+```
+
+### 5.3 服务生成模板
 
 **核心提示词**:
 
 ```text
 生成应用服务时，遵循以下模板：
 
+```typescript
+import { Injectable } from '@nestjs/common';
+// 优先使用hybrid-archi提供的CQRS和ES基础组件
+import { EntityId, IEventStore, IEventBus } from '@hl8/hybrid-archi';
+import { IEntityRepository } from '../repositories/entity-repository.interface';
+import { EntityAggregate } from '../aggregates/entity.aggregate';
+import { CreateEntityCommand, UpdateEntityCommand } from '../commands/entity-commands';
+import { GetEntityQuery, GetEntitiesQuery } from '../queries/entity-queries';
+import { EntityReadModel } from '../read-models/entity-read-model';
+
+// CQRS命令处理器
 @Injectable()
-export class EntityApplicationService {
+export class EntityCommandHandler {
   constructor(
     private readonly entityRepository: IEntityRepository,
+    private readonly eventStore: IEventStore,
     private readonly eventBus: IEventBus
   ) {}
 
-  async createEntity(command: CreateEntityCommand): Promise<EntityId> {
+  async handleCreateEntity(command: CreateEntityCommand): Promise<EntityId> {
     // 1. 验证业务规则
     await this.validateBusinessRules(command);
     
-    // 2. 创建实体（业务逻辑在实体内）
-    const entity = Entity.create(...);
+    // 2. 创建聚合根（业务逻辑在聚合根内）
+    const aggregate = EntityAggregate.create(...);
     
-    // 3. 持久化
-    await this.entityRepository.save(entity);
+    // 3. 保存到事件存储（ES）
+    await this.eventStore.saveEvents(aggregate.getId(), aggregate.getUncommittedEvents());
     
-    // 4. 发布事件
-    await this.eventBus.publishAll(entity.getUncommittedEvents());
+    // 4. 标记事件为已提交
+    aggregate.markEventsAsCommitted();
     
-    return entity.getId();
+    // 5. 发布事件到事件总线（EDA）
+    await this.eventBus.publishAll(aggregate.getUncommittedEvents());
+    
+    return aggregate.getId();
+  }
+
+  async handleUpdateEntity(command: UpdateEntityCommand): Promise<void> {
+    // 1. 从事件存储重建聚合根状态（ES）
+    const events = await this.eventStore.getEvents(command.entityId);
+    const aggregate = EntityAggregate.fromEvents(events);
+    
+    // 2. 执行命令
+    aggregate.handleCommand(command);
+    
+    // 3. 保存新事件到事件存储
+    await this.eventStore.saveEvents(aggregate.getId(), aggregate.getUncommittedEvents());
+    
+    // 4. 标记事件为已提交
+    aggregate.markEventsAsCommitted();
+    
+    // 5. 发布事件
+    await this.eventBus.publishAll(aggregate.getUncommittedEvents());
+  }
+}
+
+// CQRS查询处理器
+@Injectable()
+export class EntityQueryHandler {
+  constructor(
+    private readonly readModelRepository: IReadModelRepository
+  ) {}
+
+  async handleGetEntity(query: GetEntityQuery): Promise<EntityReadModel> {
+    // 从读模型查询数据
+    return await this.readModelRepository.findById(query.entityId);
+  }
+
+  async handleGetEntities(query: GetEntitiesQuery): Promise<EntityReadModel[]> {
+    // 从读模型查询数据列表
+    return await this.readModelRepository.findByConditions(query.conditions);
   }
 }
 ```
@@ -325,12 +604,64 @@ export class EntityApplicationService {
 - [ ] 发布领域事件
 - [ ] 使用业务语言命名
 
+实体与聚合根分离：
+- [ ] 实体作为聚合根的内部实体
+- [ ] 聚合根管理一致性边界
+- [ ] 实体执行具体业务操作
+- [ ] 聚合根支持事件溯源
+- [ ] 聚合根支持多租户隔离
+- [ ] 聚合根协调内部实体操作
+- [ ] 实体遵循聚合根指令
+
+混合架构模式：
+- [ ] 支持CQRS命令和查询分离
+- [ ] 支持事件溯源（ES）
+- [ ] 支持事件驱动架构（EDA）
+- [ ] 包含租户标识
+- [ ] 领域事件完整定义
+- [ ] 业务规则集中管理
+
+CQRS架构检查：
+- [ ] 命令端和查询端完全分离
+- [ ] 命令处理器处理写操作
+- [ ] 查询处理器处理读操作
+- [ ] 命令对象封装输入参数
+- [ ] 查询对象封装查询条件
+- [ ] 读模型独立于写模型
+- [ ] 命令和查询使用不同接口
+
+事件溯源（ES）检查：
+- [ ] 所有状态变更通过事件记录
+- [ ] 聚合根支持从事件流重建状态
+- [ ] 事件存储持久化所有事件
+- [ ] 支持事件版本管理
+- [ ] 支持事件快照机制
+- [ ] 事件包含完整的状态变更信息
+- [ ] 支持事件回放和调试
+
 代码规范：
 - [ ] 有 constants.ts
 - [ ] 完整 TSDoc 注释
 - [ ] kebab-case 文件名
 - [ ] 无硬编码
 - [ ] 导入顺序正确
+
+包导入规范：
+- [ ] 第三方库导入在前
+- [ ] 项目内部包按依赖层级导入
+- [ ] 使用正确的包别名（@hl8/包名）
+- [ ] 相对路径导入在后
+- [ ] 导入语句按字母顺序排列
+- [ ] 避免循环依赖
+- [ ] 包导入路径正确
+
+hybrid-archi优先使用：
+- [ ] 优先使用hybrid-archi提供的基础组件
+- [ ] 值对象、实体、聚合根从hybrid-archi导入
+- [ ] 遵循hybrid-archi的结构和模式
+- [ ] 不偏离hybrid-archi的架构设计
+- [ ] 使用hybrid-archi集成的通用功能组件
+- [ ] 业务模块基于hybrid-archi开发
 
 类型安全：
 - [ ] 严格模式
@@ -353,6 +684,47 @@ export class EntityApplicationService {
 ❌ 服务层包含业务逻辑
 ❌ 实体依赖仓储
 ❌ 聚合根和实体职责混乱
+❌ 用聚合根替代业务实体
+❌ 实体直接依赖外部服务
+❌ 聚合根包含具体业务逻辑
+❌ 实体直接发布领域事件
+❌ 缺少租户标识的聚合根
+❌ 不支持事件溯源的聚合根
+❌ 违反充血模型的实体设计
+
+CQRS相关禁止做法：
+❌ 命令和查询混合在同一个处理器中
+❌ 查询处理器修改数据状态
+❌ 命令处理器返回查询数据
+❌ 读模型和写模型共享相同的数据结构
+❌ 命令对象包含查询逻辑
+❌ 查询对象包含业务逻辑
+
+事件溯源（ES）相关禁止做法：
+❌ 直接修改聚合状态而不记录事件
+❌ 聚合根不支持事件重建
+❌ 事件不包含完整的状态变更信息
+❌ 缺少事件版本管理
+❌ 不支持事件快照机制
+❌ 事件存储和业务逻辑混合
+
+包导入相关禁止做法：
+❌ 使用相对路径导入其他包的代码
+❌ 包导入顺序混乱
+❌ 使用错误的包别名
+❌ 创建循环依赖
+❌ 导入不必要的包
+❌ 使用绝对路径导入项目内部包
+❌ 缺少必要的包导入
+
+hybrid-archi相关禁止做法：
+❌ 绕过hybrid-archi直接导入基础设施包
+❌ 不遵循hybrid-archi的架构模式
+❌ 偏离hybrid-archi的结构设计
+❌ 重复实现hybrid-archi已有的功能
+❌ 业务模块不基于hybrid-archi开发
+❌ 不使用hybrid-archi提供的通用功能组件
+❌ 违反hybrid-archi的混合架构原则
 ```
 
 ---
@@ -364,32 +736,37 @@ export class EntityApplicationService {
 当用户请求生成代码时，AI助手应当：
 
 1. **确认架构模式**: 确保生成的代码符合混合架构模式
-2. **应用充血模型**: 业务逻辑在实体内，服务层只协调
-3. **遵循命名规范**: 使用项目规定的命名约定
-4. **添加完整注释**: 使用TSDoc规范，包含业务规则描述
-5. **使用常量管理**: 避免硬编码，使用constants.ts
-6. **确保类型安全**: 避免any，使用严格的TypeScript类型
+2. **优先使用hybrid-archi**: 必须优先使用hybrid-archi提供的基础组件和通用功能
+3. **遵循hybrid-archi结构**: 不能偏离hybrid-archi的结构和模式
+4. **应用充血模型**: 业务逻辑在实体内，服务层只协调
+5. **遵循命名规范**: 使用项目规定的命名约定
+6. **添加完整注释**: 使用TSDoc规范，包含业务规则描述
+7. **使用常量管理**: 避免硬编码，使用constants.ts
+8. **确保类型安全**: 避免any，使用严格的TypeScript类型
 
 ### 7.2 问题解答指导
 
 当用户询问架构或规范问题时，AI助手应当：
 
 1. **引用项目文档**: 基于项目的具体文档内容回答
-2. **提供具体示例**: 使用项目中的实际代码模式
-3. **强调业务规则**: 重点说明业务逻辑和规则
-4. **区分架构层次**: 明确各层的职责和边界
-5. **避免通用答案**: 提供项目特定的解决方案
+2. **强调hybrid-archi基础**: 首先说明hybrid-archi提供的解决方案
+3. **提供具体示例**: 使用项目中的实际代码模式，优先展示hybrid-archi的使用
+4. **强调业务规则**: 重点说明业务逻辑和规则
+5. **区分架构层次**: 明确各层的职责和边界
+6. **避免通用答案**: 提供项目特定的解决方案，基于hybrid-archi架构
 
 ### 7.3 代码审查指导
 
 当用户请求代码审查时，AI助手应当检查：
 
 1. **架构符合性**: 是否符合混合架构模式
-2. **充血模型**: 是否遵循充血模型原则
-3. **代码规范**: 是否符合项目编码规范
-4. **注释完整性**: 是否包含完整的TSDoc注释
-5. **类型安全**: 是否使用了严格的TypeScript类型
-6. **业务逻辑**: 是否正确实现了业务规则
+2. **hybrid-archi使用**: 是否优先使用了hybrid-archi提供的基础组件
+3. **结构一致性**: 是否遵循hybrid-archi的结构和模式
+4. **充血模型**: 是否遵循充血模型原则
+5. **代码规范**: 是否符合项目编码规范
+6. **注释完整性**: 是否包含完整的TSDoc注释
+7. **类型安全**: 是否使用了严格的TypeScript类型
+8. **业务逻辑**: 是否正确实现了业务规则
 
 ---
 

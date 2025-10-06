@@ -6,7 +6,8 @@
  * @since 1.0.0
  */
 
-import { UserStatus, UserRole } from '../user/entities/user.entity';
+import { UserStatus } from '@hl8/hybrid-archi';
+import { UserRole } from '@hl8/hybrid-archi';
 import { TenantId } from '@hl8/hybrid-archi';
 
 /**
@@ -60,10 +61,13 @@ export class UserRuleValidator {
    */
   public static validateStatusTransition(currentStatus: UserStatus, newStatus: UserStatus): boolean {
     const validTransitions: Record<UserStatus, UserStatus[]> = {
-      [UserStatus.PENDING]: [UserStatus.ACTIVE, UserStatus.DELETED],
-      [UserStatus.ACTIVE]: [UserStatus.INACTIVE, UserStatus.SUSPENDED, UserStatus.DELETED],
-      [UserStatus.INACTIVE]: [UserStatus.ACTIVE, UserStatus.DELETED],
-      [UserStatus.SUSPENDED]: [UserStatus.ACTIVE, UserStatus.DELETED],
+      [UserStatus.PENDING]: [UserStatus.ACTIVE, UserStatus.DISABLED, UserStatus.REJECTED],
+      [UserStatus.ACTIVE]: [UserStatus.SUSPENDED, UserStatus.DISABLED, UserStatus.LOCKED, UserStatus.EXPIRED],
+      [UserStatus.SUSPENDED]: [UserStatus.ACTIVE, UserStatus.DISABLED],
+      [UserStatus.DISABLED]: [UserStatus.ACTIVE],
+      [UserStatus.LOCKED]: [UserStatus.ACTIVE, UserStatus.DISABLED],
+      [UserStatus.EXPIRED]: [UserStatus.ACTIVE, UserStatus.DISABLED],
+      [UserStatus.REJECTED]: [UserStatus.PENDING],
       [UserStatus.DELETED]: []
     };
     
@@ -102,11 +106,12 @@ export class UserRuleValidator {
    */
   public static validateRolePermission(userRole: UserRole, requiredRole: UserRole): boolean {
     const roleHierarchy: Record<UserRole, UserRole[]> = {
-      [UserRole.PLATFORM_ADMIN]: [UserRole.PLATFORM_ADMIN, UserRole.TENANT_ADMIN, UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER],
-      [UserRole.TENANT_ADMIN]: [UserRole.TENANT_ADMIN, UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER],
-      [UserRole.ORGANIZATION_ADMIN]: [UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER],
-      [UserRole.DEPARTMENT_ADMIN]: [UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER],
-      [UserRole.REGULAR_USER]: [UserRole.REGULAR_USER]
+      [UserRole.PLATFORM_ADMIN]: [UserRole.PLATFORM_ADMIN, UserRole.TENANT_ADMIN, UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER, UserRole.GUEST_USER],
+      [UserRole.TENANT_ADMIN]: [UserRole.TENANT_ADMIN, UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER, UserRole.GUEST_USER],
+      [UserRole.ORGANIZATION_ADMIN]: [UserRole.ORGANIZATION_ADMIN, UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER, UserRole.GUEST_USER],
+      [UserRole.DEPARTMENT_ADMIN]: [UserRole.DEPARTMENT_ADMIN, UserRole.REGULAR_USER, UserRole.GUEST_USER],
+      [UserRole.REGULAR_USER]: [UserRole.REGULAR_USER, UserRole.GUEST_USER],
+      [UserRole.GUEST_USER]: [UserRole.GUEST_USER]
     };
     
     const allowedRoles = roleHierarchy[userRole] || [];

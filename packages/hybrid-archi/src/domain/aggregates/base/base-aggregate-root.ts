@@ -94,8 +94,9 @@ import { EntityId } from '../../value-objects/entity-id';
 import { IPartialAuditInfo } from '../../entities/base/audit-info';
 import { ITenantContext } from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
+import { IAggregateRoot } from './aggregate-root.interface';
 
-export abstract class BaseAggregateRoot extends BaseEntity {
+export abstract class BaseAggregateRoot extends BaseEntity implements IAggregateRoot {
   private _domainEvents: BaseDomainEvent[] = [];
   private _uncommittedEvents: BaseDomainEvent[] = [];
 
@@ -141,7 +142,7 @@ export abstract class BaseAggregateRoot extends BaseEntity {
    *
    * @param event - 要添加的领域事件
    */
-  protected addDomainEvent(event: BaseDomainEvent): void {
+  public addDomainEvent(event: BaseDomainEvent): void {
     if (!event) {
       throw new Error('Domain event cannot be null or undefined');
     }
@@ -224,6 +225,28 @@ export abstract class BaseAggregateRoot extends BaseEntity {
    * 通常在事件发布后调用。
    */
   public clearUncommittedEvents(): void {
+    this._uncommittedEvents = [];
+  }
+
+  /**
+   * 获取未提交的领域事件
+   *
+   * @description 返回聚合根产生的所有未提交的领域事件
+   * 这些事件将在聚合根保存时被发布
+   *
+   * @returns 未提交的领域事件数组
+   */
+  public getUncommittedEvents(): BaseDomainEvent[] {
+    return [...this._uncommittedEvents];
+  }
+
+  /**
+   * 清除未提交的领域事件
+   *
+   * @description 清除所有未提交的领域事件，通常在事件发布完成后调用
+   * 这个方法应该在事件成功发布到事件总线后调用
+   */
+  public clearEvents(): void {
     this._uncommittedEvents = [];
   }
 
@@ -395,5 +418,17 @@ export abstract class BaseAggregateRoot extends BaseEntity {
     return `${
       this.constructor.name
     }(${this.id.toString()}) - Events: ${this.getEventCount()}, Uncommitted: ${this.getUncommittedEventCount()}`;
+  }
+
+  /**
+   * 检查聚合根是否为新创建的
+   *
+   * @description 检查聚合根是否是新创建的（尚未持久化）
+   * 这个信息对于仓储模式的实现很重要
+   *
+   * @returns 如果是新创建的返回true，否则返回false
+   */
+  public override isNew(): boolean {
+    return this.getVersion() === 1 && this._domainEvents.length === 0;
   }
 }

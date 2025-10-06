@@ -210,7 +210,7 @@ export const DOMAIN_EVENT_METADATA_KEY = Symbol('domainEvent');
 export function DomainEventDecorator(
   options: DomainEventOptions
 ): ClassDecorator {
-  return function <T extends Function>(target: T): T {
+  return function (target: any): any {
     // 验证配置选项
     validateDomainEventOptions(options);
 
@@ -275,7 +275,7 @@ export function getDomainEventMetadata(
  * }
  * ```
  */
-export function isDomainEvent(target: any): boolean {
+export function isDomainEvent(target: unknown): boolean {
   return getDomainEventMetadata(target) !== undefined;
 }
 
@@ -327,7 +327,7 @@ export function EventHandler(eventTypes: string[]): MethodDecorator {
 export function getEventHandlers(target: any): Array<{
   method: string | symbol;
   eventTypes: string[];
-  handler: Function;
+  handler: (...args: unknown[]) => unknown;
 }> {
   return Reflect.getMetadata('eventHandlers', target) || [];
 }
@@ -395,14 +395,14 @@ function validateDomainEventOptions(options: DomainEventOptions): void {
  * @description 用于管理系统中所有已注册的领域事件
  */
 export class DomainEventRegistry {
-  private static events = new Map<string, Function>();
+  private static events = new Map<string, new (...args: unknown[]) => unknown>();
 
   /**
    * 注册领域事件
    *
    * @param eventClass - 领域事件类
    */
-  static register(eventClass: Function): void {
+  static register(eventClass: new (...args: unknown[]) => unknown): void {
     const metadata = getDomainEventMetadata(eventClass);
     if (!metadata) {
       throw new Error(`类 ${eventClass.name} 没有@DomainEvent装饰器`);
@@ -421,7 +421,7 @@ export class DomainEventRegistry {
    * @param name - 领域事件名称
    * @returns 领域事件类，如果没有找到返回undefined
    */
-  static get(name: string): Function | undefined {
+  static get(name: string): (new (...args: unknown[]) => unknown) | undefined {
     return this.events.get(name);
   }
 
@@ -430,7 +430,7 @@ export class DomainEventRegistry {
    *
    * @returns 领域事件名称到类的映射
    */
-  static getAll(): Map<string, Function> {
+  static getAll(): Map<string, new (...args: unknown[]) => unknown> {
     return new Map(this.events);
   }
 
@@ -440,8 +440,8 @@ export class DomainEventRegistry {
    * @param category - 事件分类
    * @returns 该分类下的所有事件
    */
-  static getByCategory(category: string): Map<string, Function> {
-    const result = new Map<string, Function>();
+  static getByCategory(category: string): Map<string, new (...args: unknown[]) => unknown> {
+    const result = new Map<string, new (...args: unknown[]) => unknown>();
 
     for (const [name, eventClass] of this.events) {
       const metadata = getDomainEventMetadata(eventClass);
@@ -459,8 +459,8 @@ export class DomainEventRegistry {
    * @param tag - 事件标签
    * @returns 包含该标签的所有事件
    */
-  static getByTag(tag: string): Map<string, Function> {
-    const result = new Map<string, Function>();
+  static getByTag(tag: string): Map<string, new (...args: unknown[]) => unknown> {
+    const result = new Map<string, new (...args: unknown[]) => unknown>();
 
     for (const [name, eventClass] of this.events) {
       const metadata = getDomainEventMetadata(eventClass);

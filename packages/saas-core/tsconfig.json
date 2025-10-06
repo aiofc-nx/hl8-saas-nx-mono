@@ -14,6 +14,12 @@
   "include": [],
   "references": [
     {
+      "path": "../multi-tenancy"
+    },
+    {
+      "path": "../hybrid-archi"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

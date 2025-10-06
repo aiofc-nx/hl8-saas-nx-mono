@@ -11,3 +11,12 @@ export * from './tenant-events';
 
 // 用户事件
 export * from './user-events';
+
+// 授权事件
+export * from './authorization-events';
+
+// 组织事件
+export * from './organization-events';
+
+// 部门事件
+export * from './department-events';

@@ -219,8 +219,9 @@ describe('BaseQueryResult', () => {
     it('应该正确查找数据', () => {
       const found = result.find((item) => item.name === 'Bob');
       expect(found).toBeDefined();
-      expect(found!.id).toBe(2);
-      expect(found!.name).toBe('Bob');
+      expect(found).not.toBeNull();
+      expect(found?.id).toBe(2);
+      expect(found?.name).toBe('Bob');
 
       const notFound = result.find((item) => item.name === 'David');
       expect(notFound).toBeUndefined();

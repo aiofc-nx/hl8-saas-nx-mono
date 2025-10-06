@@ -52,6 +52,8 @@ import {
   IMetricsService,
   IWebSocketContext,
   IUser,
+  IWebSocketClient,
+  IJwtPayload,
 } from '../../shared/interfaces';
 
 export abstract class BaseGateway {
@@ -114,7 +116,7 @@ export abstract class BaseGateway {
    * @param client - WebSocket客户端
    * @returns 认证结果
    */
-  protected async authenticateConnection(client: any): Promise<boolean> {
+  protected async authenticateConnection(client: IWebSocketClient): Promise<boolean> {
     try {
       // 1. 提取认证令牌
       const token = this.extractTokenFromClient(client);
@@ -169,7 +171,7 @@ export abstract class BaseGateway {
    *
    * @param client - WebSocket客户端
    */
-  protected handleDisconnection(client: any): void {
+  protected handleDisconnection(client: IWebSocketClient): void {
     const connection = this.connectedClients.get(client.id);
 
     if (connection) {
@@ -210,7 +212,7 @@ export abstract class BaseGateway {
    * @param client - WebSocket客户端
    * @returns 认证令牌或null
    */
-  private extractTokenFromClient(client: any): string | null {
+  private extractTokenFromClient(client: IWebSocketClient): string | null {
     const auth = client.handshake.auth;
     const headers = client.handshake.headers;
 
@@ -227,9 +229,10 @@ export abstract class BaseGateway {
    * @param token - 认证令牌
    * @returns 令牌载荷或null
    */
-  private async verifyToken(_token: string): Promise<any> {
+  private async verifyToken(token: string): Promise<IJwtPayload | null> {
     // 这里应该实现JWT令牌验证
     // 实际实现中会调用JWT服务
+    this.logger.debug('验证JWT令牌', { tokenLength: token.length });
     return null; // 占位符实现
   }
 
@@ -241,9 +244,10 @@ export abstract class BaseGateway {
    * @param userId - 用户ID
    * @returns 用户实体或null
    */
-  private async validateUser(_userId: string): Promise<IUser | null> {
+  private async validateUser(userId: string): Promise<IUser | null> {
     // 这里应该调用用户服务验证用户状态
     // 实际实现中会从数据库或缓存中获取用户信息
+    this.logger.debug('验证用户状态', { userId });
     return null; // 占位符实现
   }
 

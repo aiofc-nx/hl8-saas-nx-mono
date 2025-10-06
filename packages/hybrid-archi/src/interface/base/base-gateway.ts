@@ -34,7 +34,7 @@ export interface IConnectionInfo {
  *
  * @description WebSocket消息的响应格式
  */
-export interface IMessageResponse<T = any> {
+export interface IMessageResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -70,7 +70,7 @@ export interface IMessageResponse<T = any> {
 export abstract class BaseGateway {
   // implements OnGatewayConnection, OnGatewayDisconnect
   // @WebSocketServer()
-  protected server: any;
+  protected server: unknown;
 
   protected connections = new Map<string, IConnectionInfo>();
 
@@ -81,7 +81,17 @@ export abstract class BaseGateway {
    * @param client - Socket客户端
    * @param args - 连接参数
    */
-  async handleConnection(client: any, ...args: any[]): Promise<void> {
+  async handleConnection(client: { 
+    id: string; 
+    join: (room: string) => void;
+    emit: (event: string, data: unknown) => void;
+    disconnect: () => void;
+    handshake: { 
+      query: { token?: string }; 
+      headers: { authorization?: string; 'user-agent'?: string }; 
+      address?: string;
+    };
+  }, ...args: unknown[]): Promise<void> {
     try {
       const connectionInfo = await this.authenticateConnection(client);
       this.connections.set(client.id, connectionInfo);
@@ -123,7 +133,7 @@ export abstract class BaseGateway {
    * @description 处理WebSocket客户端断开连接
    * @param client - Socket客户端
    */
-  async handleDisconnect(client: any): Promise<void> {
+  async handleDisconnect(client: { id: string }): Promise<void> {
     const connectionInfo = this.connections.get(client.id);
     if (connectionInfo) {
       console.log(`客户端断开连接: ${client.id}`, connectionInfo);
@@ -140,7 +150,14 @@ export abstract class BaseGateway {
    * @protected
    */
   protected async authenticateConnection(
-    client: any
+    client: { 
+      id: string; 
+      handshake: { 
+        query: { token?: string }; 
+        headers: { authorization?: string; 'user-agent'?: string }; 
+        address?: string;
+      } 
+    }
   ): Promise<IConnectionInfo> {
     // 从查询参数或头信息获取认证信息
     const token =
@@ -213,8 +230,8 @@ export abstract class BaseGateway {
    * @param data - 消息数据
    * @protected
    */
-  protected sendToUser(userId: string, event: string, data: any): void {
-    this.server.to(`user:${userId}`).emit(event, data);
+  protected sendToUser(userId: string, event: string, data: unknown): void {
+    (this.server as { to: (room: string) => { emit: (event: string, data: unknown) => void } }).to(`user:${userId}`).emit(event, data);
   }
 
   /**
@@ -226,8 +243,8 @@ export abstract class BaseGateway {
    * @param data - 消息数据
    * @protected
    */
-  protected sendToTenant(tenantId: string, event: string, data: any): void {
-    this.server.to(`tenant:${tenantId}`).emit(event, data);
+  protected sendToTenant(tenantId: string, event: string, data: unknown): void {
+    (this.server as { to: (room: string) => { emit: (event: string, data: unknown) => void } }).to(`tenant:${tenantId}`).emit(event, data);
   }
 
   /**
@@ -238,8 +255,8 @@ export abstract class BaseGateway {
    * @param data - 消息数据
    * @protected
    */
-  protected broadcast(event: string, data: any): void {
-    this.server.emit(event, data);
+  protected broadcast(event: string, data: unknown): void {
+    (this.server as { emit: (event: string, data: unknown) => void }).emit(event, data);
   }
 
   /**

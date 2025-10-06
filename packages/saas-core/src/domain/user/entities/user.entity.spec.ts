@@ -8,7 +8,7 @@
 
 import { UserId, Email, Username, Password } from '@hl8/hybrid-archi';
 import { TenantId } from '@hl8/hybrid-archi';
-import { User, UserStatus, UserRole } from './user.entity';
+import { User } from './user.entity';
 import { UserProfile } from '../value-objects/user-profile.vo';
 import { USER_STATUS, USER_ROLES } from '../../../constants/business.constants';
 import { 

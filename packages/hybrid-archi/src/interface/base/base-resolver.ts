@@ -12,7 +12,7 @@
  *
  * @description GraphQL操作的统一响应格式
  */
-export interface IGraphQLResponse<T = any> {
+export interface IGraphQLResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -125,7 +125,7 @@ export abstract class BaseResolver {
    * @param context - GraphQL上下文
    * @returns 用户信息
    */
-  protected getUserFromContext(context: any): any {
+  protected getUserFromContext(context: { req?: { user?: unknown }; user?: unknown }): unknown {
     return context.req?.user || context.user;
   }
 
@@ -136,7 +136,7 @@ export abstract class BaseResolver {
    * @param context - GraphQL上下文
    * @returns 租户信息
    */
-  protected getTenantFromContext(context: any): string | undefined {
+  protected getTenantFromContext(context: { req?: { tenantId?: string }; tenantId?: string }): string | undefined {
     return context.req?.tenantId || context.tenantId;
   }
 }

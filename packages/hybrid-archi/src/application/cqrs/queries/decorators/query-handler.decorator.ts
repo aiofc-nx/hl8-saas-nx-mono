@@ -39,6 +39,16 @@
 import { IQuery, IQueryMetadata } from '../base/query.interface';
 
 /**
+ * 构造函数类型定义
+ */
+type Constructor<T = Record<string, unknown>> = new (...args: unknown[]) => T;
+
+/**
+ * 类装饰器类型定义
+ */
+type ClassDecorator = <TFunction extends Constructor>(target: TFunction) => TFunction | void;
+
+/**
  * 查询处理器选项接口
  */
 export interface IQueryHandlerOptions {
@@ -128,10 +138,10 @@ export const QUERY_HANDLER_METADATA_KEY = Symbol('queryHandler');
  * ```
  */
 export function QueryHandler<TQuery extends IQuery>(
-  queryClass: new (...args: any[]) => TQuery,
+  queryClass: new (...args: unknown[]) => TQuery,
   options: IQueryHandlerOptions = {}
 ): ClassDecorator {
-  return function (target: any): any {
+  return function <T extends Constructor>(target: T): T {
     // 获取查询类型
     const queryInstance = new queryClass();
     const queryType = queryInstance.queryType;
@@ -186,9 +196,9 @@ export function QueryHandler<TQuery extends IQuery>(
  * @returns 查询处理器元数据
  */
 export function getQueryHandlerMetadata(
-  target: any
+  target: unknown
 ): IQueryMetadata | undefined {
-  return Reflect.getMetadata(QUERY_HANDLER_METADATA_KEY, target);
+  return Reflect.getMetadata(QUERY_HANDLER_METADATA_KEY, target as Object);
 }
 
 /**
@@ -197,8 +207,8 @@ export function getQueryHandlerMetadata(
  * @param target - 要检查的目标
  * @returns 如果是查询处理器返回true，否则返回false
  */
-export function isQueryHandler(target: any): boolean {
-  return Reflect.hasMetadata(QUERY_HANDLER_METADATA_KEY, target);
+export function isQueryHandler(target: unknown): boolean {
+  return Reflect.hasMetadata(QUERY_HANDLER_METADATA_KEY, target as Object);
 }
 
 /**
@@ -239,7 +249,7 @@ export function Query(options: {
     keyPrefix?: string;
   };
 }): ClassDecorator {
-  return function (target: any): any {
+  return function <T extends Constructor>(target: T): T {
     const metadata: IQueryMetadata = {
       queryType: options.type,
       description: options.description || `${options.type} 查询`,
@@ -276,8 +286,8 @@ export function Query(options: {
  * @param target - 目标类或实例
  * @returns 查询元数据
  */
-export function getQueryMetadata(target: any): IQueryMetadata | undefined {
-  return Reflect.getMetadata(QUERY_METADATA_KEY, target);
+export function getQueryMetadata(target: unknown): IQueryMetadata | undefined {
+  return Reflect.getMetadata(QUERY_METADATA_KEY, target as Object);
 }
 
 /**
@@ -286,6 +296,6 @@ export function getQueryMetadata(target: any): IQueryMetadata | undefined {
  * @param target - 要检查的目标
  * @returns 如果是查询返回true，否则返回false
  */
-export function isQuery(target: any): boolean {
-  return Reflect.hasMetadata(QUERY_METADATA_KEY, target);
+export function isQuery(target: unknown): boolean {
+  return Reflect.hasMetadata(QUERY_METADATA_KEY, target as Object);
 }

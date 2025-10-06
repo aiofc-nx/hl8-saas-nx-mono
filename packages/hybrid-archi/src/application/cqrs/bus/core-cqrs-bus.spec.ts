@@ -121,11 +121,11 @@ describe('CoreCQRSBus', () => {
   let eventBus: CoreEventBus;
 
   beforeEach(async () => {
-    const mockUseCaseRegistry = {} as any;
+    const mockUseCaseRegistry = {} as Record<string, unknown>;
     const mockProjectorManager = {
       projectEvent: jest.fn().mockResolvedValue(undefined),
       projectEvents: jest.fn().mockResolvedValue(undefined),
-    } as any;
+    } as Record<string, unknown>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -396,7 +396,9 @@ describe('CoreCQRSBus', () => {
 
       // 注册一些处理器
       commandBus.registerHandler('TestCommand', {
-        async execute() {},
+        async execute() {
+          return Promise.resolve();
+        },
         getSupportedCommandType: () => 'TestCommand',
         supports: () => true,
         validateCommand: () => {
@@ -426,7 +428,9 @@ describe('CoreCQRSBus', () => {
       });
 
       eventBus.registerHandler('TestEvent', {
-        async handle() {},
+        async handle() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
         supports: () => true,
         validateEvent: () => {
@@ -467,7 +471,9 @@ describe('CoreCQRSBus', () => {
       await cqrsBus.initialize();
 
       commandBus.registerHandler('TestCommand', {
-        async execute() {},
+        async execute() {
+          return Promise.resolve();
+        },
         getSupportedCommandType: () => 'TestCommand',
         supports: (type) => type === 'TestCommand',
         validateCommand: () => {
@@ -511,7 +517,9 @@ describe('CoreCQRSBus', () => {
       await cqrsBus.initialize();
 
       eventBus.registerHandler('TestEvent', {
-        async handle() {},
+        async handle() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
         supports: (type) => type === 'TestEvent',
         validateEvent: () => {
@@ -547,7 +555,9 @@ describe('CoreCQRSBus', () => {
       await cqrsBus.initialize();
 
       commandBus.registerHandler('Command1', {
-        async execute() {},
+        async execute() {
+          return Promise.resolve();
+        },
         getSupportedCommandType: () => 'Command1',
         supports: () => true,
         validateCommand: () => {
@@ -560,7 +570,9 @@ describe('CoreCQRSBus', () => {
       });
 
       commandBus.registerHandler('Command2', {
-        async execute() {},
+        async execute() {
+          return Promise.resolve();
+        },
         getSupportedCommandType: () => 'Command2',
         supports: () => true,
         validateCommand: () => {
@@ -605,7 +617,9 @@ describe('CoreCQRSBus', () => {
       await cqrsBus.initialize();
 
       eventBus.registerHandler('Event1', {
-        async handle() {},
+        async handle() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'Event1',
         supports: () => true,
         validateEvent: () => {

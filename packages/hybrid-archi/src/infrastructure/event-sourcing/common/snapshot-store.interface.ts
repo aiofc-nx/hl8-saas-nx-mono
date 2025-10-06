@@ -14,9 +14,9 @@ export interface Snapshot {
   aggregateId: string;
   version: number;
   timestamp: Date;
-  data: any;
+  data: unknown;
   tenantId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -56,7 +56,7 @@ export interface ISnapshotStore {
    */
   saveSnapshot(
     aggregateId: string,
-    snapshot: any,
+    snapshot: unknown,
     version: number
   ): Promise<void>;
 

@@ -5,5 +5,4 @@
  * @since 1.0.0
  */
 
-// 占位符文件
-export const WEBSOCKET_DECORATORS = 'WebSocket Decorators System';
+export * from './websocket.decorator';

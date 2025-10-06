@@ -277,7 +277,7 @@ export class CacheService implements ICacheService {
    * @returns 缓存值或null
    * @private
    */
-  private async getFromRedisCache<T>(key: string): Promise<T | null> {
+  private async getFromRedisCache<T>(_key: string): Promise<T | null> {
     // TODO: 实现Redis缓存获取逻辑
     return null;
   }
@@ -292,9 +292,9 @@ export class CacheService implements ICacheService {
    * @private
    */
   private async setToRedisCache<T>(
-    key: string,
-    value: T,
-    ttl: number
+    _key: string,
+    _value: T,
+    _ttl: number
   ): Promise<void> {
     // TODO: 实现Redis缓存设置逻辑
   }
@@ -307,7 +307,7 @@ export class CacheService implements ICacheService {
    * @returns 缓存值或null
    * @private
    */
-  private async getFromDatabaseCache<T>(key: string): Promise<T | null> {
+  private async getFromDatabaseCache<T>(_key: string): Promise<T | null> {
     // TODO: 实现数据库缓存获取逻辑
     return null;
   }
@@ -322,9 +322,9 @@ export class CacheService implements ICacheService {
    * @private
    */
   private async setToDatabaseCache<T>(
-    key: string,
-    value: T,
-    ttl: number
+    _key: string,
+    _value: T,
+    _ttl: number
   ): Promise<void> {
     // TODO: 实现数据库缓存设置逻辑
   }
@@ -346,21 +346,21 @@ export class CacheService implements ICacheService {
   }
 
   // 其他私有方法的实现...
-  private async hasInRedisCache(key: string): Promise<boolean> {
+  private async hasInRedisCache(_key: string): Promise<boolean> {
     // TODO: 实现Redis缓存存在检查
     return false;
   }
 
-  private async hasInDatabaseCache(key: string): Promise<boolean> {
+  private async hasInDatabaseCache(_key: string): Promise<boolean> {
     // TODO: 实现数据库缓存存在检查
     return false;
   }
 
-  private async deleteFromRedisCache(key: string): Promise<void> {
+  private async deleteFromRedisCache(_key: string): Promise<void> {
     // TODO: 实现Redis缓存删除
   }
 
-  private async deleteFromDatabaseCache(key: string): Promise<void> {
+  private async deleteFromDatabaseCache(_key: string): Promise<void> {
     // TODO: 实现数据库缓存删除
   }
 

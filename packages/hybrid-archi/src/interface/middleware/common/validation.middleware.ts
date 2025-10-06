@@ -99,7 +99,7 @@ export class ValidationMiddleware implements NestMiddleware {
    */
   private async validateQueryParams(req: FastifyRequest): Promise<void> {
     // 验证查询参数的基本格式
-    for (const [key, value] of Object.entries(req.query as any)) {
+    for (const [key, value] of Object.entries(req.query as Record<string, unknown>)) {
       if (typeof value === 'string' && value.length > 1000) {
         throw new BadRequestException(`查询参数 ${key} 长度超过限制`);
       }
@@ -115,7 +115,7 @@ export class ValidationMiddleware implements NestMiddleware {
    */
   private async validatePathParams(req: FastifyRequest): Promise<void> {
     // 验证路径参数的基本格式
-    for (const [key, value] of Object.entries(req.params as any)) {
+    for (const [key, value] of Object.entries(req.params as Record<string, unknown>)) {
       if (typeof value === 'string' && value.length > 100) {
         throw new BadRequestException(`路径参数 ${key} 长度超过限制`);
       }

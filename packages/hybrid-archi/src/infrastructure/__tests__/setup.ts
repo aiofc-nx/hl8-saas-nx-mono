@@ -46,42 +46,41 @@ process.on('uncaughtException', (error) => {
 
 // 导出测试工具函数
 export const createMockLogger = (): any => ({
-  // 使用 any 类型避免 jest 类型问题
-  debug: (() => {}) as any,
-  info: (() => {}) as any,
-  warn: (() => {}) as any,
-  error: (() => {}) as any,
-  child: (() => {}) as any,
+  debug: (() => undefined),
+  info: (() => undefined),
+  warn: (() => undefined),
+  error: (() => undefined),
+  child: (() => createMockLogger()),
 });
 
 export const createMockCacheService = () => ({
-  get: (() => {}) as any,
-  set: (() => {}) as any,
-  delete: (() => {}) as any,
-  exists: (() => {}) as any,
-  clear: (() => {}) as any,
+  get: (key: string) => Promise.resolve(undefined),
+  set: (key: string, value: unknown, ttl?: number) => Promise.resolve(undefined),
+  delete: (key: string) => Promise.resolve(undefined),
+  exists: (key: string) => Promise.resolve(false),
+  clear: () => Promise.resolve(undefined),
 });
 
 export const createMockDatabaseService = () => ({
-  query: (() => {}) as any,
-  insert: (() => {}) as any,
-  update: (() => {}) as any,
-  delete: (() => {}) as any,
-  find: (() => {}) as any,
-  findOne: (() => {}) as any,
-  count: (() => {}) as any,
-  transaction: (() => {}) as any,
+  query: (sql: string, params?: unknown[]) => Promise.resolve([]),
+  insert: (table: string, data: Record<string, unknown>) => Promise.resolve({ insertId: 1 }),
+  update: (table: string, data: Record<string, unknown>, where: Record<string, unknown>) => Promise.resolve({ affectedRows: 1 }),
+  delete: (table: string, where: Record<string, unknown>) => Promise.resolve({ affectedRows: 1 }),
+  find: (table: string, where?: Record<string, unknown>) => Promise.resolve([]),
+  findOne: (table: string, where: Record<string, unknown>) => Promise.resolve(null),
+  count: (table: string, where?: Record<string, unknown>) => Promise.resolve(0),
+  transaction: (callback: (trx: unknown) => Promise<unknown>) => Promise.resolve(undefined),
 });
 
 export const createMockEventService = () => ({
-  publish: (() => {}) as any,
-  publishAll: (() => {}) as any,
-  subscribe: (() => {}) as any,
-  unsubscribe: (() => {}) as any,
+  publish: (event: unknown) => Promise.resolve(undefined),
+  publishAll: (events: unknown[]) => Promise.resolve(undefined),
+  subscribe: (eventType: string, handler: (event: unknown) => Promise<void>) => Promise.resolve(undefined),
+  unsubscribe: (eventType: string, handler: (event: unknown) => Promise<void>) => Promise.resolve(undefined),
 });
 
 export const createMockTenantContextService = () => ({
-  getContext: (() => {}) as any,
-  setContext: (() => {}) as any,
-  clearContext: (() => {}) as any,
+  getContext: () => ({ tenantId: 'test-tenant', userId: 'test-user' }),
+  setContext: (context: { tenantId: string; userId: string }) => undefined,
+  clearContext: () => undefined,
 });

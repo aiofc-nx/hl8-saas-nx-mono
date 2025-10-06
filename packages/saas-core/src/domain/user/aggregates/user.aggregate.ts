@@ -1,131 +1,132 @@
+import { BaseAggregateRoot, EntityId } from '@hl8/hybrid-archi';
+import { User } from '../entities/user.entity';
+import { UserStatus } from '@hl8/hybrid-archi';
+import { UserRole } from '@hl8/hybrid-archi';
+import { UserProfile } from '../value-objects/user-profile.vo';
+import { UserRegisteredEvent } from '../../events/user-events';
+
 /**
  * 用户聚合根
- * 
- * @description 用户聚合根管理用户实体的生命周期和一致性边界
- * 负责协调用户相关的业务操作，发布领域事件，确保聚合内数据的一致性
- * 
+ *
+ * @description 用户聚合的管理者，负责协调内部实体操作
+ * 实现聚合根的管理职责：管理聚合一致性边界、协调内部实体操作、发布领域事件、验证业务规则
+ *
  * ## 业务规则
- * 
- * ### 聚合边界
- * - 用户聚合包含用户实体及其相关的配置和权限
- * - 确保用户数据的完整性和一致性
- * - 管理用户的生命周期状态转换
- * 
- * ### 事件发布
- * - 用户注册时发布UserRegisteredEvent
- * - 用户激活时发布UserActivatedEvent
- * - 用户停用时发布UserDeactivatedEvent
- * - 用户暂停时发布UserSuspendedEvent
- * - 用户分配到租户时发布UserAssignedToTenantEvent
- * - 用户角色更新时发布UserRoleUpdatedEvent
- * 
- * ### 业务操作
- * - 注册用户：设置基本信息并激活用户
- * - 激活用户：验证状态转换的合法性
- * - 停用用户：将用户状态设为非活跃
- * - 暂停用户：记录暂停原因
- * - 认证用户：验证用户凭据
- * - 更新密码：更新用户密码
- * - 分配租户：将用户分配到租户
- * 
+ *
+ * ### 聚合根职责
+ * - 管理聚合一致性边界：确保用户聚合内数据一致性
+ * - 协调内部实体操作：通过指令模式协调用户实体
+ * - 发布领域事件：管理事件的生命周期
+ * - 验证业务规则：确保业务规则的正确执行
+ *
+ * ### 指令模式实现
+ * - 聚合根发出指令 → 实体执行指令 → 返回执行结果
+ * - 聚合根不直接操作实体属性，而是调用实体的业务方法
+ * - 实体执行具体业务逻辑，聚合根负责协调和事件发布
+ *
  * @example
  * ```typescript
- * // 注册用户
- * const userAggregate = UserAggregate.register(
+ * // 创建用户聚合根
+ * const userAggregate = UserAggregate.create(
  *   userId,
- *   email,
- *   username,
- *   password,
- *   profile,
- *   role
+ *   'user@example.com',
+ *   'username',
+ *   'password',
+ *   userProfile
  * );
  * 
- * // 激活用户
+ * // 激活用户（聚合根协调实体）
  * userAggregate.activate();
  * 
- * // 认证用户
- * const isValid = userAggregate.authenticate(password);
- * 
- * // 分配到租户
- * userAggregate.assignToTenant(tenantId);
+ * // 获取用户实体
+ * const user = userAggregate.getUser();
  * ```
- * 
+ *
  * @since 1.0.0
  */
-
-import { BaseAggregateRoot } from '@hl8/hybrid-archi';
-import { UserId, Email, Username, Password } from '@hl8/hybrid-archi';
-import { TenantId } from '@hl8/hybrid-archi';
-import { User, UserStatus, UserRole } from '../entities/user.entity';
-import { UserProfile } from '../../value-objects/user-profile.vo';
-import { USER_STATUS, USER_ROLES } from '../../../constants/business.constants';
-import { 
-  UserRegisteredEvent, 
-  UserActivatedEvent, 
-  UserDeactivatedEvent,
-  UserSuspendedEvent,
-  UserAssignedToTenantEvent,
-  UserRemovedFromTenantEvent,
-  UserRoleUpdatedEvent,
-  UserAuthenticatedEvent,
-  UserPasswordUpdatedEvent,
-  UserProfileUpdatedEvent 
-} from '../../events/user-events';
-
-
-/**
- * 用户聚合根类
- * 
- * @description 管理用户实体和发布领域事件
- */
 export class UserAggregate extends BaseAggregateRoot {
+  /**
+   * 构造函数
+   *
+   * @description 创建用户聚合根实例
+   * 聚合根包含用户实体，通过指令模式协调实体操作
+   *
+   * @param userId - 用户ID
+   * @param user - 用户实体
+   */
   constructor(
-    private readonly userId: UserId,
+    private readonly userId: EntityId,
     private readonly user: User
   ) {
-    super(userId.getEntityId(), { createdBy: 'system' });
+    super(userId, { createdBy: 'system' });
   }
 
   /**
-   * 注册用户
-   * 
-   * @description 创建新用户并发布注册事件
-   * 
-   * @param id 用户ID
-   * @param email 用户邮箱
-   * @param username 用户名
-   * @param password 密码
-   * @param profile 用户配置
-   * @param role 用户角色
+   * 获取当前租户ID
+   *
+   * @description 获取用户当前所属的租户ID
+   * 如果用户不属于任何租户，返回默认租户ID
+   *
+   * @returns 当前租户ID
+   */
+  public getCurrentTenantId(): string {
+    const tenantId = this.user.getTenantId();
+    return tenantId ? tenantId.toString() : 'default';
+  }
+
+  /**
+   * 创建用户聚合根
+   *
+   * @description 工厂方法，创建新的用户聚合根
+   * 用户初始状态为 PENDING，角色为 REGULAR_USER
+   *
+   * @param id - 用户ID
+   * @param email - 邮箱地址
+   * @param username - 用户名
+   * @param password - 密码
+   * @param profile - 用户档案
    * @returns 用户聚合根实例
+   *
+   * @example
+   * ```typescript
+   * const userAggregate = UserAggregate.create(
+   *   userId,
+   *   'user@example.com',
+   *   'username',
+   *   'password',
+   *   userProfile
+   * );
+   * ```
+   *
    * @since 1.0.0
    */
-  public static register(
-    id: UserId,
-    email: Email,
-    username: Username,
-    password: Password,
-    profile: UserProfile,
-    role: UserRole = USER_ROLES.REGULAR_USER
+  public static create(
+    id: EntityId,
+    email: string,
+    username: string,
+    password: string,
+    profile: UserProfile
   ): UserAggregate {
+    // 1. 创建用户实体
     const user = new User(
       id,
       email,
       username,
-      password,
+      this.hashPassword(password),
       profile,
-      USER_STATUS.PENDING,
-      role
+      UserStatus.PENDING,
+      [UserRole.REGULAR_USER] // 默认角色
     );
 
+    // 2. 创建聚合根
     const aggregate = new UserAggregate(id, user);
-
-    // 发布用户注册事件
+    
+    // 3. 发布领域事件（聚合根职责）
     aggregate.addDomainEvent(new UserRegisteredEvent(
       id,
-      email.value,
-      username.value,
-      role
+      email,
+      username,
+      '' // tenantId (用户注册时还没有租户)
     ));
 
     return aggregate;
@@ -133,146 +134,357 @@ export class UserAggregate extends BaseAggregateRoot {
 
   /**
    * 激活用户
-   * 
-   * @description 激活用户并发布激活事件
-   * 
+   *
+   * @description 聚合根协调内部实体执行激活操作
+   * 指令模式：聚合根发出指令给实体，实体执行具体业务逻辑
+   *
+   * @example
+   * ```typescript
+   * userAggregate.activate();
+   * ```
+   *
    * @since 1.0.0
    */
   public activate(): void {
+    // 指令模式：聚合根发出指令给实体
     this.user.activate();
-    this.addDomainEvent(new UserActivatedEvent(this.userId));
-  }
-
-  /**
-   * 停用用户
-   * 
-   * @description 停用用户并发布停用事件
-   * 
-   * @param reason 停用原因
-   * @since 1.0.0
-   */
-  public deactivate(reason?: string): void {
-    this.user.deactivate();
-    this.addDomainEvent(new UserDeactivatedEvent(this.userId, reason));
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserActivatedEvent(
+      this.userId,
+      this.getCurrentTenantId()
+    ));
   }
 
   /**
    * 暂停用户
-   * 
-   * @description 暂停用户并发布暂停事件
-   * 
-   * @param reason 暂停原因
+   *
+   * @description 聚合根协调内部实体执行暂停操作
+   *
+   * @param reason - 暂停原因
+   *
+   * @example
+   * ```typescript
+   * userAggregate.suspend('违反使用条款');
+   * ```
+   *
    * @since 1.0.0
    */
   public suspend(reason: string): void {
+    // 指令模式：聚合根发出指令给实体
     this.user.suspend(reason);
-    this.addDomainEvent(new UserSuspendedEvent(this.userId, reason));
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserSuspendedEvent(
+      this.userId,
+      reason,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 禁用用户
+   *
+   * @description 聚合根协调内部实体执行禁用操作
+   *
+   * @param reason - 禁用原因
+   *
+   * @example
+   * ```typescript
+   * userAggregate.disable('账户违规');
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public disable(reason: string): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.disable(reason);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserDisabledEvent(
+      this.userId,
+      reason,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 锁定用户
+   *
+   * @description 聚合根协调内部实体执行锁定操作
+   *
+   * @param reason - 锁定原因
+   *
+   * @example
+   * ```typescript
+   * userAggregate.lock('密码错误次数过多');
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public lock(reason: string): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.lock(reason);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserLockedEvent(
+      this.userId,
+      reason,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 解锁用户
+   *
+   * @description 聚合根协调内部实体执行解锁操作
+   *
+   * @example
+   * ```typescript
+   * userAggregate.unlock();
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public unlock(): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.unlock();
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserUnlockedEvent(
+      this.userId,
+      this.getCurrentTenantId()
+    ));
   }
 
   /**
    * 认证用户
-   * 
-   * @description 认证用户并发布认证事件
-   * 
-   * @param password 密码
-   * @returns true如果认证成功，否则false
+   *
+   * @description 聚合根协调内部实体执行认证操作
+   *
+   * @param password - 密码
+   * @returns 认证是否成功
+   *
+   * @example
+   * ```typescript
+   * const isAuthenticated = userAggregate.authenticate('password');
+   * ```
+   *
    * @since 1.0.0
    */
-  public authenticate(password: Password): boolean {
-    const success = this.user.authenticate(password);
-    this.addDomainEvent(new UserAuthenticatedEvent(
-      this.userId,
-      success,
-      new Date()
-    ));
-    return success;
+  public authenticate(password: string): boolean {
+    // 指令模式：聚合根发出指令给实体
+    const isAuthenticated = this.user.authenticate(password);
+    
+    if (isAuthenticated) {
+      // 发布领域事件（聚合根职责）
+      this.addDomainEvent(new UserAuthenticatedEvent(
+        this.userId,
+        this.getCurrentTenantId()
+      ));
+    }
+    
+    return isAuthenticated;
   }
 
   /**
    * 更新密码
-   * 
-   * @description 更新用户密码
-   * 
-   * @param newPassword 新密码
+   *
+   * @description 聚合根协调内部实体执行密码更新操作
+   *
+   * @param oldPassword - 旧密码
+   * @param newPassword - 新密码
+   *
+   * @example
+   * ```typescript
+   * userAggregate.updatePassword('oldPassword', 'newPassword');
+   * ```
+   *
    * @since 1.0.0
    */
-  public updatePassword(newPassword: Password): void {
-    this.user.updatePassword(newPassword);
-    // 可以发布密码更新事件
-  }
-
-  /**
-   * 更新用户配置
-   * 
-   * @description 更新用户配置信息
-   * 
-   * @param profile 新的用户配置
-   * @since 1.0.0
-   */
-  public updateProfile(profile: UserProfile): void {
-    this.user.updateProfile(profile);
-    // 可以发布配置更新事件
-  }
-
-  /**
-   * 分配用户到租户
-   * 
-   * @description 将用户分配到指定租户并发布分配事件
-   * 
-   * @param tenantId 租户ID
-   * @param role 在租户中的角色
-   * @since 1.0.0
-   */
-  public assignToTenant(tenantId: TenantId, role?: UserRole): void {
-    const oldTenantId = this.user.tenantId;
-    this.user.assignToTenant(tenantId);
+  public updatePassword(oldPassword: string, newPassword: string): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.updatePassword(oldPassword, newPassword);
     
-    if (role) {
-      this.user.updateRole(role);
-    }
-
-    this.addDomainEvent(new UserAssignedToTenantEvent(
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserPasswordUpdatedEvent(
       this.userId,
-      tenantId,
-      role || this.user.role
+      this.getCurrentTenantId()
     ));
   }
 
   /**
-   * 从租户移除用户
-   * 
-   * @description 将用户从当前租户移除并发布移除事件
-   * 
+   * 重置密码
+   *
+   * @description 聚合根协调内部实体执行密码重置操作
+   *
+   * @param newPassword - 新密码
+   *
+   * @example
+   * ```typescript
+   * userAggregate.resetPassword('newPassword');
+   * ```
+   *
    * @since 1.0.0
    */
-  public removeFromTenant(): void {
-    const tenantId = this.user.tenantId;
-    if (tenantId) {
-      this.user.removeFromTenant();
-      this.addDomainEvent(new UserRemovedFromTenantEvent(this.userId, tenantId));
-    }
+  public resetPassword(newPassword: string): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.resetPassword(newPassword);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserPasswordUpdatedEvent(
+      this.userId,
+      this.getCurrentTenantId()
+    ));
   }
 
   /**
-   * 更新用户角色
-   * 
-   * @description 更新用户角色并发布角色更新事件
-   * 
-   * @param role 新角色
+   * 分配到租户
+   *
+   * @description 聚合根协调内部实体执行租户分配操作
+   *
+   * @param tenantId - 租户ID
+   * @param role - 在租户中的角色
+   *
+   * @example
+   * ```typescript
+   * userAggregate.assignToTenant(tenantId, UserRole.TENANT_ADMIN);
+   * ```
+   *
    * @since 1.0.0
    */
-  public updateRole(role: UserRole): void {
-    const oldRole = this.user.role;
-    this.user.updateRole(role);
-    this.addDomainEvent(new UserRoleUpdatedEvent(this.userId, oldRole, role));
+  public assignToTenant(tenantId: EntityId, role: UserRole): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.assignToTenant(tenantId, role);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserAssignedToTenantEvent(
+      this.userId,
+      tenantId,
+      role,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 从租户移除
+   *
+   * @description 聚合根协调内部实体执行租户移除操作
+   *
+   * @param tenantId - 租户ID
+   *
+   * @example
+   * ```typescript
+   * userAggregate.removeFromTenant(tenantId);
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public removeFromTenant(tenantId: EntityId): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.removeFromTenant(tenantId);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserRemovedFromTenantEvent(
+      this.userId,
+      tenantId,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 添加角色
+   *
+   * @description 聚合根协调内部实体执行角色添加操作
+   *
+   * @param role - 要添加的角色
+   *
+   * @example
+   * ```typescript
+   * userAggregate.addRole(UserRole.DEPARTMENT_ADMIN);
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public addRole(role: UserRole): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.addRole(role);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserRoleAddedEvent(
+      this.userId,
+      role,
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 移除角色
+   *
+   * @description 聚合根协调内部实体执行角色移除操作
+   *
+   * @param role - 要移除的角色
+   *
+   * @example
+   * ```typescript
+   * userAggregate.removeRole(UserRole.DEPARTMENT_ADMIN);
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public removeRole(role: UserRole): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.removeRole(role);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserRoleRemovedEvent(
+      this.userId,
+      EntityId.generate(), // roleId (临时生成，实际应该从role中获取)
+      this.userId, // removedBy (假设是用户自己移除)
+      this.getCurrentTenantId()
+    ));
+  }
+
+  /**
+   * 更新档案
+   *
+   * @description 聚合根协调内部实体执行档案更新操作
+   *
+   * @param newProfile - 新的档案信息
+   *
+   * @example
+   * ```typescript
+   * userAggregate.updateProfile(newUserProfile);
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public updateProfile(newProfile: UserProfile): void {
+    // 指令模式：聚合根发出指令给实体
+    this.user.updateProfile(newProfile);
+    
+    // 发布领域事件（聚合根职责）
+    this.addDomainEvent(new UserProfileUpdatedEvent(
+      this.userId,
+      newProfile,
+      this.getCurrentTenantId()
+    ));
   }
 
   /**
    * 获取用户实体
-   * 
-   * @description 获取聚合根管理的用户实体
-   * 
-   * @returns 用户实体实例
+   *
+   * @description 聚合根管理内部实体访问
+   * 外部只能通过聚合根访问内部实体
+   *
+   * @returns 用户实体
+   *
+   * @example
+   * ```typescript
+   * const user = userAggregate.getUser();
+   * const canLogin = user.canLogin();
+   * ```
+   *
    * @since 1.0.0
    */
   public getUser(): User {
@@ -281,34 +493,35 @@ export class UserAggregate extends BaseAggregateRoot {
 
   /**
    * 获取用户ID
-   * 
-   * @description 获取用户的ID
-   * 
+   *
+   * @description 获取聚合根的标识符
+   *
    * @returns 用户ID
+   *
    * @since 1.0.0
    */
-  public getUserId(): UserId {
+  public getUserId(): EntityId {
     return this.userId;
   }
 
   /**
-   * 检查用户是否活跃
-   * 
-   * @returns true如果用户活跃，否则false
+   * 哈希密码
+   *
+   * @description 对密码进行哈希处理
+   * 实际项目中应该使用 bcrypt 等安全库
+   *
+   * @param password - 明文密码
+   * @returns 哈希后的密码
+   *
    * @since 1.0.0
    */
-  public isActive(): boolean {
-    return this.user.isActive();
-  }
-
-  /**
-   * 检查用户是否属于指定租户
-   * 
-   * @param tenantId 租户ID
-   * @returns true如果用户属于该租户，否则false
-   * @since 1.0.0
-   */
-  public belongsToTenant(tenantId: TenantId): boolean {
-    return this.user.belongsToTenant(tenantId);
+  private static hashPassword(password: string): string {
+    // 实际项目中应该使用 bcrypt 等安全库
+    // 这里简化处理，仅用于演示
+    return `hashed_${password}`;
   }
 }
+
+// 导入必要的依赖
+import { UserActivatedEvent, UserSuspendedEvent, UserDisabledEvent, UserLockedEvent, UserUnlockedEvent, UserAuthenticatedEvent, UserPasswordUpdatedEvent, UserAssignedToTenantEvent, UserRemovedFromTenantEvent, UserRoleAddedEvent, UserProfileUpdatedEvent } from '../../events/user-events';
+import { UserRoleRemovedEvent } from '../../events/authorization-events';

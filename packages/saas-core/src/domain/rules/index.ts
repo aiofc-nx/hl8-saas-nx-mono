@@ -11,3 +11,9 @@ export * from './tenant-rules';
 
 // 用户规则
 export * from './user-rules';
+
+// 组织规则
+export * from './organization-rules';
+
+// 部门规则
+export * from './department-rules';

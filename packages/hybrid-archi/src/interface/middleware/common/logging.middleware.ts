@@ -55,9 +55,9 @@ export class LoggingMiddleware implements NestMiddleware {
     });
 
     // 监听响应完成
-    (res as any).addHook(
+    (res as { addHook: (event: string, handler: (request: unknown, reply: { statusCode: number }, payload: unknown, done: unknown) => void) => void }).addHook(
       'onSend',
-      (request: any, reply: any, payload: any, done: any) => {
+      (request: unknown, reply: { statusCode: number }, payload: unknown, done: unknown) => {
         const endTime = Date.now();
         const duration = endTime - startTime;
         const statusCode = reply.statusCode;
@@ -83,7 +83,7 @@ export class LoggingMiddleware implements NestMiddleware {
           });
         }
 
-        done();
+        (done as () => void)();
       }
     );
 
@@ -101,7 +101,7 @@ export class LoggingMiddleware implements NestMiddleware {
   private getClientIp(req: FastifyRequest): string {
     const forwarded = req.headers['x-forwarded-for'];
     const realIp = req.headers['x-real-ip'];
-    const remoteAddress = (req as any).connection?.remoteAddress;
+    const remoteAddress = (req as { connection?: { remoteAddress?: string } }).connection?.remoteAddress;
 
     if (forwarded) {
       return Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];

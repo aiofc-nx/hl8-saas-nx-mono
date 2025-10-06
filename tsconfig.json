@@ -20,6 +20,12 @@
     },
     {
       "path": "./apps/api"
+    },
+    {
+      "path": "./packages/system/user-management"
+    },
+    {
+      "path": "./packages/hybrid-archi"
     }
   ]
 }

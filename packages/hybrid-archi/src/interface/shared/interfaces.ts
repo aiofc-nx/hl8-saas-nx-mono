@@ -158,9 +158,79 @@ export interface IWebSocketContext {
   userId: string;
   tenantId: string;
   timestamp: Date;
+  userRoles?: string[];
+  userPermissions?: string[];
   clientInfo?: {
     userAgent?: string;
     ip?: string;
     referer?: string;
   };
+}
+
+/**
+ * WebSocket客户端接口
+ *
+ * @description 定义WebSocket客户端的基本结构
+ * 基于Socket.IO客户端接口设计
+ */
+export interface IWebSocketClient {
+  /** 客户端唯一标识符 */
+  id: string;
+  /** 握手信息 */
+  handshake: {
+    /** 认证信息 */
+    auth?: {
+      token?: string;
+      [key: string]: unknown;
+    };
+    /** 请求头 */
+    headers: {
+      authorization?: string;
+      [key: string]: string | string[] | undefined;
+    };
+    /** 客户端IP地址 */
+    address: string;
+    /** 查询参数 */
+    query?: Record<string, string>;
+    /** 时间戳 */
+    time: string;
+    /** 请求URL */
+    url: string;
+    /** 传输协议 */
+    transport: string;
+  };
+  /** 连接状态 */
+  connected: boolean;
+  /** 断开连接 */
+  disconnect(close?: boolean): void;
+  /** 发送消息 */
+  emit(event: string, ...args: unknown[]): void;
+}
+
+/**
+ * JWT令牌载荷接口
+ *
+ * @description 定义JWT令牌载荷的数据结构
+ */
+export interface IJwtPayload {
+  /** 用户ID */
+  sub: string;
+  /** 租户ID */
+  tenantId: string;
+  /** 用户邮箱 */
+  email: string;
+  /** 用户名 */
+  name: string;
+  /** 用户角色 */
+  roles: string[];
+  /** 用户权限 */
+  permissions: string[];
+  /** 令牌签发时间 */
+  iat: number;
+  /** 令牌过期时间 */
+  exp: number;
+  /** 令牌类型 */
+  type?: string;
+  /** 令牌作用域 */
+  scope?: string;
 }

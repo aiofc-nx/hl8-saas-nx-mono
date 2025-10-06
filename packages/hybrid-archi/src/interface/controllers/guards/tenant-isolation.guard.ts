@@ -100,13 +100,18 @@ export class TenantIsolationGuard implements CanActivate {
    * @param request - HTTP请求
    * @returns 租户ID或null
    */
-  private extractTenantId(request: any): string | null {
+  private extractTenantId(request: { 
+    params?: { tenantId?: string }; 
+    query?: { tenantId?: string }; 
+    body?: { tenantId?: string }; 
+    headers?: { 'x-tenant-id'?: string } 
+  }): string | null {
     // 从多个位置提取租户ID
     return (
       request.params?.tenantId ||
       request.query?.tenantId ||
       request.body?.tenantId ||
-      request.headers['x-tenant-id'] ||
+      request.headers?.['x-tenant-id'] ||
       null
     );
   }

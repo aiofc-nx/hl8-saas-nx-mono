@@ -18,6 +18,19 @@
     "../../packages/**/__tests__/**",
     "../../packages/**/test/**",
     "../../packages/**/tests/**"
+  ],
+  "references": [
+    {
+      "path": "../../packages/logger"
+    },
+    {
+      "path": "../../packages/fastify-pro"
+    },
+    {
+      "path": "../../packages/config"
+    },
+    {
+      "path": "../../packages/common"
+    }
   ]
-
 }

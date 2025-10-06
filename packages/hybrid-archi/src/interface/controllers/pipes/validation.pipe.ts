@@ -23,7 +23,7 @@ import { ILoggerService } from '../../shared/interfaces';
  * @description 实现数据验证和转换
  */
 @Injectable()
-export class ValidationPipe implements PipeTransform<any> {
+export class ValidationPipe implements PipeTransform<unknown> {
   constructor(private readonly logger: ILoggerService) {}
 
   /**
@@ -36,7 +36,7 @@ export class ValidationPipe implements PipeTransform<any> {
    * @returns 转换后的值
    * @throws {BadRequestException} 验证失败
    */
-  async transform(value: any, metadata: ArgumentMetadata): Promise<any> {
+  async transform(value: unknown, metadata: ArgumentMetadata): Promise<unknown> {
     const { type, metatype, data } = metadata;
 
     // 跳过基础类型
@@ -98,7 +98,7 @@ export class ValidationPipe implements PipeTransform<any> {
    * @param metatype - 目标类型
    * @returns 转换后的值
    */
-  private transformValue(value: any, metatype: any): any {
+  private transformValue(value: unknown, metatype: unknown): unknown {
     // 字符串转换
     if (typeof value === 'string') {
       value = value.trim();
@@ -127,7 +127,7 @@ export class ValidationPipe implements PipeTransform<any> {
 
     // 对象转换
     if (typeof value === 'object' && value !== null && metatype !== Object) {
-      return plainToClass(metatype, value);
+      return plainToClass(metatype as { new (): unknown }, value as object);
     }
 
     return value;
@@ -143,17 +143,17 @@ export class ValidationPipe implements PipeTransform<any> {
    * @returns 验证结果
    */
   private async validateValue(
-    value: any,
-    metatype: any
+    value: unknown,
+    metatype: unknown
   ): Promise<{
     isValid: boolean;
-    value: any;
+    value: unknown;
     errors: string[];
   }> {
     const errors: string[] = [];
 
     // 使用class-validator进行验证
-    const validationErrors = await validate(value);
+    const validationErrors = await validate(value as object);
 
     if (validationErrors.length > 0) {
       validationErrors.forEach((error) => {
@@ -180,7 +180,7 @@ export class ValidationPipe implements PipeTransform<any> {
    * @param value - 要清理的值
    * @returns 清理后的值
    */
-  private sanitizeValue(value: any): any {
+  private sanitizeValue(value: unknown): unknown {
     if (typeof value === 'string') {
       // XSS防护
       value = value
@@ -188,12 +188,12 @@ export class ValidationPipe implements PipeTransform<any> {
         .replace(/<[^>]*>/g, '');
 
       // SQL注入防护
-      value = value.replace(/'/g, "''").replace(/;/g, '');
+      value = (value as string).replace(/'/g, "''").replace(/;/g, '');
     }
 
     if (typeof value === 'object' && value !== null) {
       // 递归清理对象属性
-      const sanitized: Record<string, any> = {};
+      const sanitized: Record<string, unknown> = {};
       for (const [key, val] of Object.entries(value)) {
         sanitized[key] = this.sanitizeValue(val);
       }
@@ -211,9 +211,9 @@ export class ValidationPipe implements PipeTransform<any> {
    * @param metatype - 类型
    * @returns 是否为基础类型
    */
-  private isBasicType(metatype: any): boolean {
+  private isBasicType(metatype: unknown): boolean {
     const basicTypes = [String, Boolean, Number, Array, Object];
-    return basicTypes.includes(metatype);
+    return basicTypes.includes(metatype as typeof String);
   }
 
   /**
@@ -224,7 +224,7 @@ export class ValidationPipe implements PipeTransform<any> {
    * @param value - 要序列化的值
    * @returns 序列化后的字符串
    */
-  private safeStringify(value: any): string {
+  private safeStringify(value: unknown): string {
     try {
       return JSON.stringify(value);
     } catch {

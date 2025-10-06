@@ -24,7 +24,7 @@ import {
  *
  * @description 统一的API响应格式
  */
-export interface IApiResponse<T = any> {
+export interface IApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;

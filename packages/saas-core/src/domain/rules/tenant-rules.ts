@@ -6,7 +6,8 @@
  * @since 1.0.0
  */
 
-import { TenantType, TenantStatus } from '../tenant/entities/tenant.entity';
+import { TenantType } from '@hl8/hybrid-archi';
+import { TenantStatus } from '@hl8/hybrid-archi';
 
 /**
  * 租户业务规则常量
@@ -78,7 +79,10 @@ export class TenantRuleValidator {
       [TenantType.BASIC]: ['user_management', 'organization', 'department', 'basic_analytics'],
       [TenantType.PROFESSIONAL]: ['user_management', 'organization', 'department', 'analytics', 'api_access'],
       [TenantType.ENTERPRISE]: ['all_features'],
-      [TenantType.CUSTOM]: ['all_features']
+      [TenantType.CUSTOM]: ['all_features'],
+      [TenantType.PERSONAL]: ['basic_user_management', 'personal_profile'],
+      [TenantType.TEAM]: ['user_management', 'team_collaboration', 'basic_analytics'],
+      [TenantType.COMMUNITY]: ['user_management', 'community_features', 'public_profiles']
     };
     
     const allowedFeatures = featureMap[tenantType] || [];
@@ -99,7 +103,10 @@ export class TenantRuleValidator {
       [TenantType.BASIC]: { maxUsers: 50, maxOrganizations: 2, maxStorage: 1024, maxApiCalls: 10000 },
       [TenantType.PROFESSIONAL]: { maxUsers: 500, maxOrganizations: 10, maxStorage: 10240, maxApiCalls: 100000 },
       [TenantType.ENTERPRISE]: { maxUsers: 10000, maxOrganizations: 100, maxStorage: 102400, maxApiCalls: 1000000 },
-      [TenantType.CUSTOM]: { maxUsers: -1, maxOrganizations: -1, maxStorage: -1, maxApiCalls: -1 }
+      [TenantType.CUSTOM]: { maxUsers: -1, maxOrganizations: -1, maxStorage: -1, maxApiCalls: -1 },
+      [TenantType.PERSONAL]: { maxUsers: 1, maxOrganizations: 1, maxStorage: 200, maxApiCalls: 5000 },
+      [TenantType.TEAM]: { maxUsers: 20, maxOrganizations: 5, maxStorage: 2000, maxApiCalls: 50000 },
+      [TenantType.COMMUNITY]: { maxUsers: 100, maxOrganizations: 10, maxStorage: 5000, maxApiCalls: 200000 }
     };
     
     const limits = limitsMap[tenantType];

@@ -21,7 +21,7 @@ export * from './websocket';
 // CLI命令系统
 export * from './cli';
 
-// 中间件系统
+// 中间件系统（排除WebSocket中间件以避免冲突）
 export * from './middleware';
 
 // 装饰器系统（接口层专用）

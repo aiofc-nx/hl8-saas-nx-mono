@@ -336,8 +336,8 @@ export class ModuleScannerService {
    * 使用 glob 查找文件
    */
   private async globFiles(
-    pattern: string,
-    excludePatterns: string[]
+    _pattern: string,
+    _excludePatterns: string[]
   ): Promise<string[]> {
     // 暂时返回空数组，因为 glob 依赖还没有正确安装
     // 在实际实现中，这里应该使用 glob 库来查找文件
@@ -349,7 +349,7 @@ export class ModuleScannerService {
    */
   private async loadModules(
     moduleFiles: string[],
-    options: IScanOptions
+    _options: IScanOptions
   ): Promise<IModuleInfo[]> {
     const modules: IModuleInfo[] = [];
 

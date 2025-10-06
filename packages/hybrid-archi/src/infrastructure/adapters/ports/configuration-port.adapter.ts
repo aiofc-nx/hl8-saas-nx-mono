@@ -46,8 +46,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   get<T = unknown>(key: string, defaultValue?: T): T {
     // 检查ConfigService是否有get方法
-    if (typeof (this.configService as any).get === 'function') {
-      return (this.configService as any).get(key, defaultValue);
+    if (typeof (this.configService as { get?: (key: string, defaultValue?: T) => T }).get === 'function') {
+      return (this.configService as { get: (key: string, defaultValue?: T) => T }).get(key, defaultValue);
     } else {
       console.warn('ConfigService不支持get方法');
       return defaultValue as T;
@@ -117,8 +117,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   has(key: string): boolean {
     // 检查ConfigService是否有has方法
-    if (typeof (this.configService as any).has === 'function') {
-      return (this.configService as any).has(key);
+    if (typeof (this.configService as { has?: (key: string) => boolean }).has === 'function') {
+      return (this.configService as { has: (key: string) => boolean }).has(key);
     } else {
       console.warn('ConfigService不支持has方法');
       return false;
@@ -132,8 +132,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   getAll(): Record<string, unknown> {
     // 检查ConfigService是否有getAll方法
-    if (typeof (this.configService as any).getAll === 'function') {
-      return (this.configService as any).getAll();
+    if (typeof (this.configService as { getAll?: () => Record<string, unknown> }).getAll === 'function') {
+      return (this.configService as { getAll: () => Record<string, unknown> }).getAll();
     } else {
       console.warn('ConfigService不支持getAll方法');
       return {};
@@ -147,8 +147,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   getKeys(): string[] {
     // 检查ConfigService是否有getKeys方法
-    if (typeof (this.configService as any).getKeys === 'function') {
-      return (this.configService as any).getKeys();
+    if (typeof (this.configService as { getKeys?: () => string[] }).getKeys === 'function') {
+      return (this.configService as { getKeys: () => string[] }).getKeys();
     } else {
       console.warn('ConfigService不支持getKeys方法');
       return [];
@@ -162,8 +162,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   getValues(): unknown[] {
     // 检查ConfigService是否有getValues方法
-    if (typeof (this.configService as any).getValues === 'function') {
-      return (this.configService as any).getValues();
+    if (typeof (this.configService as { getValues?: () => unknown[] }).getValues === 'function') {
+      return (this.configService as { getValues: () => unknown[] }).getValues();
     } else {
       console.warn('ConfigService不支持getValues方法');
       return [];
@@ -177,8 +177,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   getEntries(): Array<[string, unknown]> {
     // 检查ConfigService是否有getEntries方法
-    if (typeof (this.configService as any).getEntries === 'function') {
-      return (this.configService as any).getEntries();
+    if (typeof (this.configService as { getEntries?: () => Array<[string, unknown]> }).getEntries === 'function') {
+      return (this.configService as { getEntries: () => Array<[string, unknown]> }).getEntries();
     } else {
       console.warn('ConfigService不支持getEntries方法');
       return [];
@@ -193,8 +193,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   set(key: string, value: unknown): void {
     // 检查ConfigService是否有set方法
-    if (typeof (this.configService as any).set === 'function') {
-      (this.configService as any).set(key, value);
+    if (typeof (this.configService as { set?: (key: string, value: unknown) => void }).set === 'function') {
+      (this.configService as { set: (key: string, value: unknown) => void }).set(key, value);
     } else {
       console.warn('ConfigService不支持set方法');
     }
@@ -207,8 +207,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   delete(key: string): void {
     // 检查ConfigService是否有delete方法
-    if (typeof (this.configService as any).delete === 'function') {
-      (this.configService as any).delete(key);
+    if (typeof (this.configService as { delete?: (key: string) => void }).delete === 'function') {
+      (this.configService as { delete: (key: string) => void }).delete(key);
     } else {
       console.warn('ConfigService不支持delete方法');
     }
@@ -219,8 +219,8 @@ export class ConfigurationPortAdapter implements IConfigurationPort {
    */
   clear(): void {
     // 检查ConfigService是否有clear方法
-    if (typeof (this.configService as any).clear === 'function') {
-      (this.configService as any).clear();
+    if (typeof (this.configService as { clear?: () => void }).clear === 'function') {
+      (this.configService as { clear: () => void }).clear();
     } else {
       console.warn('ConfigService不支持clear方法');
     }

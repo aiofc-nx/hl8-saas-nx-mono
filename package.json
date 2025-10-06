@@ -9,7 +9,8 @@
   },
   "private": true,
   "dependencies": {
-    "pino-pretty": "^11.0.0"
+    "pino-pretty": "^11.0.0",
+    "task-master-ai": "^0.27.3"
   },
   "devDependencies": {
     "@nestjs/schematics": "^11.0.0",

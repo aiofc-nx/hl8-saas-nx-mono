@@ -9,14 +9,8 @@
 // 导出主模块
 export * from './saas-core.module';
 
-// 导出领域层
-export * from './domain/tenant/entities/tenant.entity';
-export * from './domain/tenant/aggregates/tenant.aggregate';
-export * from './domain/user/entities/user.entity';
-export * from './domain/user/aggregates/user.aggregate';
-export * from './domain/value-objects';
-export * from './domain/events';
-export * from './domain/services';
+// 导出领域层 - 使用统一的领域层导出
+export * from './domain';
 export * from './domain/rules';
 
 // 导出配置

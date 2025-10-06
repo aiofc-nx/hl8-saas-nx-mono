@@ -159,7 +159,7 @@ export interface IEventProjector<TEvent extends BaseDomainEvent> {
  * @template TEvent - 事件类型
  * @template TReadModel - 读模型类型
  */
-export interface IReadModelProjector<TEvent extends BaseDomainEvent, TReadModel>
+export interface IReadModelProjector<TEvent extends BaseDomainEvent, _TReadModel>
   extends IEventProjector<TEvent> {
   /**
    * 重建读模型
@@ -204,7 +204,7 @@ export interface IProjectorManager {
    *
    * @param projector - 投射器实例
    */
-  register(projector: IEventProjector<any>): void;
+  register(projector: IEventProjector<BaseDomainEvent>): void;
 
   /**
    * 投射事件
@@ -240,14 +240,14 @@ export interface IProjectorManager {
    * @param eventType - 事件类型
    * @returns 投射器列表
    */
-  getProjectors(eventType: string): IEventProjector<any>[];
+  getProjectors(eventType: string): IEventProjector<BaseDomainEvent>[];
 
   /**
    * 获取所有已注册的投射器
    *
    * @returns 投射器列表
    */
-  getAllProjectors(): IEventProjector<any>[];
+  getAllProjectors(): IEventProjector<BaseDomainEvent>[];
 
   /**
    * 检查投射器是否已注册

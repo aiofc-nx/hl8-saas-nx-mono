@@ -215,7 +215,7 @@ export class SnapshotStoreImplementation implements ISnapshotStore {
    */
   async cleanupOldSnapshots(
     aggregateId: string,
-    retainCount: number = 5
+    retainCount = 5
   ): Promise<void> {
     try {
       const maxSnapshots =

@@ -100,13 +100,13 @@ export class TenantGuard implements CanActivate {
     }
 
     // 2. 从查询参数获取
-    const queryTenantId = (request.query as any)?.tenantId as string;
+    const queryTenantId = (request.query as { tenantId?: string })?.tenantId;
     if (queryTenantId) {
       return queryTenantId;
     }
 
     // 3. 从路径参数获取
-    const pathTenantId = (request.params as any)?.tenantId;
+    const pathTenantId = (request.params as { tenantId?: string })?.tenantId;
     if (pathTenantId) {
       return pathTenantId;
     }
@@ -138,7 +138,7 @@ export class TenantGuard implements CanActivate {
    * @returns 是否属于租户
    * @private
    */
-  private isUserInTenant(user: any, tenantId: string): boolean {
+  private isUserInTenant(user: { tenants?: string[] }, tenantId: string): boolean {
     const userTenants = user.tenants || [];
     return userTenants.includes(tenantId);
   }

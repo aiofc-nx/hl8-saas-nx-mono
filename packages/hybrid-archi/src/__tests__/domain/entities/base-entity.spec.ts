@@ -16,7 +16,6 @@
 import { BaseEntity } from '../../../domain/entities/base/base-entity';
 import { EntityId } from '../../../domain/value-objects/entity-id';
 import {
-  IAuditInfo,
   IPartialAuditInfo,
 } from '../../../domain/entities/base/audit-info';
 import { PinoLogger } from '@hl8/logger';
@@ -51,7 +50,7 @@ describe('BaseEntity', () => {
       tenantId: 'test-tenant',
       version: 1,
     };
-    logger = new PinoLogger({ level: 'silent' as any });
+    logger = new PinoLogger({ level: 'silent' as const });
   });
 
   describe('构造函数', () => {
@@ -219,7 +218,7 @@ describe('BaseEntity', () => {
     it('应该正确处理 null 比较', () => {
       const entity = new TestEntity(entityId, auditInfo, logger);
 
-      const result = entity.compareTo(null as any);
+      const result = entity.compareTo(null as unknown as TestEntity);
       expect(result).toBe(1);
     });
   });

@@ -64,8 +64,27 @@ export {
   IDomainService,
 } from './domain';
 
+// 仓储接口导出
+export {
+  // 基础仓储接口
+  IRepository,
+  IRepositoryQueryOptions,
+  IPaginatedResult,
+  BaseRepositoryError,
+  ConcurrencyError,
+  EntityNotFoundError,
+  ValidationError,
+  // 聚合根仓储接口
+  IAggregateRepository,
+  IAggregateSnapshot,
+  IEventStoreRepository,
+  IReadModelRepository,
+} from './domain/repositories';
+
 // 通用值对象导出
-export * from './domain/value-objects/common';
+export * from './domain/value-objects/identities';
+export * from './domain/value-objects/statuses';
+export * from './domain/value-objects/types';
 
 // 通用验证器导出
 export * from './domain/validators/common';
@@ -104,8 +123,11 @@ export * from './interface/guards/common';
 export * from './interface/decorators/common';
 export * from './interface/middleware/common';
 
-// 通用枚举导出
-export * from './domain/enums/common';
+// 通用枚举导出 - 使用明确重新导出避免冲突
+export {
+  UserStatus as CommonUserStatus,
+  UserStatusUtils as CommonUserStatusUtils,
+} from './domain/enums/common';
 
 // 通用类型导出
 export * from './domain/types/common';

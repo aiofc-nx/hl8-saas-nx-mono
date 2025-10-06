@@ -62,11 +62,10 @@
  * @since 1.0.0
  */
 
-import { IQuery, IQueryValidationResult } from '../base/query.interface';
+import { IQuery } from '../base/query.interface';
 import {
   IQueryHandler,
   IQueryExecutionContext,
-  IQueryExecutionResult,
 } from './query-handler.interface';
 
 /**
@@ -267,9 +266,9 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
     context: IQueryExecutionContext,
   ): Promise<TResult | null> {
     try {
-      const cacheKey = this.getCacheKey(query, context);
+      const _cacheKey = this.getCacheKey(query, context);
       // 缓存逻辑将在具体实现中注入
-      // return await this.cache.get<TResult>(cacheKey);
+      // return await this.cache.get<TResult>(_cacheKey);
       return null; // 临时返回null
     } catch (error) {
       this.log('warn', '缓存检查失败', {
@@ -317,7 +316,7 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
    */
   protected getCacheKey(
     query: TQuery,
-    context: IQueryExecutionContext,
+    _context: IQueryExecutionContext,
   ): string {
     const baseKey = `${this.queryType}:${query.queryId}`;
     const tenantId = query.tenantId || 'global';
@@ -333,7 +332,7 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
    * @param result - 查询结果
    * @returns 缓存生存时间（秒）
    */
-  protected getCacheTtl(query: TQuery, result: TResult): number {
+  protected getCacheTtl(_query: TQuery, _result: TResult): number {
     return this.defaultCacheTtl;
   }
 
@@ -352,10 +351,14 @@ export abstract class BaseQueryHandler<TQuery extends IQuery, TResult>
       request: query.requestId ? { id: query.requestId } : undefined,
       cache: {
         enabled: true,
-        key: this.getCacheKey(query, {} as any),
+        key: this.getCacheKey(query, {
+          queryId: query.queryId || 'unknown',
+          startTime: new Date(),
+          custom: {}
+        }),
         ttl: this.defaultCacheTtl,
       },
-      custom: {},
+      custom: {} as Record<string, unknown>,
     };
   }
 

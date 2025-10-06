@@ -14,7 +14,7 @@ import { IEventHandler } from '../../../application/interfaces/common';
 export interface EventSubscriptionOptions {
   tenantId?: string;
   priority?: number;
-  filter?: (event: any) => boolean;
+  filter?: (event: unknown) => boolean;
   retryPolicy?: {
     maxRetries: number;
     retryDelay: number;
@@ -55,7 +55,7 @@ export interface IEventBus {
    * @param events - 要发布的事件列表
    * @returns 发布结果
    */
-  publish(events: any[]): Promise<void>;
+  publish(events: unknown[]): Promise<void>;
 
   /**
    * 发布单个事件
@@ -64,7 +64,7 @@ export interface IEventBus {
    * @param event - 要发布的事件
    * @returns 发布结果
    */
-  publishSingle(event: any): Promise<void>;
+  publishSingle(event: unknown): Promise<void>;
 
   /**
    * 订阅事件
@@ -75,7 +75,7 @@ export interface IEventBus {
    * @param options - 订阅选项
    * @returns 订阅结果
    */
-  subscribe<T extends any>(
+  subscribe<T>(
     eventType: string,
     handler: IEventHandler<T>,
     options?: EventSubscriptionOptions
@@ -89,7 +89,7 @@ export interface IEventBus {
    * @param handler - 事件处理器
    * @returns 取消订阅结果
    */
-  unsubscribe<T extends any>(
+  unsubscribe<T>(
     eventType: string,
     handler: IEventHandler<T>
   ): void;

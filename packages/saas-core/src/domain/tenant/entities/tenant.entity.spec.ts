@@ -9,6 +9,8 @@
 import { Tenant } from './tenant.entity';
 import { TenantId } from '@hl8/hybrid-archi';
 import { TENANT_TYPES, TENANT_STATUS } from '../../../constants/business.constants';
+import { TenantConfig } from '../value-objects/tenant-config.vo';
+import { ResourceLimits } from '../value-objects/resource-limits.vo';
 import { 
   TenantNotPendingException, 
   TenantNotActiveException, 
@@ -18,23 +20,23 @@ import {
 describe('Tenant Entity', () => {
   let tenant: Tenant;
   let tenantId: TenantId;
-  let config: any;
-  let resourceLimits: any;
+  let config: TenantConfig;
+  let resourceLimits: ResourceLimits;
 
   beforeEach(() => {
     tenantId = TenantId.generate();
-    config = {
+    config = TenantConfig.create({
       features: ['user_management', 'organization'],
       theme: 'default',
       branding: {},
       settings: {}
-    };
-    resourceLimits = {
+    });
+    resourceLimits = ResourceLimits.create({
       maxUsers: 100,
       maxOrganizations: 5,
       maxStorage: 1024,
       maxApiCalls: 10000
-    };
+    });
 
     tenant = new Tenant(
       tenantId,

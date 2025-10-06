@@ -45,7 +45,7 @@
  */
 
 import { Module, DynamicModule } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ConfigModule } from '@nestjs/config';
 
 // 领域层
@@ -121,19 +121,19 @@ export class SaasCoreModule {
         }),
 
         // 数据库模块
-        TypeOrmModule.forRoot({
+        MikroOrmModule.forRoot({
           ...getDatabaseConfig(),
           ...(options.database && {
             host: options.database.host,
             port: options.database.port,
-            username: options.database.username,
+            user: options.database.username,
             password: options.database.password,
-            database: options.database.database,
+            dbName: options.database.database,
           }),
         }),
 
         // 实体模块
-        // TypeOrmModule.forFeature([
+        // MikroOrmModule.forFeature([
         //   TenantEntity,
         //   UserEntity,
         //   OrganizationEntity,
@@ -211,7 +211,7 @@ export class SaasCoreModule {
       providers: [
         {
           provide: 'SAAS_CORE_OPTIONS',
-          useFactory: options.useFactory,
+          useFactory: options.useFactory || (() => ({})),
           inject: options.inject || [],
         },
         // 其他提供者...
@@ -221,11 +221,4 @@ export class SaasCoreModule {
   }
 }
 
-// 导出主要类型和接口
-export * from './domain/shared/value-objects/tenant-id.vo';
-export * from './domain/tenant/entities/tenant.entity';
-export * from './domain/tenant/aggregates/tenant.aggregate';
-export * from './config/database.config';
-export * from './config/cache.config';
-export * from './constants/business.constants';
-export * from './constants/technical.constants';
+// 注意：主要类型和接口的导出已移至 index.ts 文件中，避免重复导出

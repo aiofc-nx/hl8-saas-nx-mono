@@ -403,7 +403,7 @@ export class CoreExplorerService {
    *
    * @private
    */
-  private getModuleExports(module: Type<any>): Type<any>[] {
+  private getModuleExports(_module: Type<any>): Type<any>[] {
     // 这里需要实现获取模块导出的逻辑
     // 由于这是一个复杂的实现，我们暂时返回空数组
     // 在实际实现中，需要解析模块的元数据
@@ -415,7 +415,7 @@ export class CoreExplorerService {
    *
    * @private
    */
-  private getSubModules(module: Type<any>): Type<any>[] {
+  private getSubModules(_module: Type<any>): Type<any>[] {
     // 这里需要实现获取子模块的逻辑
     // 在实际实现中，需要从模块的元数据中获取导入的模块
     return [];

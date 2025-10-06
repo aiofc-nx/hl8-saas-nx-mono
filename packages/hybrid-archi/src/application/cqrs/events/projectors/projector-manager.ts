@@ -61,7 +61,7 @@ interface IProjectorRegistration {
   /**
    * 投射器实例
    */
-  projector: IEventProjector<any>;
+  projector: IEventProjector<BaseDomainEvent>;
 
   /**
    * 注册时间
@@ -109,7 +109,7 @@ export class ProjectorManager implements IProjectorManager {
    *
    * @param projector - 投射器实例
    */
-  register(projector: IEventProjector<any>): void {
+  register(projector: IEventProjector<BaseDomainEvent>): void {
     const projectorName = projector.getProjectorName();
 
     // 检查是否已注册
@@ -214,7 +214,7 @@ export class ProjectorManager implements IProjectorManager {
     console.log(`开始重建聚合根 ${aggregateId} 的所有读模型`);
 
     // 获取所有相关的投射器
-    const allProjectors = new Set<IEventProjector<any>>();
+    const allProjectors = new Set<IEventProjector<BaseDomainEvent>>();
 
     for (const event of events) {
       const projectors = this.getProjectors(event.eventType);
@@ -226,7 +226,7 @@ export class ProjectorManager implements IProjectorManager {
       .filter((p) => 'rebuildReadModel' in p)
       .map(async (projector) => {
         try {
-          const readModelProjector = projector as any;
+          const readModelProjector = projector as IEventProjector<BaseDomainEvent> & { rebuildReadModel: (aggregateId: string, events: unknown[]) => Promise<void> };
           const relevantEvents = events.filter((e) => projector.canProject(e));
           await readModelProjector.rebuildReadModel(
             aggregateId,
@@ -251,7 +251,7 @@ export class ProjectorManager implements IProjectorManager {
    * @param eventType - 事件类型
    * @returns 投射器列表
    */
-  getProjectors(eventType: string): IEventProjector<any>[] {
+  getProjectors(eventType: string): IEventProjector<BaseDomainEvent>[] {
     const registrations = this.projectorsByEventType.get(eventType) || [];
     return registrations
       .filter((reg) => reg.enabled)
@@ -263,7 +263,7 @@ export class ProjectorManager implements IProjectorManager {
    *
    * @returns 投射器列表
    */
-  getAllProjectors(): IEventProjector<any>[] {
+  getAllProjectors(): IEventProjector<BaseDomainEvent>[] {
     return Array.from(this.projectorsByName.values())
       .filter((reg) => reg.enabled)
       .map((reg) => reg.projector);
@@ -329,7 +329,7 @@ export class ProjectorManager implements IProjectorManager {
    * @param projectorName - 投射器名称
    * @returns 统计信息
    */
-  getProjectorStats(projectorName: string): any {
+  getProjectorStats(projectorName: string): Record<string, unknown> | undefined {
     const registration = this.projectorsByName.get(projectorName);
     return registration?.stats;
   }
@@ -356,7 +356,7 @@ export class ProjectorManager implements IProjectorManager {
    * @returns 执行结果
    */
   private async executeProjector(
-    projector: IEventProjector<any>,
+    projector: IEventProjector<BaseDomainEvent>,
     event: BaseDomainEvent
   ): Promise<IProjectionExecutionResult> {
     const startTime = Date.now();
@@ -389,10 +389,10 @@ export class ProjectorManager implements IProjectorManager {
           eventId: event.eventId.toString(),
           startTime: new Date(startTime),
           aggregateId: event.aggregateId.toString(),
-          eventVersion: (event as any).version,
+          eventVersion: (event as unknown as { version: number }).version,
           projectorName: projector.getProjectorName(),
           retryCount: 0,
-          custom: {},
+          custom: {} as Record<string, unknown>,
         },
       };
     } catch (error) {

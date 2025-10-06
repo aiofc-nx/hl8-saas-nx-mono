@@ -14,7 +14,7 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/multi-tenancy"
+      "path": "../multi-tenancy"
     },
     {
       "path": "./tsconfig.lib.json"

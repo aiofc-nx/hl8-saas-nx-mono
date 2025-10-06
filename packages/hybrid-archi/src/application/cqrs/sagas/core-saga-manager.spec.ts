@@ -107,9 +107,10 @@ describe('CoreSagaManager', () => {
         .toPromise();
 
       expect(context).toBeDefined();
-      expect(context!.sagaId).toBeDefined();
-      expect(context!.sagaType).toBe('TestSaga');
-      expect(context!.status).toBe(SagaStatus.RUNNING);
+      expect(context).not.toBeNull();
+      expect(context?.sagaId).toBeDefined();
+      expect(context?.sagaType).toBe('TestSaga');
+      expect(context?.status).toBe(SagaStatus.RUNNING);
     });
 
     it('应该能够获取 Saga 状态', async () => {
@@ -119,10 +120,15 @@ describe('CoreSagaManager', () => {
         })
         .toPromise();
 
-      const status = sagaManager.getSagaStatus(context!.sagaId);
+      expect(context).not.toBeNull();
+      expect(context?.sagaId).toBeDefined();
+      const sagaId = context?.sagaId;
+      expect(sagaId).toBeDefined();
+      const status = sagaManager.getSagaStatus(sagaId!);
       expect(status).toBeDefined();
-      expect(status!.sagaId).toBe(context!.sagaId);
-      expect(status!.status).toBe(SagaStatus.RUNNING);
+      expect(status).not.toBeNull();
+      expect(status?.sagaId).toBe(context?.sagaId);
+      expect(status?.status).toBe(SagaStatus.RUNNING);
     });
 
     it('应该能够停止 Saga', async () => {
@@ -132,9 +138,14 @@ describe('CoreSagaManager', () => {
         })
         .toPromise();
 
-      await sagaManager.stopSaga(context!.sagaId);
-      const status = sagaManager.getSagaStatus(context!.sagaId);
-      expect(status!.status).toBe(SagaStatus.CANCELLED);
+      expect(context).not.toBeNull();
+      expect(context?.sagaId).toBeDefined();
+      const sagaId = context?.sagaId;
+      expect(sagaId).toBeDefined();
+      await sagaManager.stopSaga(sagaId!);
+      const status = sagaManager.getSagaStatus(sagaId!);
+      expect(status).not.toBeNull();
+      expect(status?.status).toBe(SagaStatus.CANCELLED);
     });
 
     it('应该能够取消 Saga', async () => {
@@ -144,9 +155,14 @@ describe('CoreSagaManager', () => {
         })
         .toPromise();
 
-      await sagaManager.cancelSaga(context!.sagaId);
-      const status = sagaManager.getSagaStatus(context!.sagaId);
-      expect(status!.status).toBe(SagaStatus.CANCELLED);
+      expect(context).not.toBeNull();
+      expect(context?.sagaId).toBeDefined();
+      const sagaId = context?.sagaId;
+      expect(sagaId).toBeDefined();
+      await sagaManager.cancelSaga(sagaId!);
+      const status = sagaManager.getSagaStatus(sagaId!);
+      expect(status).not.toBeNull();
+      expect(status?.status).toBe(SagaStatus.CANCELLED);
     });
   });
 

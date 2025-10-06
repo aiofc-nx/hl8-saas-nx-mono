@@ -94,7 +94,12 @@ export interface ResourceLimitsProps {
  *
  * @since 1.0.0
  */
-export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
+export class ResourceLimits extends BaseValueObject {
+  /**
+   * 私有属性存储
+   */
+  private readonly _props: ResourceLimitsProps;
+
   /**
    * 私有构造函数
    * 
@@ -104,7 +109,8 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @param props - 资源限制属性
    */
   private constructor(props: ResourceLimitsProps) {
-    super(props);
+    super();
+    this._props = props;
     this.validate();
   }
 
@@ -145,8 +151,8 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    *
    * @since 1.0.0
    */
-  private validate(): void {
-    const limits = Object.values(this.props);
+  protected override validate(): void {
+    const limits = Object.values(this._props);
     for (const limit of limits) {
       if (typeof limit === 'number' && limit < -1) {
         throw new InvalidResourceLimitsException('资源限制不能小于-1');
@@ -172,7 +178,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public hasLimit(resource: keyof ResourceLimitsProps): boolean {
-    return this.props[resource] !== -1;
+    return this._props[resource] !== -1;
   }
 
   /**
@@ -191,7 +197,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public getLimit(resource: keyof ResourceLimitsProps): number {
-    return this.props[resource];
+    return this._props[resource];
   }
 
   /**
@@ -213,7 +219,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public isExceeded(resource: keyof ResourceLimitsProps, currentUsage: number): boolean {
-    const limit = this.props[resource];
+    const limit = this._props[resource];
     return limit !== -1 && currentUsage >= limit;
   }
 
@@ -236,7 +242,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public getRemainingQuota(resource: keyof ResourceLimitsProps, currentUsage: number): number {
-    const limit = this.props[resource];
+    const limit = this._props[resource];
     if (limit === -1) {
       return -1; // 无限制
     }
@@ -263,7 +269,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public updateLimits(updates: Partial<ResourceLimitsProps>): ResourceLimits {
-    return ResourceLimits.create({ ...this.props, ...updates });
+    return ResourceLimits.create({ ...this._props, ...updates });
   }
 
   /**
@@ -276,7 +282,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public getAllLimits(): ResourceLimitsProps {
-    return { ...this.props };
+    return { ...this._props };
   }
 
   /**
@@ -294,7 +300,7 @@ export class ResourceLimits extends BaseValueObject<ResourceLimitsProps> {
    * @since 1.0.0
    */
   public isUnlimited(): boolean {
-    return Object.values(this.props).every(limit => limit === -1);
+    return Object.values(this._props).every(limit => limit === -1);
   }
 }
 

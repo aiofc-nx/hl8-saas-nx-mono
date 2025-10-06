@@ -16,7 +16,7 @@ class TestCommand extends BaseCommand {
     userId: string,
     commandVersion = 1,
     metadata: Record<string, unknown> = {},
-    public readonly action: string = '',
+    public readonly action = '',
     public readonly data: Record<string, unknown> = {},
     customCommandId?: EntityId
   ) {
@@ -114,11 +114,9 @@ class ComplexCommand extends BaseCommand {
 }
 
 describe('BaseCommand', () => {
-  let commandId: EntityId;
   let tenantId: string;
 
   beforeEach(() => {
-    commandId = EntityId.generate();
     tenantId = 'test-tenant-123';
   });
 
@@ -254,8 +252,8 @@ describe('BaseCommand', () => {
 
     it('与 null 或 undefined 比较应该返回 1', () => {
       const command = TestCommand.create('test-action');
-      expect(command.compareTo(null as any)).toBe(1);
-      expect(command.compareTo(undefined as any)).toBe(1);
+      expect(command.compareTo(null as unknown as TestCommand)).toBe(1);
+      expect(command.compareTo(undefined as unknown as TestCommand)).toBe(1);
     });
   });
 
@@ -354,7 +352,7 @@ describe('BaseCommand', () => {
         1,
         {},
         {
-          type: '' as any,
+          type: '' as 'CREATE',
           target: 'User',
           payload: {},
         }

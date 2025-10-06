@@ -71,7 +71,7 @@ export type CacheStrategy = 'memory' | 'redis' | 'http' | 'hybrid';
  * 缓存条件接口
  */
 export interface CacheCondition {
-  condition: (context: any) => boolean;
+  condition: (context: unknown) => boolean;
   ttl?: number;
   strategy?: CacheStrategy;
 }
@@ -153,7 +153,7 @@ export function CacheByTenant(ttl?: number): MethodDecorator {
  * @returns 装饰器
  */
 export function CacheIf(
-  condition: (context: any) => boolean,
+  condition: (context: unknown) => boolean,
   ttl: number
 ): MethodDecorator {
   return SetMetadata(CACHE_CONDITION_KEY, { condition, ttl });
@@ -265,7 +265,7 @@ export function CacheControl(config: {
   strategy?: CacheStrategy;
   byUser?: boolean;
   byTenant?: boolean;
-  condition?: (context: any) => boolean;
+  condition?: (context: unknown) => boolean;
   invalidation?: string[];
   warmup?: boolean;
   compression?: boolean;

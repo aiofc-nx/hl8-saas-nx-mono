@@ -1,5 +1,5 @@
-import { EntityId } from '@hl8/hybrid-archi';
-import { TenantType } from '../tenant/value-objects/tenant-type.vo';
+import { EntityId, BaseDomainEvent } from '@hl8/hybrid-archi';
+import { TenantType } from '@hl8/hybrid-archi';
 import { TenantConfig } from '../tenant/value-objects/tenant-config.vo';
 import { ResourceLimits } from '../tenant/value-objects/resource-limits.vo';
 
@@ -11,15 +11,31 @@ import { ResourceLimits } from '../tenant/value-objects/resource-limits.vo';
  *
  * @since 1.0.0
  */
-export class TenantCreatedEvent {
+export class TenantCreatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly code: string,
     public readonly name: string,
     public readonly type: TenantType,
     public readonly adminId: string,
-    public readonly timestamp: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantCreated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      code: this.code,
+      name: this.name,
+      type: this.type,
+      adminId: this.adminId
+    };
+  }
 }
 
 /**
@@ -30,11 +46,23 @@ export class TenantCreatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantActivatedEvent {
+export class TenantActivatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
-    public readonly activatedAt: Date = new Date()
-  ) {}
+    public readonly tenantEntityId: EntityId,
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantActivated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString()
+    };
+  }
 }
 
 /**
@@ -45,12 +73,25 @@ export class TenantActivatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantSuspendedEvent {
+export class TenantSuspendedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    public readonly suspendedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantSuspended';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      reason: this.reason
+    };
+  }
 }
 
 /**
@@ -61,12 +102,25 @@ export class TenantSuspendedEvent {
  *
  * @since 1.0.0
  */
-export class TenantDisabledEvent {
+export class TenantDisabledEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    public readonly disabledAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantDisabled';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      reason: this.reason
+    };
+  }
 }
 
 /**
@@ -77,13 +131,27 @@ export class TenantDisabledEvent {
  *
  * @since 1.0.0
  */
-export class TenantUpgradedEvent {
+export class TenantUpgradedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly fromType: TenantType,
     public readonly toType: TenantType,
-    public readonly upgradedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantUpgraded';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      fromType: this.fromType,
+      toType: this.toType
+    };
+  }
 }
 
 /**
@@ -94,12 +162,25 @@ export class TenantUpgradedEvent {
  *
  * @since 1.0.0
  */
-export class TenantNameUpdatedEvent {
+export class TenantNameUpdatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly newName: string,
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantNameUpdated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      newName: this.newName
+    };
+  }
 }
 
 /**
@@ -110,12 +191,25 @@ export class TenantNameUpdatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantAdminUpdatedEvent {
+export class TenantAdminUpdatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly newAdminId: string,
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantAdminUpdated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      newAdminId: this.newAdminId
+    };
+  }
 }
 
 /**
@@ -126,12 +220,25 @@ export class TenantAdminUpdatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantConfigUpdatedEvent {
+export class TenantConfigUpdatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly newConfig: TenantConfig,
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantConfigUpdated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      newConfig: this.newConfig
+    };
+  }
 }
 
 /**
@@ -142,12 +249,25 @@ export class TenantConfigUpdatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantResourceLimitsUpdatedEvent {
+export class TenantResourceLimitsUpdatedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly newResourceLimits: ResourceLimits,
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantResourceLimitsUpdated';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      newResourceLimits: this.newResourceLimits
+    };
+  }
 }
 
 /**
@@ -158,10 +278,23 @@ export class TenantResourceLimitsUpdatedEvent {
  *
  * @since 1.0.0
  */
-export class TenantDeletedEvent {
+export class TenantDeletedEvent extends BaseDomainEvent {
   constructor(
-    public readonly tenantId: EntityId,
+    public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    public readonly deletedAt: Date = new Date()
-  ) {}
+    tenantIdParam: string
+  ) {
+    super(tenantEntityId, 1, tenantIdParam, 1);
+  }
+
+  public get eventType(): string {
+    return 'TenantDeleted';
+  }
+
+  public override get eventData(): Record<string, unknown> {
+    return {
+      tenantId: this.tenantEntityId.toString(),
+      reason: this.reason
+    };
+  }
 }

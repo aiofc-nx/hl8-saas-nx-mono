@@ -57,7 +57,7 @@ import {
  * @description 定义JWT服务的基本接口
  */
 export interface JwtService {
-  verifyAsync(token: string, options?: any): Promise<any>;
+  verifyAsync(token: string, options?: unknown): Promise<unknown>;
 }
 
 /**
@@ -97,7 +97,7 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token);
 
       // 3. 验证用户状态
-      const user = await this.validateUser(payload.sub);
+      const user = await this.validateUser((payload as { sub: string }).sub);
       if (!user || !user.isActive()) {
         throw new UnauthorizedException('用户账户无效或已禁用');
       }
@@ -132,7 +132,7 @@ export class JwtAuthGuard implements CanActivate {
    * @param request - HTTP请求
    * @returns JWT令牌或null
    */
-  private extractTokenFromHeader(request: any): string | null {
+  private extractTokenFromHeader(request: { headers: { authorization?: string } }): string | null {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {

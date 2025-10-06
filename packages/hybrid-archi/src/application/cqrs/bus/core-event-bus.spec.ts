@@ -63,19 +63,19 @@ class TestEventHandler implements IEventHandler<TestEvent> {
     return 0;
   }
 
-  async canHandle(event: TestEvent): Promise<boolean> {
+  async canHandle(_event: TestEvent): Promise<boolean> {
     return true;
   }
 
-  getMaxRetries(event: TestEvent): number {
+  getMaxRetries(_event: TestEvent): number {
     return 3;
   }
 
-  getRetryDelay(event: TestEvent, retryCount: number): number {
+  getRetryDelay(_event: TestEvent, retryCount: number): number {
     return retryCount * 1000; // 递增延迟
   }
 
-  async shouldIgnore(event: TestEvent): Promise<boolean> {
+  async shouldIgnore(_event: TestEvent): Promise<boolean> {
     return false;
   }
 
@@ -175,7 +175,9 @@ describe('CoreEventBus', () => {
       const unsupportedHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         canHandle: async () => false,
         getMaxRetries: () => 3,
@@ -183,12 +185,18 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
-        handle: async () => {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
+        handle: async () => {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
       };
 
@@ -206,7 +214,9 @@ describe('CoreEventBus', () => {
       const errorHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         handle: async () => {
           throw new Error('Handler error');
@@ -219,11 +229,15 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
       };
 
@@ -446,7 +460,9 @@ describe('CoreEventBus', () => {
       const retryHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         handle: async () => {
           attemptCount++;
@@ -462,11 +478,15 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
       };
 
@@ -485,7 +505,9 @@ describe('CoreEventBus', () => {
       const retryHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         handle: async () => {
           throw new Error('Permanent error');
@@ -504,7 +526,9 @@ describe('CoreEventBus', () => {
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
         getSupportedEventType: () => 'TestEvent',
       };
 
@@ -524,7 +548,9 @@ describe('CoreEventBus', () => {
       const idempotentHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestEvent',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         getMaxRetries: () => 3,
         getRetryDelay: () => 1000,
@@ -537,7 +563,9 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         isEventProcessed: async (event: TestEvent) => {
           return testHandler.processedEvents.has(event.eventId.toString());
         },
@@ -577,7 +605,9 @@ describe('CoreEventBus', () => {
         ...new TestEventHandler(),
         getSupportedEventType: () => 'Event1',
         supports: (type: string) => type === 'Event1',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         getMaxRetries: () => 3,
         getRetryDelay: () => 1000,
@@ -587,18 +617,26 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
-        handle: async () => {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
+        handle: async () => {
+          return Promise.resolve();
+        },
       };
       const handler2 = {
         ...new TestEventHandler(),
         getSupportedEventType: () => 'Event2',
         supports: (type: string) => type === 'Event2',
-        validateEvent: () => {},
+        validateEvent: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         getMaxRetries: () => 3,
         getRetryDelay: () => 1000,
@@ -608,12 +646,18 @@ describe('CoreEventBus', () => {
         async shouldIgnore() {
           return false;
         },
-        async handleFailure() {},
+        async handleFailure() {
+          return Promise.resolve();
+        },
         async isEventProcessed() {
           return false;
         },
-        async markEventAsProcessed() {},
-        handle: async () => {},
+        async markEventAsProcessed() {
+          return Promise.resolve();
+        },
+        handle: async () => {
+          return Promise.resolve();
+        },
       };
 
       eventBus.registerHandler('Event1', handler1);
@@ -635,8 +679,12 @@ describe('CoreEventBus', () => {
     });
 
     it('应该能够清除所有订阅', () => {
-      eventBus.subscribe('TestEvent', async () => {});
-      eventBus.subscribe('TestEvent', async () => {});
+      eventBus.subscribe('TestEvent', async () => {
+        return Promise.resolve();
+      });
+      eventBus.subscribe('TestEvent', async () => {
+        return Promise.resolve();
+      });
 
       eventBus.clearSubscriptions();
       // 订阅数量无法直接获取，但可以通过发布事件验证

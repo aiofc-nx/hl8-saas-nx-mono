@@ -16,31 +16,10 @@
   "include": [],
   "references": [
     {
-      "path": "../../packages/messaging"
+      "path": "../multi-tenancy"
     },
     {
-      "path": "../../packages/multi-tenancy"
-    },
-    {
-      "path": "../../packages/cache"
-    },
-    {
-      "path": "../../packages/common"
-    },
-    {
-      "path": "../../packages/config"
-    },
-    {
-      "path": "../../packages/database"
-    },
-    {
-      "path": "../../packages/fastify-pro"
-    },
-    {
-      "path": "../../packages/logger"
-    },
-    {
-      "path": "../../packages/utils"
+      "path": "../messaging"
     },
     {
       "path": "./tsconfig.lib.json"

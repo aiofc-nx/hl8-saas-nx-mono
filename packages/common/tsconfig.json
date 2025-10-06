@@ -14,12 +14,6 @@
   "include": ["eslint.config.cjs"],
   "references": [
     {
-      "path": "../../packages/logger"
-    },
-    {
-      "path": "../../packages/utils"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

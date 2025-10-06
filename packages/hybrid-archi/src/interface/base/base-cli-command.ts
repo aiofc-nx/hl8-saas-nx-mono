@@ -15,7 +15,7 @@
 export interface ICommandResult {
   success: boolean;
   message?: string;
-  data?: any;
+  data?: unknown;
   error?: string;
 }
 
@@ -54,7 +54,7 @@ export abstract class BaseCliCommand {
    * @returns 命令结果
    * @protected
    */
-  protected createSuccessResult(message: string, data?: any): ICommandResult {
+  protected createSuccessResult(message: string, data?: unknown): ICommandResult {
     return {
       success: true,
       message,
@@ -199,7 +199,7 @@ export abstract class BaseCliCommand {
    * @protected
    */
   protected validateRequiredParams(
-    params: Record<string, any>,
+    params: Record<string, unknown>,
     requiredFields: string[]
   ): void {
     const missingFields = requiredFields.filter((field) => !params[field]);

@@ -249,14 +249,14 @@ export interface IUseCaseContext {
  *
  * 定义创建用例的工厂方法
  */
-export interface IUseCaseFactory<TUseCase extends IUseCase<any, any>> {
+export interface IUseCaseFactory<TUseCase extends IUseCase<unknown, unknown>> {
   /**
    * 创建用例实例
    *
    * @param dependencies - 用例依赖
    * @returns 用例实例
    */
-  create(dependencies?: any): TUseCase;
+  create(dependencies?: unknown): TUseCase;
 
   /**
    * 获取用例类型
@@ -346,7 +346,7 @@ export interface IUseCaseExecutor {
   executeBatch(
     executions: Array<{
       useCaseName: string;
-      request: any;
+      request: unknown;
       context?: IUseCaseContext;
     }>,
   ): Promise<any[]>;

@@ -975,7 +975,7 @@ export class AlertManager {
 ### 8.1 官方文档
 
 - [NestJS官方文档](https://docs.nestjs.com/)
-- [TypeORM官方文档](https://typeorm.io/)
+- [MikroORM官方文档](https://mikro-orm.io/)
 - [Domain-Driven Design](https://martinfowler.com/tags/domain%20driven%20design.html)
 - [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 

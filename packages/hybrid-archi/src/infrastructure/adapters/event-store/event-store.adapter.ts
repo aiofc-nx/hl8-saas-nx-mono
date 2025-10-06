@@ -13,7 +13,6 @@ import { DatabaseService } from '@hl8/database';
 import { CacheService } from '@hl8/cache';
 import { PinoLogger } from '@hl8/logger';
 import { BaseDomainEvent } from '../../../domain/events/base/base-domain-event';
-import { EntityId } from '../../../domain/value-objects/entity-id';
 
 /**
  * 事件存储配置接口
@@ -38,6 +37,36 @@ export interface IEventStoreConfig {
 }
 
 /**
+ * 事件数据接口
+ */
+export interface IEventData {
+  /** 事件ID */
+  eventId: string;
+  /** 事件类型 */
+  eventType: string;
+  /** 时间戳 */
+  timestamp: Date;
+  /** 元数据 */
+  metadata: Record<string, unknown>;
+  /** 其他事件属性 */
+  [key: string]: unknown;
+}
+
+/**
+ * 事件元数据接口
+ */
+export interface IEventMetadata {
+  /** 租户ID */
+  tenantId?: string;
+  /** 用户ID */
+  userId?: string;
+  /** 时间戳 */
+  timestamp: Date;
+  /** 其他元数据 */
+  [key: string]: unknown;
+}
+
+/**
  * 事件存储记录
  */
 export interface IEventStoreRecord {
@@ -52,9 +81,9 @@ export interface IEventStoreRecord {
   /** 事件版本 */
   version: number;
   /** 事件数据 */
-  eventData: any;
+  eventData: IEventData;
   /** 事件元数据 */
-  metadata: Record<string, any>;
+  metadata: IEventMetadata;
   /** 创建时间 */
   createdAt: Date;
   /** 租户ID */
@@ -145,23 +174,26 @@ export class EventStoreAdapter {
       }
 
       // 存储事件
-      const records: IEventStoreRecord[] = events.map((event, index) => ({
-        eventId: event.eventId.toString(),
-        aggregateId,
-        aggregateType,
-        eventType: event.constructor.name,
-        version: (expectedVersion || 0) + index + 1,
-        eventData: this.serializeEvent(event),
-        metadata: {
-          ...event.metadata,
-          tenantId: (event.metadata as any)?.tenantId,
-          userId: (event.metadata as any)?.userId,
-          timestamp: event.timestamp,
-        },
-        createdAt: new Date(),
-        tenantId: (event.metadata as any)?.tenantId,
-        userId: (event.metadata as any)?.userId,
-      }));
+      const records: IEventStoreRecord[] = events.map((event, index) => {
+        const eventMetadata = event.metadata as IEventMetadata;
+        return {
+          eventId: event.eventId.toString(),
+          aggregateId,
+          aggregateType,
+          eventType: event.constructor.name,
+          version: (expectedVersion || 0) + index + 1,
+          eventData: this.serializeEvent(event),
+          metadata: {
+            ...eventMetadata,
+            tenantId: eventMetadata?.tenantId,
+            userId: eventMetadata?.userId,
+            timestamp: event.timestamp,
+          },
+          createdAt: new Date(),
+          tenantId: eventMetadata?.tenantId,
+          userId: eventMetadata?.userId,
+        };
+      });
 
       await this.saveEventsToDatabase(records);
 
@@ -381,12 +413,12 @@ export class EventStoreAdapter {
   /**
    * 序列化事件
    */
-  private serializeEvent(event: BaseDomainEvent): any {
-    let data = {
+  private serializeEvent(event: BaseDomainEvent): IEventData {
+    let data: IEventData = {
       eventId: event.eventId.toString(),
       eventType: event.constructor.name,
       timestamp: event.timestamp,
-      metadata: event.metadata,
+      metadata: event.metadata as Record<string, unknown>,
     };
 
     if (this.config.enableCompression) {
@@ -404,7 +436,7 @@ export class EventStoreAdapter {
    * 反序列化事件
    */
   private deserializeEvent(record: IEventStoreRecord): BaseDomainEvent {
-    let data = record.eventData;
+    let data: IEventData = record.eventData;
 
     if (this.config.enableEncryption) {
       data = this.decryptData(data);
@@ -416,13 +448,14 @@ export class EventStoreAdapter {
 
     // 这里需要根据具体的事件类型来创建事件实例
     // 实际实现中需要事件工厂来创建具体的事件类型
-    return data as BaseDomainEvent;
+    // 使用 unknown 进行安全的类型转换
+    return data as unknown as BaseDomainEvent;
   }
 
   /**
    * 压缩数据
    */
-  private compressData(data: any): any {
+  private compressData(data: IEventData): IEventData {
     // 实现数据压缩逻辑
     return data;
   }
@@ -430,7 +463,7 @@ export class EventStoreAdapter {
   /**
    * 解压缩数据
    */
-  private decompressData(data: any): any {
+  private decompressData(data: IEventData): IEventData {
     // 实现数据解压缩逻辑
     return data;
   }
@@ -438,7 +471,7 @@ export class EventStoreAdapter {
   /**
    * 加密数据
    */
-  private encryptData(data: any): any {
+  private encryptData(data: IEventData): IEventData {
     // 实现数据加密逻辑
     return data;
   }
@@ -446,7 +479,7 @@ export class EventStoreAdapter {
   /**
    * 解密数据
    */
-  private decryptData(data: any): any {
+  private decryptData(data: IEventData): IEventData {
     // 实现数据解密逻辑
     return data;
   }
@@ -455,7 +488,7 @@ export class EventStoreAdapter {
    * 保存事件到数据库
    */
   private async saveEventsToDatabase(
-    records: IEventStoreRecord[]
+    _records: IEventStoreRecord[]
   ): Promise<void> {
     // 实现具体的数据库保存逻辑
     // 这里需要根据具体的数据库服务来实现
@@ -466,9 +499,9 @@ export class EventStoreAdapter {
    * 从数据库获取事件
    */
   private async getEventsFromDatabase(
-    aggregateId: string,
-    fromVersion?: number,
-    toVersion?: number
+    _aggregateId: string,
+    _fromVersion?: number,
+    _toVersion?: number
   ): Promise<IEventStoreRecord[]> {
     // 实现具体的数据库查询逻辑
     // 这里需要根据具体的数据库服务来实现
@@ -479,7 +512,7 @@ export class EventStoreAdapter {
    * 从数据库查询事件
    */
   private async queryEventsFromDatabase(
-    options: IEventQueryOptions
+    _options: IEventQueryOptions
   ): Promise<IEventStoreRecord[]> {
     // 实现具体的数据库查询逻辑
     // 这里需要根据具体的数据库服务来实现
@@ -489,7 +522,7 @@ export class EventStoreAdapter {
   /**
    * 从数据库获取版本
    */
-  private async getVersionFromDatabase(aggregateId: string): Promise<number> {
+  private async getVersionFromDatabase(_aggregateId: string): Promise<number> {
     // 实现具体的数据库版本查询逻辑
     // 这里需要根据具体的数据库服务来实现
     throw new Error('需要实现具体的数据库版本查询逻辑');
@@ -499,9 +532,9 @@ export class EventStoreAdapter {
    * 从数据库删除事件
    */
   private async deleteEventsFromDatabase(
-    aggregateId: string,
-    fromVersion?: number,
-    toVersion?: number
+    _aggregateId: string,
+    _fromVersion?: number,
+    _toVersion?: number
   ): Promise<void> {
     // 实现具体的数据库删除逻辑
     // 这里需要根据具体的数据库服务来实现
@@ -512,7 +545,7 @@ export class EventStoreAdapter {
    * 从数据库删除过期事件
    */
   private async deleteExpiredEventsFromDatabase(
-    cutoffDate: Date
+    _cutoffDate: Date
   ): Promise<number> {
     // 实现具体的数据库过期事件删除逻辑
     // 这里需要根据具体的数据库服务来实现
@@ -522,7 +555,13 @@ export class EventStoreAdapter {
   /**
    * 从数据库获取统计信息
    */
-  private async getStatisticsFromDatabase(): Promise<any> {
+  private async getStatisticsFromDatabase(): Promise<{
+    totalEvents: number;
+    totalAggregates: number;
+    eventsByType: Record<string, number>;
+    eventsByAggregateType: Record<string, number>;
+    averageEventsPerAggregate: number;
+  }> {
     // 实现具体的数据库统计查询逻辑
     // 这里需要根据具体的数据库服务来实现
     throw new Error('需要实现具体的数据库统计查询逻辑');
@@ -579,7 +618,7 @@ export class EventStoreAdapter {
    */
   private async updateCache(
     aggregateId: string,
-    records: IEventStoreRecord[]
+    _records: IEventStoreRecord[]
   ): Promise<void> {
     // 清除相关缓存
     await this.clearCache(aggregateId);
@@ -591,8 +630,11 @@ export class EventStoreAdapter {
   private async clearCache(aggregateId: string): Promise<void> {
     const pattern = `event:${aggregateId}:*`;
     // 使用兼容性检查调用 deletePattern 方法
-    if (typeof (this.cacheService as any).deletePattern === 'function') {
-      await (this.cacheService as any).deletePattern(pattern);
+    const cacheServiceWithPattern = this.cacheService as CacheService & {
+      deletePattern?: (pattern: string) => Promise<void>;
+    };
+    if (typeof cacheServiceWithPattern.deletePattern === 'function') {
+      await cacheServiceWithPattern.deletePattern(pattern);
     } else {
       console.warn('CacheService不支持deletePattern方法');
     }

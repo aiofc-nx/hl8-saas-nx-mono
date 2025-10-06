@@ -16,7 +16,6 @@
     "@hl8/config": "workspace:*",
     "@hl8/fastify-pro": "workspace:*",
     "@hl8/logger": "workspace:*",
-    "@hl8/user-management": "workspace:*",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/graphql": "^13.2.0",

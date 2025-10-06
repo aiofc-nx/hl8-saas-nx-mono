@@ -66,7 +66,6 @@ import {
   IEventProjector,
   IReadModelProjector,
   IProjectionExecutionContext,
-  IProjectionExecutionResult,
 } from './event-projector.interface';
 
 /**
@@ -341,7 +340,7 @@ export abstract class BaseEventProjector<TEvent extends BaseDomainEvent>
       eventVersion: event.eventVersion,
       projectorName: this.projectorName,
       retryCount: 0,
-      custom: {},
+      custom: {} as Record<string, unknown>,
     };
   }
 
@@ -610,7 +609,7 @@ export abstract class BaseReadModelProjector<
       projectorName: this.projectorName,
       readModelType: this.readModelType,
       retryCount: 0,
-      custom: {},
+      custom: {} as Record<string, unknown>,
     };
   }
 }

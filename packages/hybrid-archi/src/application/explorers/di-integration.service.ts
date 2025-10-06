@@ -192,13 +192,9 @@ export class DIIntegrationService {
 
   constructor(
     private readonly logger: PinoLogger,
-    // @ts-ignore - 这些依赖将在后续实现中使用
     private readonly _app: NestApplication,
-    // @ts-ignore - 这些依赖将在后续实现中使用
     private readonly _moduleRef: ModuleRef,
-    // @ts-ignore - 这些依赖将在后续实现中使用
     private readonly _explorerService: CoreExplorerService,
-    // @ts-ignore - 这些依赖将在后续实现中使用
     private readonly _registrationService: AutoRegistrationService,
     private readonly scannerService: ModuleScannerService
   ) {}

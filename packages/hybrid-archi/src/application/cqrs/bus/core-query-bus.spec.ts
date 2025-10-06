@@ -114,7 +114,7 @@ class TestQueryHandler implements IQueryHandler<TestQuery, TestQueryResult> {
     return 0;
   }
 
-  async canHandle(query: TestQuery): Promise<boolean> {
+  async canHandle(_query: TestQuery): Promise<boolean> {
     return true;
   }
 
@@ -122,7 +122,7 @@ class TestQueryHandler implements IQueryHandler<TestQuery, TestQueryResult> {
     return `test-query-${query.filter}-${query.page}-${query.pageSize}`;
   }
 
-  getCacheExpiration(query: TestQuery): number {
+  getCacheExpiration(_query: TestQuery): number {
     return this.cacheExpiration;
   }
 }
@@ -201,7 +201,9 @@ describe('CoreQueryBus', () => {
       const unsupportedHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestQuery',
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         canHandle: async () => false,
         generateCacheKey: () => 'test-key',
         getCacheExpiration: () => 300,
@@ -249,7 +251,9 @@ describe('CoreQueryBus', () => {
       const shortCacheHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestQuery',
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         canHandle: async () => true,
         generateCacheKey: () => 'test-key',
         getCacheExpiration: () => 0.001, // 1毫秒
@@ -288,7 +292,9 @@ describe('CoreQueryBus', () => {
       const noCacheHandler = {
         ...testHandler,
         supports: (type: string) => type === 'TestQuery',
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         canHandle: async () => true,
         generateCacheKey: () => 'test-key',
         getCacheExpiration: () => 0, // 不缓存
@@ -516,7 +522,9 @@ describe('CoreQueryBus', () => {
             hasNextPage: false,
             hasPreviousPage: false,
           }),
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         canHandle: async () => true,
         generateCacheKey: () => 'query1-key',
@@ -535,7 +543,9 @@ describe('CoreQueryBus', () => {
             hasNextPage: false,
             hasPreviousPage: false,
           }),
-        validateQuery: () => {},
+        validateQuery: () => {
+          // 测试用的空验证函数
+        },
         getPriority: () => 0,
         canHandle: async () => true,
         generateCacheKey: () => 'query2-key',

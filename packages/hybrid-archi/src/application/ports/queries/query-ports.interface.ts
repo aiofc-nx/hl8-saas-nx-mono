@@ -52,7 +52,6 @@
  * @since 1.0.0
  */
 
-import { EntityId } from '../../../domain/value-objects/entity-id';
 
 /**
  * 读仓储端口接口

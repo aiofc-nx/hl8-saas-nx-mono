@@ -63,8 +63,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   ): Promise<void> {
     try {
       // 检查EventService是否有publish方法
-      if (typeof (this.eventService as any).publish === 'function') {
-        await (this.eventService as any).publish(event, {
+      if (typeof (this.eventService as unknown as { publish?: (event: unknown, options?: unknown) => Promise<void> }).publish === 'function') {
+        await (this.eventService as unknown as { publish: (event: unknown, options?: unknown) => Promise<void> }).publish(event, {
           priority: options?.priority || EventPriority.MEDIUM,
           delay: options?.delay || 0,
           retryCount: options?.retryCount || 3,
@@ -99,8 +99,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   ): Promise<void> {
     try {
       // 检查EventService是否有publishBatch方法
-      if (typeof (this.eventService as any).publishBatch === 'function') {
-        await (this.eventService as any).publishBatch(events, {
+      if (typeof (this.eventService as unknown as { publishBatch?: (events: unknown[], options?: unknown) => Promise<void> }).publishBatch === 'function') {
+        await (this.eventService as unknown as { publishBatch: (events: unknown[], options?: unknown) => Promise<void> }).publishBatch(events, {
           priority: options?.priority || EventPriority.MEDIUM,
           delay: options?.delay || 0,
           retryCount: options?.retryCount || 3,
@@ -138,8 +138,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   ): Promise<void> {
     try {
       // 检查EventService是否有subscribe方法
-      if (typeof (this.eventService as any).subscribe === 'function') {
-        await (this.eventService as any).subscribe(eventType, handler, {
+      if (typeof (this.eventService as unknown as { subscribe?: (eventType: string, handler: unknown, options?: unknown) => Promise<void> }).subscribe === 'function') {
+        await (this.eventService as unknown as { subscribe: (eventType: string, handler: unknown, options?: unknown) => Promise<void> }).subscribe(eventType, handler, {
           priority: options?.priority || EventPriority.MEDIUM,
           filter: options?.filter,
         });
@@ -168,8 +168,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   ): Promise<void> {
     try {
       // 取消订阅 - 使用兼容性检查
-      if (typeof (this.eventService as any).unsubscribe === 'function') {
-        await (this.eventService as any).unsubscribe(eventType, handler);
+      if (typeof (this.eventService as unknown as { unsubscribe?: (eventType: string, handler: unknown) => Promise<void> }).unsubscribe === 'function') {
+        await (this.eventService as unknown as { unsubscribe: (eventType: string, handler: unknown) => Promise<void> }).unsubscribe(eventType, handler);
       } else {
         console.warn('EventService不支持unsubscribe方法');
       }
@@ -196,8 +196,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   }> {
     try {
       // 检查EventService是否有getStatistics方法
-      if (typeof (this.eventService as any).getStatistics === 'function') {
-        return await (this.eventService as any).getStatistics();
+      if (typeof (this.eventService as unknown as { getStatistics?: () => Promise<{ totalPublished: number; totalSubscribed: number; totalHandled: number; totalFailed: number; averageProcessingTime: number }> }).getStatistics === 'function') {
+        return await (this.eventService as unknown as { getStatistics: () => Promise<{ totalPublished: number; totalSubscribed: number; totalHandled: number; totalFailed: number; averageProcessingTime: number }> }).getStatistics();
       } else {
         // 返回默认统计信息
         return {
@@ -232,8 +232,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   }): Promise<unknown[]> {
     try {
       // 检查EventService是否有getEvents方法
-      if (typeof (this.eventService as any).getEvents === 'function') {
-        return await (this.eventService as any).getEvents(options);
+      if (typeof (this.eventService as unknown as { getEvents?: (options?: unknown) => Promise<unknown[]> }).getEvents === 'function') {
+        return await (this.eventService as unknown as { getEvents: (options?: unknown) => Promise<unknown[]> }).getEvents(options);
       } else {
         // 返回空数组
         return [];
@@ -256,8 +256,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   async getEvent(eventId: string): Promise<unknown> {
     try {
       // 检查EventService是否有getEvent方法
-      if (typeof (this.eventService as any).getEvent === 'function') {
-        return await (this.eventService as any).getEvent(eventId);
+      if (typeof (this.eventService as unknown as { getEvent?: (eventId: string) => Promise<unknown> }).getEvent === 'function') {
+        return await (this.eventService as unknown as { getEvent: (eventId: string) => Promise<unknown> }).getEvent(eventId);
       } else {
         // 返回null
         return null;
@@ -279,8 +279,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   async retryEvent(eventId: string): Promise<void> {
     try {
       // 检查EventService是否有retryEvent方法
-      if (typeof (this.eventService as any).retryEvent === 'function') {
-        await (this.eventService as any).retryEvent(eventId);
+      if (typeof (this.eventService as unknown as { retryEvent?: (eventId: string) => Promise<void> }).retryEvent === 'function') {
+        await (this.eventService as unknown as { retryEvent: (eventId: string) => Promise<void> }).retryEvent(eventId);
       } else {
         console.warn('EventService不支持retryEvent方法');
       }
@@ -301,8 +301,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   async cleanupEvents(olderThan: Date): Promise<number> {
     try {
       // 检查EventService是否有cleanupEvents方法
-      if (typeof (this.eventService as any).cleanupEvents === 'function') {
-        return await (this.eventService as any).cleanupEvents(olderThan);
+      if (typeof (this.eventService as unknown as { cleanupEvents?: (olderThan: Date) => Promise<number> }).cleanupEvents === 'function') {
+        return await (this.eventService as unknown as { cleanupEvents: (olderThan: Date) => Promise<number> }).cleanupEvents(olderThan);
       } else {
         // 返回0表示没有清理任何事件
         return 0;
@@ -364,8 +364,8 @@ export class EventBusPortAdapter implements IEventBusPort {
   > {
     try {
       // 检查EventService是否有getSubscribers方法
-      if (typeof (this.eventService as any).getSubscribers === 'function') {
-        return await (this.eventService as any).getSubscribers(eventType);
+      if (typeof (this.eventService as unknown as { getSubscribers?: (eventType: string) => Promise<Array<{ id: string; handler: string; priority: EventPriority; createdAt: Date }>> }).getSubscribers === 'function') {
+        return await (this.eventService as unknown as { getSubscribers: (eventType: string) => Promise<Array<{ id: string; handler: string; priority: EventPriority; createdAt: Date }>> }).getSubscribers(eventType);
       } else {
         // 返回空数组
         return [];
@@ -388,9 +388,9 @@ export class EventBusPortAdapter implements IEventBusPort {
     try {
       // 检查EventService是否有pauseEventProcessing方法
       if (
-        typeof (this.eventService as any).pauseEventProcessing === 'function'
+        typeof (this.eventService as unknown as { pauseEventProcessing?: (eventType: string) => Promise<void> }).pauseEventProcessing === 'function'
       ) {
-        await (this.eventService as any).pauseEventProcessing(eventType);
+        await (this.eventService as unknown as { pauseEventProcessing: (eventType: string) => Promise<void> }).pauseEventProcessing(eventType);
       } else {
         console.warn('EventService不支持pauseEventProcessing方法');
       }
@@ -412,9 +412,9 @@ export class EventBusPortAdapter implements IEventBusPort {
     try {
       // 检查EventService是否有resumeEventProcessing方法
       if (
-        typeof (this.eventService as any).resumeEventProcessing === 'function'
+        typeof (this.eventService as unknown as { resumeEventProcessing?: (eventType: string) => Promise<void> }).resumeEventProcessing === 'function'
       ) {
-        await (this.eventService as any).resumeEventProcessing(eventType);
+        await (this.eventService as unknown as { resumeEventProcessing: (eventType: string) => Promise<void> }).resumeEventProcessing(eventType);
       } else {
         console.warn('EventService不支持resumeEventProcessing方法');
       }

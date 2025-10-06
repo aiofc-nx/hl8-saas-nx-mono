@@ -5,7 +5,6 @@
  * @since 1.0.0
  */
 
-import { DomainEvent } from '../../../domain';
 
 /**
  * 命令处理器接口
@@ -90,7 +89,7 @@ export interface IQueryHandler<TQuery, TResult> {
  * - 事件处理器应该支持重试机制
  * - 事件处理器应该支持死信队列
  */
-export interface IEventHandler<TEvent extends any> {
+export interface IEventHandler<TEvent> {
   /**
    * 处理事件
    *

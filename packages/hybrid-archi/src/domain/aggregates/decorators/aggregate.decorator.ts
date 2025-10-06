@@ -183,7 +183,7 @@ export const AGGREGATE_METADATA_KEY = Symbol('aggregate');
  * ```
  */
 export function Aggregate(options: AggregateOptions): ClassDecorator {
-  return function <T extends Function>(target: T): T {
+  return function (target: any): any {
     // 验证配置选项
     validateAggregateOptions(options);
 
@@ -243,7 +243,7 @@ export function getAggregateMetadata(
  * }
  * ```
  */
-export function isAggregate(target: any): boolean {
+export function isAggregate(target: unknown): boolean {
   return getAggregateMetadata(target) !== undefined;
 }
 
@@ -300,14 +300,14 @@ function validateAggregateOptions(options: AggregateOptions): void {
  * @description 用于管理系统中所有已注册的聚合根
  */
 export class AggregateRegistry {
-  private static aggregates = new Map<string, Function>();
+  private static aggregates = new Map<string, new (...args: unknown[]) => unknown>();
 
   /**
    * 注册聚合根
    *
    * @param aggregateClass - 聚合根类
    */
-  static register(aggregateClass: Function): void {
+  static register(aggregateClass: new (...args: unknown[]) => unknown): void {
     const metadata = getAggregateMetadata(aggregateClass);
     if (!metadata) {
       throw new Error(`类 ${aggregateClass.name} 没有@Aggregate装饰器`);
@@ -326,7 +326,7 @@ export class AggregateRegistry {
    * @param name - 聚合根名称
    * @returns 聚合根类，如果没有找到返回undefined
    */
-  static get(name: string): Function | undefined {
+  static get(name: string): (new (...args: unknown[]) => unknown) | undefined {
     return this.aggregates.get(name);
   }
 
@@ -335,7 +335,7 @@ export class AggregateRegistry {
    *
    * @returns 聚合根名称到类的映射
    */
-  static getAll(): Map<string, Function> {
+  static getAll(): Map<string, new (...args: unknown[]) => unknown> {
     return new Map(this.aggregates);
   }
 

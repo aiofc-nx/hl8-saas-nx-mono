@@ -281,7 +281,7 @@ describe('BaseAggregateRoot', () => {
 
     it('应该检测无效事件', () => {
       // 添加无效事件（这里需要根据实际实现调整）
-      aggregate.addDomainEvent(null as any);
+      aggregate.addDomainEvent(null as unknown as BaseDomainEvent);
 
       const isValid = aggregate.validateEvents();
       expect(isValid).toBe(false);
@@ -308,7 +308,7 @@ describe('BaseAggregateRoot', () => {
   describe('错误处理', () => {
     it('应该处理无效事件', () => {
       expect(() => {
-        aggregate.addDomainEvent(null as any);
+        aggregate.addDomainEvent(null as unknown as BaseDomainEvent);
       }).toThrow();
     });
 

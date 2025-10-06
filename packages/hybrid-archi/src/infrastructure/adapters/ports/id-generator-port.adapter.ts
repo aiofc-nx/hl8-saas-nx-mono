@@ -175,7 +175,7 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
    * @param strategy - 新策略
    */
   setStrategy(strategy: IdGenerationStrategy): void {
-    (this.config as any).strategy = strategy;
+    (this.config as { strategy?: IdGenerationStrategy }).strategy = strategy;
   }
 
   // ==================== 私有方法 ====================
@@ -224,8 +224,8 @@ export class IdGeneratorPortAdapter implements IIdGeneratorPort {
   private generateCustom(): EntityId {
     // 使用自定义配置生成ID
     const customConfig = this.config.customConfig || {};
-    const prefix = (customConfig as any).prefix || '';
-    const suffix = (customConfig as any).suffix || '';
+    const prefix = (customConfig as { prefix?: string }).prefix || '';
+    const suffix = (customConfig as { suffix?: string }).suffix || '';
     const baseId = this.generateUUID();
 
     return EntityId.fromString(`${prefix}${baseId}${suffix}`);

@@ -226,7 +226,7 @@ describe('BaseEntity', () => {
   describe('错误处理', () => {
     it('应该处理无效的标识符', () => {
       expect(() => {
-        new TestEntity(null as any, 'User', 'user@example.com');
+        new TestEntity(null as unknown as EntityId, 'User', 'user@example.com');
       }).toThrow();
     });
 

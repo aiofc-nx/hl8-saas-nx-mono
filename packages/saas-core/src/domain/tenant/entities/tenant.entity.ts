@@ -1,6 +1,6 @@
 import { BaseEntity, EntityId } from '@hl8/hybrid-archi';
-import { TenantStatus, TenantStatusUtils } from '../value-objects/tenant-status.vo';
-import { TenantType, TenantTypeUtils } from '../value-objects/tenant-type.vo';
+import { TenantStatus, TenantStatusUtils } from '@hl8/hybrid-archi';
+import { TenantType, TenantTypeUtils } from '@hl8/hybrid-archi';
 import { TenantConfig } from '../value-objects/tenant-config.vo';
 import { ResourceLimits } from '../value-objects/resource-limits.vo';
 
@@ -93,7 +93,12 @@ export class Tenant extends BaseEntity {
    */
   public activate(): void {
     if (this._status !== TenantStatus.PENDING) {
-      throw new TenantNotPendingException('只有待激活状态的租户才能激活');
+      throw new TenantExceptions.TenantStatusException(
+        '只有待激活状态的租户才能激活',
+        this._status,
+        'activate',
+        this.id.toString()
+      );
     }
 
     this._status = TenantStatus.ACTIVE;
@@ -118,11 +123,21 @@ export class Tenant extends BaseEntity {
    */
   public suspend(reason: string): void {
     if (this._status !== TenantStatus.ACTIVE) {
-      throw new TenantNotActiveException('只有活跃状态的租户才能暂停');
+      throw new TenantExceptions.TenantStatusException(
+        '只有活跃状态的租户才能暂停',
+        this._status,
+        'suspend',
+        this.id.toString()
+      );
     }
 
     if (!reason || reason.trim().length === 0) {
-      throw new InvalidSuspensionReasonException('暂停原因不能为空');
+      throw new TenantExceptions.TenantValidationException(
+        '暂停原因不能为空',
+        'reason',
+        reason,
+        this.id.toString()
+      );
     }
 
     this._status = TenantStatus.SUSPENDED;
@@ -147,11 +162,21 @@ export class Tenant extends BaseEntity {
    */
   public disable(reason: string): void {
     if (!TenantStatusUtils.canTransitionTo(this._status, TenantStatus.DISABLED)) {
-      throw new InvalidTenantStatusException(`租户状态 ${this._status} 不能转换为 DISABLED`);
+      throw new TenantExceptions.TenantStatusException(
+        `租户状态 ${this._status} 不能转换为 DISABLED`,
+        this._status,
+        'disable',
+        this.id.toString()
+      );
     }
 
     if (!reason || reason.trim().length === 0) {
-      throw new InvalidDisableReasonException('禁用原因不能为空');
+      throw new TenantExceptions.TenantValidationException(
+        '禁用原因不能为空',
+        'reason',
+        reason,
+        this.id.toString()
+      );
     }
 
     this._status = TenantStatus.DISABLED;
@@ -186,7 +211,12 @@ export class Tenant extends BaseEntity {
     newResourceLimits: ResourceLimits
   ): void {
     if (!TenantTypeUtils.canUpgradeTo(this._type, newType)) {
-      throw new InvalidUpgradeException(`不能从 ${this._type} 升级到 ${newType}`);
+      throw new TenantExceptions.TenantStatusException(
+        `不能从 ${this._type} 升级到 ${newType}`,
+        this._type,
+        'upgrade',
+        this.id.toString()
+      );
     }
 
     this._type = newType;
@@ -212,11 +242,21 @@ export class Tenant extends BaseEntity {
    */
   public updateName(newName: string): void {
     if (!newName || newName.trim().length === 0) {
-      throw new InvalidTenantNameException('租户名称不能为空');
+      throw new TenantExceptions.TenantValidationException(
+        '租户名称不能为空',
+        'name',
+        newName,
+        this.id.toString()
+      );
     }
 
     if (newName.trim().length > 100) {
-      throw new InvalidTenantNameException('租户名称长度不能超过100个字符');
+      throw new TenantExceptions.TenantValidationException(
+        '租户名称长度不能超过100个字符',
+        'name',
+        newName,
+        this.id.toString()
+      );
     }
 
     this._name = newName.trim();
@@ -240,7 +280,12 @@ export class Tenant extends BaseEntity {
    */
   public updateAdmin(newAdminId: string): void {
     if (!newAdminId || newAdminId.trim().length === 0) {
-      throw new InvalidAdminIdException('管理员用户ID不能为空');
+      throw new TenantExceptions.TenantValidationException(
+        '管理员用户ID不能为空',
+        'adminId',
+        newAdminId,
+        this.id.toString()
+      );
     }
 
     this._adminId = newAdminId.trim();
@@ -414,84 +459,5 @@ export class Tenant extends BaseEntity {
   public getResourceLimits(): ResourceLimits { return this._resourceLimits; }
 }
 
-// 异常类定义
-
-/**
- * 租户不是待激活状态异常
- */
-export class TenantNotPendingException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'TenantNotPendingException';
-  }
-}
-
-/**
- * 租户不是活跃状态异常
- */
-export class TenantNotActiveException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'TenantNotActiveException';
-  }
-}
-
-/**
- * 无效租户状态异常
- */
-export class InvalidTenantStatusException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidTenantStatusException';
-  }
-}
-
-/**
- * 无效升级异常
- */
-export class InvalidUpgradeException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidUpgradeException';
-  }
-}
-
-/**
- * 无效租户名称异常
- */
-export class InvalidTenantNameException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidTenantNameException';
-  }
-}
-
-/**
- * 无效管理员ID异常
- */
-export class InvalidAdminIdException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidAdminIdException';
-  }
-}
-
-/**
- * 无效暂停原因异常
- */
-export class InvalidSuspensionReasonException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidSuspensionReasonException';
-  }
-}
-
-/**
- * 无效禁用原因异常
- */
-export class InvalidDisableReasonException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidDisableReasonException';
-  }
-}
+// 导入新的异常类
+import { TenantExceptions } from '../../exceptions';

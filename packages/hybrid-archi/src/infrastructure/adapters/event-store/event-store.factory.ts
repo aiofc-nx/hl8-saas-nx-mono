@@ -15,6 +15,19 @@ import { PinoLogger } from '@hl8/logger';
 import { EventStoreAdapter, IEventStoreConfig } from './event-store.adapter';
 
 /**
+ * 健康检查结果接口
+ */
+interface IHealthCheckResult {
+  healthy: boolean;
+  status: 'healthy' | 'unhealthy' | 'error';
+  storeName: string;
+  storeType?: string;
+  createdAt?: Date;
+  lastAccessedAt?: Date;
+  error?: string;
+}
+
+/**
  * 事件存储注册信息
  */
 export interface IEventStoreRegistration {
@@ -64,9 +77,12 @@ export class EventStoreFactory {
   ): EventStoreAdapter {
     // 检查存储是否已存在
     if (this.stores.has(storeName)) {
-      const registration = this.stores.get(storeName)!;
+      const registration = this.stores.get(storeName);
+      if (!registration || !registration.instance) {
+        throw new Error(`存储注册信息不完整: ${storeName}`);
+      }
       registration.lastAccessedAt = new Date();
-      return registration.instance!;
+      return registration.instance;
     }
 
     // 创建存储实例
@@ -115,12 +131,12 @@ export class EventStoreFactory {
    */
   getStore(storeName: string): EventStoreAdapter | null {
     const registration = this.stores.get(storeName);
-    if (!registration) {
+    if (!registration || !registration.instance) {
       return null;
     }
 
     registration.lastAccessedAt = new Date();
-    return registration.instance!;
+    return registration.instance;
   }
 
   /**
@@ -302,14 +318,24 @@ export class EventStoreFactory {
    *
    * @returns 健康检查结果
    */
-  async healthCheckAllStores(): Promise<Record<string, any>> {
-    const results: Record<string, any> = {};
+  async healthCheckAllStores(): Promise<Record<string, IHealthCheckResult>> {
+    const results: Record<string, IHealthCheckResult> = {};
 
     for (const [storeName, registration] of this.stores) {
       try {
+        if (!registration.instance) {
+          results[storeName] = {
+            healthy: false,
+            status: 'error',
+            storeName,
+            error: '存储实例不存在',
+          };
+          continue;
+        }
+
         const isHealthy = await this.checkStoreHealth(
           storeName,
-          registration.instance!
+          registration.instance
         );
         results[storeName] = {
           healthy: isHealthy,
@@ -356,8 +382,11 @@ export class EventStoreFactory {
   private async cleanupStoreCache(storeName: string): Promise<void> {
     const pattern = `event:${storeName}:*`;
     // 使用兼容性检查调用 deletePattern 方法
-    if (typeof (this.cacheService as any).deletePattern === 'function') {
-      await (this.cacheService as any).deletePattern(pattern);
+    const cacheServiceWithPattern = this.cacheService as CacheService & {
+      deletePattern?: (pattern: string) => Promise<void>;
+    };
+    if (typeof cacheServiceWithPattern.deletePattern === 'function') {
+      await cacheServiceWithPattern.deletePattern(pattern);
     } else {
       console.warn('CacheService不支持deletePattern方法');
     }

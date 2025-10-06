@@ -62,6 +62,7 @@
  */
 
 import { IQuery } from '../base/query.interface';
+import { IQueryResult } from '../base/base-query';
 
 /**
  * 查询处理器接口
@@ -156,7 +157,7 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {
  * 查询处理器工厂接口
  */
 export interface IQueryHandlerFactory<
-  THandler extends IQueryHandler<any, any>,
+  THandler extends IQueryHandler<IQuery, IQueryResult>,
 > {
   /**
    * 创建查询处理器实例
@@ -184,7 +185,7 @@ export interface IQueryHandlerRegistry {
    * @param queryType - 查询类型
    * @param handlerFactory - 处理器工厂
    */
-  register<TQuery extends IQuery, TResult>(
+  register<TQuery extends IQuery, TResult extends IQueryResult>(
     queryType: string,
     handlerFactory: IQueryHandlerFactory<IQueryHandler<TQuery, TResult>>,
   ): void;

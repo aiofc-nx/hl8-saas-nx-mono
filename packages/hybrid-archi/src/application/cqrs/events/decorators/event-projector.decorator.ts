@@ -103,7 +103,12 @@ export interface IEventProjectorOptions {
 /**
  * 构造函数类型定义
  */
-type Constructor<T = {}> = new (...args: any[]) => T;
+type Constructor<T = Record<string, unknown>> = new (...args: unknown[]) => T;
+
+/**
+ * 类装饰器类型定义
+ */
+type ClassDecorator = <TFunction extends Constructor>(target: TFunction) => TFunction | void;
 
 /**
  * 事件投射器元数据接口
@@ -213,7 +218,7 @@ export function EventProjector(
   eventTypes: string | string[],
   options: IEventProjectorOptions = {}
 ): ClassDecorator {
-  return function (target: any): any {
+  return function <T extends Constructor>(target: T): T {
     // 规范化事件类型
     const normalizedEventTypes = Array.isArray(eventTypes)
       ? eventTypes
@@ -321,7 +326,7 @@ export function ReadModelProjector(
  * ```
  */
 export function AutoRegisterProjector(): ClassDecorator {
-  return function (target: any): any {
+  return function <T extends Constructor>(target: T): T {
     // 标记为自动注册
     Reflect.defineMetadata('autoRegister', true, target);
     return target;

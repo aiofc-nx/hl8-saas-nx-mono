@@ -65,12 +65,12 @@ interface IUseCaseRegistration {
   /**
    * 用例类
    */
-  useCaseClass: Function;
+  useCaseClass: any;
 
   /**
    * 用例实例工厂
    */
-  factory: () => IUseCase<any, any>;
+  factory: () => IUseCase<unknown, unknown>;
 
   /**
    * 用例元数据

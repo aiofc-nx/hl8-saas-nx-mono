@@ -16,6 +16,7 @@
 | [02-tech-stack-and-dependencies.md](./02-tech-stack-and-dependencies.md) | 技术栈选择与依赖管理 | ✅ 已完成 |
 | [03-project-structure.md](./03-project-structure.md) | 项目结构与模块职责 | ✅ 已完成 |
 | [04-domain-layer-development.md](./04-domain-layer-development.md) | 领域层开发指南 | ✅ 已完成 |
+| [04-1-authorization-domain-modeling.md](./04-1-authorization-domain-modeling.md) | 权限与角色领域建模 | ✅ 已完成 |
 | [05-application-layer-development.md](./05-application-layer-development.md) | 应用层开发指南 | ✅ 已完成 |
 | [06-infrastructure-layer-development.md](./06-infrastructure-layer-development.md) | 基础设施层开发指南 | ✅ 已完成 |
 | [07-interface-layer-development.md](./07-interface-layer-development.md) | 接口层开发指南 | ✅ 已完成 |
@@ -37,6 +38,7 @@
 ### 开发参考路径
 
 - **领域建模**: [领域层开发指南](./04-domain-layer-development.md)
+- **权限角色**: [权限与角色领域建模](./04-1-authorization-domain-modeling.md)
 - **用例实现**: [应用层开发指南](./05-application-layer-development.md)
 - **技术集成**: [基础设施层开发指南](./06-infrastructure-layer-development.md)
 - **接口开发**: [接口层开发指南](./07-interface-layer-development.md)
@@ -45,6 +47,7 @@
 
 - **租户管理**: [业务功能模块开发](./08-business-modules.md) - 租户相关功能
 - **用户管理**: [业务功能模块开发](./08-business-modules.md) - 用户相关功能
+- **权限角色**: [权限与角色领域建模](./04-1-authorization-domain-modeling.md) - 权限与角色管理
 - **组织架构**: [业务功能模块开发](./08-business-modules.md) - 组织部门管理
 
 ### 质量保证路径

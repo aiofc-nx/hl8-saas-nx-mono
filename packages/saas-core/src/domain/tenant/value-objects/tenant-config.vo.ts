@@ -1,6 +1,62 @@
 import { BaseValueObject } from '@hl8/hybrid-archi';
 
 /**
+ * 租户设置类型
+ *
+ * @description 定义租户设置的具体类型
+ * 支持常见的租户配置项
+ *
+ * @since 1.0.0
+ */
+export interface TenantSettings {
+  /** 系统设置 */
+  system?: {
+    /** 是否启用多语言 */
+    multiLanguage?: boolean;
+    /** 默认语言 */
+    defaultLanguage?: string;
+    /** 是否启用API访问 */
+    apiAccess?: boolean;
+    /** API访问限制 */
+    apiRateLimit?: number;
+  };
+  /** 安全设置 */
+  security?: {
+    /** 密码策略 */
+    passwordPolicy?: {
+      minLength?: number;
+      requireUppercase?: boolean;
+      requireLowercase?: boolean;
+      requireNumbers?: boolean;
+      requireSpecialChars?: boolean;
+    };
+    /** 会话超时时间（分钟） */
+    sessionTimeout?: number;
+    /** 是否启用双因素认证 */
+    twoFactorAuth?: boolean;
+  };
+  /** 通知设置 */
+  notifications?: {
+    /** 邮件通知 */
+    email?: {
+      enabled?: boolean;
+      smtpServer?: string;
+      smtpPort?: number;
+      smtpUser?: string;
+      smtpPassword?: string;
+    };
+    /** 短信通知 */
+    sms?: {
+      enabled?: boolean;
+      provider?: string;
+      apiKey?: string;
+    };
+  };
+  /** 其他自定义设置 */
+  [key: string]: string | number | boolean | Record<string, unknown> | undefined;
+}
+
+/**
  * 租户品牌配置接口
  *
  * @description 定义租户的品牌相关配置
@@ -80,7 +136,7 @@ export interface TenantConfigProps {
    * @description 租户的自定义配置项
    * 键值对形式，支持任意配置
    */
-  settings: Record<string, any>;
+  settings: TenantSettings;
 
   /**
    * 语言配置
@@ -143,7 +199,11 @@ export interface TenantConfigProps {
  *
  * @since 1.0.0
  */
-export class TenantConfig extends BaseValueObject<TenantConfigProps> {
+export class TenantConfig extends BaseValueObject {
+  /**
+   * 私有属性存储
+   */
+  private readonly _props: TenantConfigProps;
   /**
    * 私有构造函数
    * 
@@ -153,7 +213,8 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @param props - 租户配置属性
    */
   private constructor(props: TenantConfigProps) {
-    super(props);
+    super();
+    this._props = props;
     this.validate();
   }
 
@@ -193,35 +254,35 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    *
    * @since 1.0.0
    */
-  private validate(): void {
+  protected override validate(): void {
     // 验证功能列表
-    if (!this.props.features || this.props.features.length === 0) {
+    if (!this._props.features || this._props.features.length === 0) {
       throw new InvalidTenantConfigException('租户配置必须包含功能列表');
     }
 
     // 验证主题
-    if (!this.props.theme || this.props.theme.trim().length === 0) {
+    if (!this._props.theme || this._props.theme.trim().length === 0) {
       throw new InvalidTenantConfigException('租户配置必须包含主题设置');
     }
 
     // 验证语言配置
-    if (!this.props.locale || this.props.locale.trim().length === 0) {
+    if (!this._props.locale || this._props.locale.trim().length === 0) {
       throw new InvalidTenantConfigException('租户配置必须包含语言设置');
     }
 
     // 验证时区配置
-    if (!this.props.timezone || this.props.timezone.trim().length === 0) {
+    if (!this._props.timezone || this._props.timezone.trim().length === 0) {
       throw new InvalidTenantConfigException('租户配置必须包含时区设置');
     }
 
     // 验证品牌配置
-    if (this.props.branding?.logo) {
-      this.validateUrl(this.props.branding.logo, 'Logo URL');
+    if (this._props.branding?.logo) {
+      this.validateUrl(this._props.branding.logo, 'Logo URL');
     }
 
     // 验证颜色配置
-    if (this.props.branding?.colors) {
-      this.validateColors(this.props.branding.colors);
+    if (this._props.branding?.colors) {
+      this.validateColors(this._props.branding.colors);
     }
   }
 
@@ -282,8 +343,8 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @since 1.0.0
    */
   public hasFeature(feature: string): boolean {
-    return this.props.features.includes(feature) || 
-           this.props.features.includes('all_features');
+    return this._props.features.includes(feature) || 
+           this._props.features.includes('all_features');
   }
 
   /**
@@ -296,7 +357,7 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @since 1.0.0
    */
   public getFeatures(): string[] {
-    return [...this.props.features];
+    return [...this._props.features];
   }
 
   /**
@@ -319,7 +380,7 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @since 1.0.0
    */
   public updateConfig(updates: Partial<TenantConfigProps>): TenantConfig {
-    return TenantConfig.create({ ...this.props, ...updates });
+    return TenantConfig.create({ ...this._props, ...updates });
   }
 
   /**
@@ -359,8 +420,8 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    *
    * @since 1.0.0
    */
-  public updateSettings(settings: Record<string, any>): TenantConfig {
-    return this.updateConfig({ settings: { ...this.props.settings, ...settings } });
+  public updateSettings(settings: TenantSettings): TenantConfig {
+    return this.updateConfig({ settings: { ...this._props.settings, ...settings } });
   }
 
   /**
@@ -383,7 +444,7 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    */
   public updateBranding(branding: Partial<TenantBrandingProps>): TenantConfig {
     return this.updateConfig({ 
-      branding: { ...this.props.branding, ...branding } 
+      branding: { ...this._props.branding, ...branding } 
     });
   }
 
@@ -405,7 +466,7 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @since 1.0.0
    */
   public getSetting<T>(key: string, defaultValue: T): T {
-    return this.props.settings[key] ?? defaultValue;
+    return (this._props.settings[key] as T) ?? defaultValue;
   }
 
   /**
@@ -418,16 +479,16 @@ export class TenantConfig extends BaseValueObject<TenantConfigProps> {
    * @since 1.0.0
    */
   public getAllConfig(): TenantConfigProps {
-    return { ...this.props };
+    return { ...this._props };
   }
 
   // Getter 方法
-  public get features(): string[] { return this.props.features; }
-  public get theme(): string { return this.props.theme; }
-  public get branding(): TenantBrandingProps { return this.props.branding; }
-  public get settings(): Record<string, any> { return this.props.settings; }
-  public get locale(): string { return this.props.locale; }
-  public get timezone(): string { return this.props.timezone; }
+  public get features(): string[] { return this._props.features; }
+  public get theme(): string { return this._props.theme; }
+  public get branding(): TenantBrandingProps { return this._props.branding; }
+  public get settings(): TenantSettings { return this._props.settings; }
+  public get locale(): string { return this._props.locale; }
+  public get timezone(): string { return this._props.timezone; }
 }
 
 /**
