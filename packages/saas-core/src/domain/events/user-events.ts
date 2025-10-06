@@ -241,9 +241,9 @@ export class UserAssignedToTenantEvent extends BaseDomainEvent {
     public readonly userId: EntityId,
     public readonly assignedTenantId: EntityId,
     public readonly role: UserRole,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(userId, 1, tenantIdParam, 1);
+    super(userId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -271,9 +271,9 @@ export class UserRemovedFromTenantEvent extends BaseDomainEvent {
   constructor(
     public readonly userId: EntityId,
     public readonly removedTenantId: EntityId,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(userId, 1, tenantIdParam, 1);
+    super(userId, 1, tenantId, 1);
   }
 
   public get eventType(): string {

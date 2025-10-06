@@ -18,9 +18,9 @@ export class TenantCreatedEvent extends BaseDomainEvent {
     public readonly name: string,
     public readonly type: TenantType,
     public readonly adminId: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -49,9 +49,9 @@ export class TenantCreatedEvent extends BaseDomainEvent {
 export class TenantActivatedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -77,9 +77,9 @@ export class TenantSuspendedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -106,9 +106,9 @@ export class TenantDisabledEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -136,9 +136,9 @@ export class TenantUpgradedEvent extends BaseDomainEvent {
     public readonly tenantEntityId: EntityId,
     public readonly fromType: TenantType,
     public readonly toType: TenantType,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -166,9 +166,9 @@ export class TenantNameUpdatedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly newName: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -195,9 +195,9 @@ export class TenantAdminUpdatedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly newAdminId: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -224,9 +224,9 @@ export class TenantConfigUpdatedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly newConfig: TenantConfig,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -253,9 +253,9 @@ export class TenantResourceLimitsUpdatedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly newResourceLimits: ResourceLimits,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {
@@ -282,9 +282,9 @@ export class TenantDeletedEvent extends BaseDomainEvent {
   constructor(
     public readonly tenantEntityId: EntityId,
     public readonly reason: string,
-    tenantIdParam: string
+    tenantId: string
   ) {
-    super(tenantEntityId, 1, tenantIdParam, 1);
+    super(tenantEntityId, 1, tenantId, 1);
   }
 
   public get eventType(): string {

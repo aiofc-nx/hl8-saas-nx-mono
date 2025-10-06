@@ -110,3 +110,6 @@ export * from './specifications/organization-specifications';
 
 // 类型定义系统
 export * from './types';
+
+// 异常系统
+export * from './exceptions';

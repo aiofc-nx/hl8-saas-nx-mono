@@ -38,6 +38,9 @@ export * from './exception-codes';
 // 异常处理器导出
 export * from './exception-handler';
 
+// 租户上下文异常导出
+export * from './tenant-context.exception';
+
 // 重新导出hybrid-archi的基础异常类
 export {
   BaseDomainException,

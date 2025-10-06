@@ -132,7 +132,7 @@ export class TenantAggregate extends BaseAggregateRoot {
       name,
       type,
       adminId,
-      id.toString() // tenantIdParam
+      id.toString() // tenantId
     ));
 
     return aggregate;
@@ -158,7 +158,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     // 发布领域事件（聚合根职责）
     this.addDomainEvent(new TenantActivatedEvent(
       this._tenantId,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -184,7 +184,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantSuspendedEvent(
       this._tenantId,
       reason,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -210,7 +210,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantDisabledEvent(
       this._tenantId,
       reason,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -243,7 +243,7 @@ export class TenantAggregate extends BaseAggregateRoot {
       this._tenantId,
       currentType,
       newType,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -269,7 +269,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantNameUpdatedEvent(
       this._tenantId,
       newName,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -295,7 +295,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantAdminUpdatedEvent(
       this._tenantId,
       newAdminId,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -321,7 +321,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantConfigUpdatedEvent(
       this._tenantId,
       newConfig,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 
@@ -347,7 +347,7 @@ export class TenantAggregate extends BaseAggregateRoot {
     this.addDomainEvent(new TenantResourceLimitsUpdatedEvent(
       this._tenantId,
       newResourceLimits,
-      this._tenantId.toString() // tenantIdParam
+      this._tenantId.toString() // tenantId
     ));
   }
 

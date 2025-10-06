@@ -4,6 +4,7 @@ import { UserStatus } from '@hl8/hybrid-archi';
 import { UserRole } from '@hl8/hybrid-archi';
 import { UserProfile } from '../value-objects/user-profile.vo';
 import { UserRegisteredEvent } from '../../events/user-events';
+import { TenantContextException } from '../../exceptions/tenant-context.exception';
 
 /**
  * 用户聚合根
@@ -65,13 +66,32 @@ export class UserAggregate extends BaseAggregateRoot {
    * 获取当前租户ID
    *
    * @description 获取用户当前所属的租户ID
-   * 如果用户不属于任何租户，返回默认租户ID
+   * 如果用户不属于任何租户，抛出异常
    *
    * @returns 当前租户ID
+   * @throws {TenantContextException} 当用户未分配到任何租户时抛出异常
    */
   public getCurrentTenantId(): string {
     const tenantId = this.user.getTenantId();
-    return tenantId ? tenantId.toString() : 'default';
+    if (!tenantId) {
+      throw TenantContextException.userNotAssignedToTenant(this.userId.toString());
+    }
+    return tenantId.toString();
+  }
+
+  /**
+   * 验证租户上下文
+   *
+   * @description 验证用户是否有有效的租户上下文
+   * 在需要租户上下文的操作中调用此方法
+   *
+   * @throws {TenantContextException} 当缺少租户上下文时抛出异常
+   */
+  protected validateTenantContext(): void {
+    const tenantId = this.user.getTenantId();
+    if (!tenantId) {
+      throw TenantContextException.missingTenantContext('用户操作');
+    }
   }
 
   /**
@@ -146,6 +166,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public activate(): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.activate();
     
@@ -171,6 +194,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public suspend(reason: string): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.suspend(reason);
     
@@ -197,6 +223,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public disable(reason: string): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.disable(reason);
     
@@ -223,6 +252,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public lock(reason: string): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.lock(reason);
     
@@ -247,6 +279,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public unlock(): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.unlock();
     
@@ -273,6 +308,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public authenticate(password: string): boolean {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     const isAuthenticated = this.user.authenticate(password);
     
@@ -303,6 +341,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public updatePassword(oldPassword: string, newPassword: string): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.updatePassword(oldPassword, newPassword);
     
@@ -328,6 +369,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public resetPassword(newPassword: string): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.resetPassword(newPassword);
     
@@ -407,6 +451,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public addRole(role: UserRole): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.addRole(role);
     
@@ -433,6 +480,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public removeRole(role: UserRole): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.removeRole(role);
     
@@ -460,6 +510,9 @@ export class UserAggregate extends BaseAggregateRoot {
    * @since 1.0.0
    */
   public updateProfile(newProfile: UserProfile): void {
+    // 验证租户上下文
+    this.validateTenantContext();
+    
     // 指令模式：聚合根发出指令给实体
     this.user.updateProfile(newProfile);
     
