@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import { DatabaseService } from '@hl8/database';
 
@@ -115,7 +115,7 @@ export class ConnectionPoolManager {
   constructor(
     private readonly logger: PinoLogger,
     private readonly databaseService: DatabaseService,
-    private readonly config: ConnectionPoolConfig
+    @Inject('ConnectionPoolConfig') private readonly config: ConnectionPoolConfig
   ) {
     this.initializePool();
     this.startHealthCheck();

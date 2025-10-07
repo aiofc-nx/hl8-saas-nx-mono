@@ -66,7 +66,7 @@
  */
 import { EntityId } from '../../value-objects/entity-id';
 
-abstract class BaseDomainEvent {
+export abstract class BaseDomainEvent {
   private readonly _eventId: EntityId;
   private readonly _aggregateId: EntityId;
   private readonly _aggregateVersion: number;
@@ -346,4 +346,3 @@ abstract class BaseDomainEvent {
   }
 }
 
-export { BaseDomainEvent };

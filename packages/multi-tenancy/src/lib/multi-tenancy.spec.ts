@@ -12,10 +12,8 @@ import { MultiTenancyModule } from './multi-tenancy';
 import { TenantContextService } from './services/tenant-context.service';
 import { TenantIsolationService } from './services/tenant-isolation.service';
 import { MultiLevelIsolationService } from './services/multi-level-isolation.service';
-import {
-  IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
-} from './types/tenant-core.types';
+import { IMultiTenancyModuleOptions } from './types/tenant-core.types';
+import { DI_TOKENS } from './constants';
 import { PinoLogger } from '@hl8/logger';
 import { ClsService } from 'nestjs-cls';
 import { TenantConfigInvalidException } from './exceptions/tenant-config-invalid.exception';
@@ -169,7 +167,7 @@ describe('MultiTenancyModule', () => {
         MultiLevelIsolationService
       );
       const moduleOptions = module.get<IMultiTenancyModuleOptions>(
-        MULTI_TENANCY_MODULE_OPTIONS
+        DI_TOKENS.MODULE_OPTIONS
       );
 
       expect(tenantContextService).toBeDefined();
@@ -184,7 +182,7 @@ describe('MultiTenancyModule', () => {
 
       // 验证配置选项
       const moduleOptions = module.get<IMultiTenancyModuleOptions>(
-        MULTI_TENANCY_MODULE_OPTIONS
+        DI_TOKENS.MODULE_OPTIONS
       );
 
       expect(moduleOptions.context).toEqual(defaultOptions.context);
@@ -262,7 +260,7 @@ describe('MultiTenancyModule', () => {
 
       // 验证自定义配置
       const moduleOptions = module.get<IMultiTenancyModuleOptions>(
-        MULTI_TENANCY_MODULE_OPTIONS
+        DI_TOKENS.MODULE_OPTIONS
       );
 
       expect(moduleOptions.context).toEqual(customOptions.context);
@@ -279,7 +277,7 @@ describe('MultiTenancyModule', () => {
       expect(module.get(TenantContextService)).toBeDefined();
       expect(module.get(TenantIsolationService)).toBeDefined();
       expect(module.get(MultiLevelIsolationService)).toBeDefined();
-      expect(module.get(MULTI_TENANCY_MODULE_OPTIONS)).toBeDefined();
+      expect(module.get(DI_TOKENS.MODULE_OPTIONS)).toBeDefined();
     });
   });
 

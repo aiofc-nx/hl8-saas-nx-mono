@@ -55,7 +55,7 @@ export class PortAdaptersModule {
    */
   static forRoot(options: PortAdaptersModuleOptions = {}): DynamicModule {
     const providers: Provider[] = [];
-    const imports: DynamicModule[] = [];
+    const imports: any[] = [];
 
     // 根据选项动态添加提供者
     // 添加管理组件
@@ -96,8 +96,16 @@ export class PortAdaptersModule {
     if (options.enableConfiguration !== false) {
       imports.push(
         TypedConfigModule.forRoot({
-          schema: {} as any,
-          load: () => ({}),
+          schema: class TestConfig {
+            appName = 'test-app';
+            version = '1.0.0';
+            environment = 'test';
+          },
+          load: () => ({
+            appName: 'test-app',
+            version: '1.0.0',
+            environment: 'test',
+          }),
         })
       );
       providers.push({
@@ -175,8 +183,16 @@ export class PortAdaptersModule {
     if (options.enableConfiguration !== false) {
       imports.push(
         TypedConfigModule.forRoot({
-          schema: {} as any,
-          load: () => ({}),
+          schema: class TestConfig {
+            appName = 'test-app';
+            version = '1.0.0';
+            environment = 'test';
+          },
+          load: () => ({
+            appName: 'test-app',
+            version: '1.0.0',
+            environment: 'test',
+          }),
         })
       );
       providers.push({

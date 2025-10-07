@@ -6,9 +6,7 @@ import {
 } from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
 import {
-  MessagingModuleOptions,
   MessagingAdapterType,
-  MESSAGING_MODULE_OPTIONS,
   IMessagingAdapter,
 } from './types/messaging.types';
 
@@ -17,7 +15,7 @@ describe('MessagingService', () => {
   let tenantContextService: jest.Mocked<TenantContextService>;
   let tenantIsolationService: jest.Mocked<TenantIsolationService>;
   let mockAdapter: jest.Mocked<IMessagingAdapter>;
-  let mockLogger: PinoLogger;
+  let mockLogger: jest.Mocked<PinoLogger>;
 
   beforeEach(async () => {
     // 创建模拟的适配器
@@ -106,7 +104,18 @@ describe('MessagingService', () => {
       warn: jest.fn(),
       debug: jest.fn(),
       trace: jest.fn(),
-    } as unknown as PinoLogger;
+      log: jest.fn(),
+      verbose: jest.fn(),
+      fatal: jest.fn(),
+      setLevel: jest.fn(),
+      getLevel: jest.fn(),
+      isLevelEnabled: jest.fn(),
+      child: jest.fn(),
+      bindings: jest.fn(),
+      flush: jest.fn(),
+      level: 'info',
+      silent: jest.fn(),
+    } as unknown as jest.Mocked<PinoLogger>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -123,14 +132,6 @@ describe('MessagingService', () => {
           provide: PinoLogger,
           useValue: mockLogger,
         },
-        {
-          provide: MESSAGING_MODULE_OPTIONS,
-          useValue: {
-            adapter: MessagingAdapterType.MEMORY,
-            enableTenantIsolation: true,
-            keyPrefix: 'test:',
-          } as MessagingModuleOptions,
-        },
       ],
     }).compile();
 
@@ -140,8 +141,8 @@ describe('MessagingService', () => {
     mockLogger = module.get(PinoLogger);
 
     // 设置默认适配器
-    (service as unknown).defaultAdapter = mockAdapter;
-    (service as unknown).adapters.set(MessagingAdapterType.MEMORY, mockAdapter);
+    (service as unknown as { defaultAdapter: unknown; adapters: Map<unknown, unknown> }).defaultAdapter = mockAdapter;
+    (service as unknown as { defaultAdapter: unknown; adapters: Map<unknown, unknown> }).adapters.set(MessagingAdapterType.MEMORY, mockAdapter);
   });
 
   it('should be defined', () => {

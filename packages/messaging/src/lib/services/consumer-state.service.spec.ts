@@ -10,8 +10,6 @@ import { PinoLogger } from '@hl8/logger';
 describe('ConsumerStateService', () => {
   let service: ConsumerStateService;
   let cacheService: jest.Mocked<CacheService>;
-  let tenantContextService: jest.Mocked<TenantContextService>;
-  let tenantIsolationService: jest.Mocked<TenantIsolationService>;
 
   beforeEach(async () => {
     const mockCacheService = {
@@ -93,8 +91,6 @@ describe('ConsumerStateService', () => {
 
     service = module.get<ConsumerStateService>(ConsumerStateService);
     cacheService = module.get(CacheService);
-    tenantContextService = module.get(TenantContextService);
-    tenantIsolationService = module.get(TenantIsolationService);
   });
 
   it('should be defined', () => {

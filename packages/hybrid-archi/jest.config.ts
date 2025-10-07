@@ -10,10 +10,7 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(chalk|ansi-styles|strip-ansi|has-flag|supports-color|color-convert|color-name|@hl8)/)',
   ],
-  extensionsToTreatAsEsm: ['.ts'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
+  moduleNameMapper: {
+    '^chalk$': '<rootDir>/../../node_modules/.pnpm/chalk@4.1.2/node_modules/chalk',
   },
 };

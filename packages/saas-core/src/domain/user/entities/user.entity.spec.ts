@@ -7,7 +7,7 @@
  */
 
 import { UserId, Email, Username, Password } from '@hl8/hybrid-archi';
-import { TenantId } from '@hl8/hybrid-archi';
+import { EntityId } from '@hl8/hybrid-archi';
 import { User } from './user.entity';
 import { UserProfile } from '../value-objects/user-profile.vo';
 import { USER_STATUS, USER_ROLES } from '../../../constants/business.constants';
@@ -24,7 +24,7 @@ describe('User Entity', () => {
   let username: Username;
   let password: Password;
   let profile: UserProfile;
-  let tenantId: TenantId;
+  let tenantId: EntityId;
 
   beforeEach(() => {
     userId = UserId.generate();
@@ -39,7 +39,7 @@ describe('User Entity', () => {
       timezone: 'UTC',
       language: 'en'
     });
-    tenantId = TenantId.generate();
+    tenantId = EntityId.generate();
 
     user = new User(
       userId,
@@ -241,7 +241,7 @@ describe('User Entity', () => {
   describe('assignToTenant', () => {
     it('should assign user to tenant', () => {
       // Arrange
-      const newTenantId = TenantId.generate();
+      const newTenantId = EntityId.generate();
 
       // Act
       user.assignToTenant(newTenantId);
@@ -253,8 +253,8 @@ describe('User Entity', () => {
 
     it('should update tenant assignment', () => {
       // Arrange
-      const firstTenantId = TenantId.generate();
-      const secondTenantId = TenantId.generate();
+      const firstTenantId = EntityId.generate();
+      const secondTenantId = EntityId.generate();
 
       // Act
       user.assignToTenant(firstTenantId);
@@ -326,7 +326,7 @@ describe('User Entity', () => {
 
     it('should return false when user does not belong to tenant', () => {
       // Arrange
-      const otherTenantId = TenantId.generate();
+      const otherTenantId = EntityId.generate();
 
       // Act & Assert
       expect(user.belongsToTenant(tenantId)).toBe(false);

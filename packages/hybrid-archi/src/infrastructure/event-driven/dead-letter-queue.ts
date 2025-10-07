@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 // import { BaseDomainEvent } from '@hl8/hybrid-archi/domain/events/base/base-domain-event';
 import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
@@ -72,7 +72,7 @@ export class DeadLetterQueueProcessor {
     private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
     private readonly databaseService: DatabaseService,
-    private readonly config: DeadLetterQueueConfig
+    @Inject('DeadLetterQueueConfig') private readonly config: DeadLetterQueueConfig
   ) {
     this.initializeRetryStrategies();
     this.startProcessing();

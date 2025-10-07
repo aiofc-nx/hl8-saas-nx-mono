@@ -9,6 +9,7 @@ import {
   TenantIsolationService,
 } from '@hl8/multi-tenancy';
 import { PinoLogger } from '@hl8/logger';
+import { MessagingAdapterType } from './types/messaging.types';
 
 /**
  * 缓存集成测试
@@ -86,12 +87,23 @@ describe('MessagingCacheIntegration', () => {
       warn: jest.fn(),
       debug: jest.fn(),
       trace: jest.fn(),
-    };
+      log: jest.fn(),
+      verbose: jest.fn(),
+      fatal: jest.fn(),
+      setLevel: jest.fn(),
+      getLevel: jest.fn(),
+      isLevelEnabled: jest.fn(),
+      child: jest.fn(),
+      bindings: jest.fn(),
+      flush: jest.fn(),
+      level: 'info',
+      silent: jest.fn(),
+    } as unknown as jest.Mocked<PinoLogger>;
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         MessagingModule.forRoot({
-          adapter: 'memory', // 使用内存适配器进行测试
+          adapter: MessagingAdapterType.MEMORY, // 使用内存适配器进行测试
           cache: {
             enableMessageDeduplication: true,
             enableConsumerStateCache: true,
@@ -286,7 +298,6 @@ describe('MessagingCacheIntegration', () => {
 
     it('应该处理消费者状态错误', async () => {
       const consumerId = 'consumer-123';
-      const _queueName = 'test-queue';
       cacheService.get.mockRejectedValue(new Error('Cache service error'));
 
       const result = await consumerStateService.getConsumerState(consumerId);

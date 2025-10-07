@@ -13,10 +13,10 @@ import { PinoLogger } from '@hl8/logger';
 import { TenantContextService } from './tenant-context.service';
 import {
   IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
   ITenantContext,
   ITenantContextConfig,
 } from '../types/tenant-core.types';
+import { DI_TOKENS } from '../constants';
 import {
   TenantContextInvalidException,
   TenantConfigInvalidException,
@@ -89,9 +89,9 @@ describe('TenantContextService', () => {
    * 默认租户上下文
    */
   const defaultContext: ITenantContext = {
-    tenantId: 'tenant-123',
-    userId: 'user-456',
-    requestId: 'req-789-abc',
+    tenantId: '123e4567-e89b-4d3a-a456-426614174000',
+    userId: '987fcdeb-51a2-4c3d-8e9f-123456789abc',
+    requestId: '550e8400-e29b-41d4-a716-446655440000',
     sessionId: 'session-abc',
     timestamp: new Date(),
     metadata: {
@@ -175,7 +175,7 @@ describe('TenantContextService', () => {
           useValue: mockLogger,
         },
         {
-          provide: MULTI_TENANCY_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: mockModuleOptions,
         },
       ],
@@ -535,7 +535,7 @@ describe('TenantContextService', () => {
       mockClsService.set('tenantContext', defaultContext);
       mockClsService.set('tenantId', defaultContext.tenantId);
 
-      const newTenantId = 'new-tenant-456';
+      const newTenantId = '6ba7b810-9dad-4d1a-80b4-00c04fd430c8';
 
       await expect(service.updateTenant(newTenantId)).resolves.not.toThrow();
 
@@ -548,20 +548,20 @@ describe('TenantContextService', () => {
     it('应该记录调试日志', async () => {
       const debugSpy = jest.spyOn(mockLogger, 'debug');
 
-      await service.updateTenant('new-tenant-456');
+      await service.updateTenant('6ba7b810-9dad-4d1a-80b4-00c04fd430c8');
 
       expect(debugSpy).toHaveBeenCalledWith('租户ID已更新', {
-        tenantId: 'new-tenant-456',
+        tenantId: '6ba7b810-9dad-4d1a-80b4-00c04fd430c8',
       });
     });
 
     it('应该在启用审计日志时记录审计日志', async () => {
       const infoSpy = jest.spyOn(mockLogger, 'info');
 
-      await service.updateTenant('new-tenant-456');
+      await service.updateTenant('6ba7b810-9dad-4d1a-80b4-00c04fd430c8');
 
       expect(infoSpy).toHaveBeenCalledWith('租户ID更新审计', {
-        tenantId: 'new-tenant-456',
+        tenantId: '6ba7b810-9dad-4d1a-80b4-00c04fd430c8',
       });
     });
 
@@ -619,7 +619,7 @@ describe('TenantContextService', () => {
       mockClsService.set('tenantContext', defaultContext);
       mockClsService.set('userId', defaultContext.userId);
 
-      const newUserId = 'new-user-789';
+      const newUserId = '6ba7b811-9dad-4d1a-80b4-00c04fd430c8';
 
       await expect(service.updateUser(newUserId)).resolves.not.toThrow();
 
@@ -936,19 +936,28 @@ describe('TenantContextService', () => {
         }
       });
 
-      it('应该接受有效的租户ID', async () => {
+      it('应该接受有效的UUID v4格式租户ID', async () => {
         const validTenantIds = [
-          'tenant-123',
-          'tenant_456',
-          'Tenant789',
-          'tenant123',
-          't-123',
-          'a'.repeat(64),
+          '123e4567-e89b-4d3a-a456-426614174000',
+          '987fcdeb-51a2-4c3d-8e9f-123456789abc',
+          '550e8400-e29b-41d4-a716-446655440000',
+          '6ba7b810-9dad-4d1a-80b4-00c04fd430c8',
+          '6ba7b811-9dad-4d1a-80b4-00c04fd430c8'
         ];
 
         for (const tenantId of validTenantIds) {
           await expect(service.updateTenant(tenantId)).resolves.not.toThrow();
         }
+      });
+
+      it('应该拒绝无效的UUID v4格式', async () => {
+        // 直接测试 validateTenantId 方法
+        const validateTenantId = (service as any).validateTenantId.bind(service);
+        
+        expect(() => validateTenantId('tenant-123')).toThrow(TenantContextInvalidException);
+        expect(() => validateTenantId('not-a-uuid')).toThrow(TenantContextInvalidException);
+        expect(() => validateTenantId('ab')).toThrow(TenantContextInvalidException);
+        expect(() => validateTenantId('123e4567-e89b-4d3a-a456-42661417400 ')).toThrow(TenantContextInvalidException);
       });
     });
   });

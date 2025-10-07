@@ -11,6 +11,12 @@ import {
 } from '../types/messaging.types';
 
 /**
+ * RabbitMQ连接和通道类型定义
+ */
+type RabbitMQConnection = amqp.ChannelModel;
+type RabbitMQChannel = amqp.ConfirmChannel;
+
+/**
  * RabbitMQ消息队列适配器
  *
  * 基于amqplib的RabbitMQ消息队列实现
@@ -31,8 +37,8 @@ import {
  * ```
  */
 export class RabbitMQAdapter extends BaseAdapter {
-  private connection?: amqp.Connection;
-  private channel?: amqp.Channel;
+  private connection?: RabbitMQConnection;
+  private channel?: RabbitMQChannel;
   private consumers: Map<string, string> = new Map(); // topic/queue -> consumerTag
 
   constructor(private readonly config: RabbitMQConfig) {
@@ -48,38 +54,42 @@ export class RabbitMQAdapter extends BaseAdapter {
    */
   async connect(): Promise<void> {
     try {
-      this.connection = (await amqp.connect(
+      this.connection = await amqp.connect(
         this.config.url,
         this.config.options
-      )) as any;
-      this.channel = await (this.connection as any).createChannel();
+      );
+      this.channel = await this.connection.createConfirmChannel();
 
       // 设置连接事件监听
-      (this.connection as any).on('error', (error: Error) => {
-        this.setConnectionError(error.message);
-      });
+      if (this.connection) {
+        this.connection.on('error', (error: Error) => {
+          this.setConnectionError(error.message);
+        });
 
-      (this.connection as any).on('close', () => {
-        this.setConnected(false);
-      });
+        this.connection.on('close', () => {
+          this.setConnected(false);
+        });
+      }
 
       // 设置通道事件监听
-      (this.channel as any).on('error', (error: Error) => {
-        this.setConnectionError(error.message);
-      });
+      if (this.channel) {
+        this.channel.on('error', (error: Error) => {
+          this.setConnectionError(error.message);
+        });
 
-      (this.channel as any).on('close', () => {
-        this.setConnected(false);
-      });
+        this.channel.on('close', () => {
+          this.setConnected(false);
+        });
 
-      // 声明默认交换器
-      await (this.channel as any).assertExchange(
-        this.config.exchange,
-        'topic',
-        {
-          durable: true,
-        }
-      );
+        // 声明默认交换器
+        await this.channel.assertExchange(
+          this.config.exchange,
+          'topic',
+          {
+            durable: true,
+          }
+        );
+      }
 
       this.setConnected(true);
     } catch (error) {
@@ -98,7 +108,7 @@ export class RabbitMQAdapter extends BaseAdapter {
   async disconnect(): Promise<void> {
     try {
       // 取消所有消费者
-      for (const [_key, consumerTag] of this.consumers) {
+      for (const [, consumerTag] of this.consumers) {
         if (this.channel) {
           await this.channel.cancel(consumerTag);
         }
@@ -113,7 +123,7 @@ export class RabbitMQAdapter extends BaseAdapter {
 
       // 关闭连接
       if (this.connection) {
-        await (this.connection as any).close();
+        await this.connection.close();
         this.connection = undefined;
       }
 
@@ -152,7 +162,11 @@ export class RabbitMQAdapter extends BaseAdapter {
         mandatory: options?.mandatory || false,
       };
 
-      const published = this.channel!.publish(
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
+      const published = this.channel.publish(
         this.config.exchange,
         routingKey,
         messageBuffer,
@@ -165,7 +179,7 @@ export class RabbitMQAdapter extends BaseAdapter {
 
       // 等待确认
       if (options?.ack) {
-        await (this.channel as any).waitForConfirms();
+        await this.channel.waitForConfirms();
       }
     } catch (error) {
       throw new Error(
@@ -189,36 +203,40 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${topic}`;
 
       // 声明队列
-      const queue = await this.channel!.assertQueue(queueName, {
+      const queue = await this.channel.assertQueue(queueName, {
         durable: true,
         exclusive: false,
         autoDelete: false,
       });
 
       // 绑定队列到交换器
-      await this.channel!.bindQueue(queue.queue, this.config.exchange, topic);
+      await this.channel.bindQueue(queue.queue, this.config.exchange, topic);
 
       // 设置消费者
-      const consumer = await this.channel!.consume(
+      const consumer = await this.channel.consume(
         queue.queue,
         async (msg) => {
-          if (msg) {
+          if (msg && this.channel) {
             try {
               const messageData = JSON.parse(msg.content.toString());
               await handler(messageData);
 
               // 确认消息
-              this.channel!.ack(msg);
+              this.channel.ack(msg);
             } catch (error) {
               console.error(
                 `Error processing message for topic ${topic}:`,
                 error
               );
               // 拒绝消息并重新入队
-              this.channel!.nack(msg, false, true);
+              this.channel.nack(msg, false, true);
             }
           }
         },
@@ -247,15 +265,19 @@ export class RabbitMQAdapter extends BaseAdapter {
    */
   override async unsubscribe(
     topic: string,
-    _handler?: MessageHandler<unknown>
+    handler?: MessageHandler<unknown>
   ): Promise<void> {
     this.validateConnection();
 
     try {
       const consumerTag = this.consumers.get(topic);
-      if (consumerTag) {
-        await this.channel!.cancel(consumerTag);
+      if (consumerTag && this.channel) {
+        await this.channel.cancel(consumerTag);
         this.consumers.delete(topic);
+      }
+      // 注意：RabbitMQ适配器暂不支持按处理器取消订阅
+      if (handler) {
+        console.debug('Handler-specific unsubscribe not supported in RabbitMQ adapter');
       }
     } catch (error) {
       throw new Error(
@@ -301,7 +323,11 @@ export class RabbitMQAdapter extends BaseAdapter {
         };
       }
 
-      const published = this.channel!.sendToQueue(
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
+      const published = this.channel.sendToQueue(
         queueName,
         messageBuffer,
         sendOptions
@@ -313,7 +339,7 @@ export class RabbitMQAdapter extends BaseAdapter {
 
       // 等待确认
       if (options?.ack) {
-        await (this.channel as any).waitForConfirms();
+        await this.channel.waitForConfirms();
       }
     } catch (error) {
       throw new Error(
@@ -335,33 +361,37 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${queue}`;
 
       // 声明队列
-      await this.channel!.assertQueue(queueName, {
+      await this.channel.assertQueue(queueName, {
         durable: true,
         exclusive: false,
         autoDelete: false,
       });
 
       // 设置消费者
-      const consumer = await this.channel!.consume(
+      const consumer = await this.channel.consume(
         queueName,
         async (msg) => {
-          if (msg) {
+          if (msg && this.channel) {
             try {
               const messageData = JSON.parse(msg.content.toString());
               await handler(messageData);
 
               // 确认消息
-              this.channel!.ack(msg);
+              this.channel.ack(msg);
             } catch (error) {
               console.error(
                 `Error processing message in queue ${queue}:`,
                 error
               );
               // 拒绝消息并重新入队
-              this.channel!.nack(msg, false, true);
+              this.channel.nack(msg, false, true);
             }
           }
         },
@@ -392,8 +422,8 @@ export class RabbitMQAdapter extends BaseAdapter {
 
     try {
       const consumerTag = this.consumers.get(queue);
-      if (consumerTag) {
-        await this.channel!.cancel(consumerTag);
+      if (consumerTag && this.channel) {
+        await this.channel.cancel(consumerTag);
         this.consumers.delete(queue);
       }
     } catch (error) {
@@ -418,9 +448,13 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${queue}`;
 
-      await this.channel!.assertQueue(queueName, {
+      await this.channel.assertQueue(queueName, {
         durable: options?.durable !== false,
         exclusive: options?.exclusive || false,
         autoDelete: options?.autoDelete || false,
@@ -453,8 +487,12 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${queue}`;
-      await this.channel!.deleteQueue(queueName);
+      await this.channel.deleteQueue(queueName);
     } catch (error) {
       throw new Error(
         `Failed to delete queue ${queue}: ${(error as Error).message}`
@@ -474,8 +512,12 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${queue}`;
-      await this.channel!.purgeQueue(queueName);
+      await this.channel.purgeQueue(queueName);
     } catch (error) {
       throw new Error(
         `Failed to purge queue ${queue}: ${(error as Error).message}`
@@ -496,8 +538,12 @@ export class RabbitMQAdapter extends BaseAdapter {
     this.validateConnection();
 
     try {
+      if (!this.channel) {
+        throw new Error('Channel is not available');
+      }
+
       const queueName = `${this.config.queuePrefix}${queue}`;
-      const queueInfo = await this.channel!.checkQueue(queueName);
+      const queueInfo = await this.channel.checkQueue(queueName);
 
       return {
         name: queue,

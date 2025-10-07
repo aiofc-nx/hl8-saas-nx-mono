@@ -229,7 +229,7 @@ describe('MemoryCacheProvider', () => {
       const key = 'test-config';
 
       cacheProvider.on('set', (event) => events.push(event));
-      cacheProvider.on('get', (event) => events.push(event));
+      cacheProvider.on('miss', (event) => events.push(event));
       cacheProvider.on('hit', (event) => events.push(event));
 
       await cacheProvider.set(key, config);

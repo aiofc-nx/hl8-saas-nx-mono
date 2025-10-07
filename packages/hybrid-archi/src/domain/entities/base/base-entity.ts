@@ -202,6 +202,148 @@ export abstract class BaseEntity implements IEntity {
   }
 
   /**
+   * 软删除实体
+   *
+   * @description 将实体标记为已删除，但不从存储中移除
+   * 软删除会记录删除时间、删除者和删除原因
+   *
+   * @param deletedBy - 删除者标识符，可选，默认使用当前用户
+   * @param deleteReason - 删除原因，可选
+   * @param operationContext - 操作上下文，可选
+   *
+   * @throws {GeneralBadRequestException} 当实体已被删除时
+   *
+   * @example
+   * ```typescript
+   * // 基本软删除
+   * entity.markAsDeleted();
+   *
+   * // 带删除原因的软删除
+   * entity.markAsDeleted('user-123', '用户主动删除');
+   *
+   * // 带完整上下文的软删除
+   * entity.markAsDeleted('user-123', '数据清理', {
+   *   ip: '192.168.1.1',
+   *   userAgent: 'Mozilla/5.0...',
+   *   source: 'WEB'
+   * });
+   * ```
+   */
+  public markAsDeleted(
+    deletedBy?: string,
+    deleteReason?: string,
+    operationContext?: {
+      ip?: string | null;
+      userAgent?: string | null;
+      source?: 'WEB' | 'API' | 'CLI' | 'SYSTEM' | null;
+    }
+  ): void {
+    if (this.isDeleted) {
+      throw new GeneralBadRequestException(
+        'Entity already deleted',
+        'Cannot delete an entity that is already deleted',
+        {
+          entityType: this.constructor.name,
+          entityId: this._id.toString(),
+          errorCode: ENTITY_ERROR_CODES.ALREADY_DELETED,
+        }
+      );
+    }
+
+    const now = new Date();
+    const actualDeletedBy = deletedBy || this.getCurrentUserId();
+
+    // 更新审计信息
+    this._auditInfo.deletedAt = now;
+    this._auditInfo.deletedBy = actualDeletedBy;
+    this._auditInfo.deleteReason = deleteReason || null;
+    this._auditInfo.updatedAt = now;
+    this._auditInfo.updatedBy = actualDeletedBy;
+    this._auditInfo.lastOperation = ENTITY_OPERATIONS.DELETE;
+    this._auditInfo.version++;
+
+    // 更新操作上下文
+    if (operationContext) {
+      this._auditInfo.lastOperationIp = operationContext.ip || null;
+      this._auditInfo.lastOperationUserAgent = operationContext.userAgent || null;
+      this._auditInfo.lastOperationSource = operationContext.source || null;
+    }
+
+    this.logger.info(`Entity marked as deleted`, {
+      entityType: this.constructor.name,
+      entityId: this._id.toString(),
+      deletedBy: actualDeletedBy,
+      deleteReason,
+    });
+  }
+
+  /**
+   * 恢复已删除的实体
+   *
+   * @description 将软删除的实体恢复为正常状态
+   * 恢复会清除删除时间、删除者和删除原因
+   *
+   * @param restoredBy - 恢复者标识符，可选，默认使用当前用户
+   * @param operationContext - 操作上下文，可选
+   *
+   * @throws {GeneralBadRequestException} 当实体未被删除时
+   *
+   * @example
+   * ```typescript
+   * // 基本恢复
+   * entity.restore();
+   *
+   * // 带恢复者的恢复
+   * entity.restore('admin-123');
+   * ```
+   */
+  public restore(
+    restoredBy?: string,
+    operationContext?: {
+      ip?: string | null;
+      userAgent?: string | null;
+      source?: 'WEB' | 'API' | 'CLI' | 'SYSTEM' | null;
+    }
+  ): void {
+    if (!this.isDeleted) {
+      throw new GeneralBadRequestException(
+        'Entity not deleted',
+        'Cannot restore an entity that is not deleted',
+        {
+          entityType: this.constructor.name,
+          entityId: this._id.toString(),
+          errorCode: ENTITY_ERROR_CODES.NOT_DELETED,
+        }
+      );
+    }
+
+    const now = new Date();
+    const actualRestoredBy = restoredBy || this.getCurrentUserId();
+
+    // 清除删除信息
+    this._auditInfo.deletedAt = null;
+    this._auditInfo.deletedBy = null;
+    this._auditInfo.deleteReason = null;
+    this._auditInfo.updatedAt = now;
+    this._auditInfo.updatedBy = actualRestoredBy;
+    this._auditInfo.lastOperation = ENTITY_OPERATIONS.RESTORE;
+    this._auditInfo.version++;
+
+    // 更新操作上下文
+    if (operationContext) {
+      this._auditInfo.lastOperationIp = operationContext.ip || null;
+      this._auditInfo.lastOperationUserAgent = operationContext.userAgent || null;
+      this._auditInfo.lastOperationSource = operationContext.source || null;
+    }
+
+    this.logger.info(`Entity restored`, {
+      entityType: this.constructor.name,
+      entityId: this._id.toString(),
+      restoredBy: actualRestoredBy,
+    });
+  }
+
+  /**
    * 检查两个实体是否相等
    *
    * 实体的相等性基于标识符比较，而不是属性值。
@@ -386,6 +528,21 @@ export abstract class BaseEntity implements IEntity {
       return null;
     } catch (error) {
       return null;
+    }
+  }
+
+  /**
+   * 获取当前用户ID
+   *
+   * @description 获取当前操作用户的ID，用于审计追踪
+   * @returns 当前用户ID，如果无法获取则返回 'system'
+   */
+  protected getCurrentUserId(): string {
+    try {
+      const tenantContext = this.getTenantContext();
+      return tenantContext?.userId || 'system';
+    } catch (error) {
+      return 'system';
     }
   }
 

@@ -12,7 +12,7 @@ describe('UserId', () => {
   describe('构造函数', () => {
     it('should create UserId with valid UUID format', () => {
       // Arrange
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
+      const validUuid = '123e4567-e89b-4d3a-a456-426614174000';
 
       // Act
       const userId = new UserId(validUuid);
@@ -31,7 +31,7 @@ describe('UserId', () => {
 
     it('should throw exception for non-UUID v4 format', () => {
       // Arrange
-      const invalidUuid = '123e4567-e89b-12d3-a456-426614174000'; // 不是v4格式
+      const invalidUuid = '123e4567-e89b-1d3a-a456-426614174000'; // 不是v4格式（第13位不是4）
 
       // Act & Assert
       expect(() => new UserId(invalidUuid)).toThrow(InvalidUserIdException);
@@ -69,7 +69,7 @@ describe('UserId', () => {
   describe('create', () => {
     it('should create UserId from valid UUID string', () => {
       // Arrange
-      const validUuid = '123e4567-e89b-12d3-a456-426614174000';
+      const validUuid = '123e4567-e89b-4d3a-a456-426614174000';
 
       // Act
       const userId = UserId.create(validUuid);
@@ -90,8 +90,8 @@ describe('UserId', () => {
   describe('equals', () => {
     it('should return true for equal UserIds', () => {
       // Arrange
-      const userId1 = UserId.create('123e4567-e89b-12d3-a456-426614174000');
-      const userId2 = UserId.create('123e4567-e89b-12d3-a456-426614174000');
+      const userId1 = UserId.create('123e4567-e89b-4d3a-a456-426614174000');
+      const userId2 = UserId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act & Assert
       expect(userId1.equals(userId2)).toBe(true);
@@ -110,33 +110,33 @@ describe('UserId', () => {
   describe('toString', () => {
     it('should return string representation', () => {
       // Arrange
-      const userId = UserId.create('123e4567-e89b-12d3-a456-426614174000');
+      const userId = UserId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act & Assert
-      expect(userId.toString()).toBe('123e4567-e89b-12d3-a456-426614174000');
+      expect(userId.toString()).toBe('123e4567-e89b-4d3a-a456-426614174000');
     });
   });
 
   describe('getEntityId', () => {
     it('should return EntityId instance', () => {
       // Arrange
-      const userId = UserId.create('123e4567-e89b-12d3-a456-426614174000');
+      const userId = UserId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act
       const entityId = userId.getEntityId();
 
       // Assert
       expect(entityId).toBeDefined();
-      expect(entityId.toString()).toBe('123e4567-e89b-12d3-a456-426614174000');
+      expect(entityId.toString()).toBe('123e4567-e89b-4d3a-a456-426614174000');
     });
   });
 
   describe('valid UUID v4 examples', () => {
     const validUuids = [
-      '123e4567-e89b-12d3-a456-426614174000',
+      '123e4567-e89b-4d3a-a456-426614174000',
       '550e8400-e29b-41d4-a716-446655440000',
-      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      '6ba7b811-9dad-11d1-80b4-00c04fd430c8'
+      '6ba7b810-9dad-4d1a-80b4-00c04fd430c8',
+      '6ba7b811-9dad-4d1a-80b4-00c04fd430c8'
     ];
 
     validUuids.forEach(uuid => {
@@ -153,7 +153,7 @@ describe('UserId', () => {
     const invalidUuids = [
       'invalid-uuid',
       '123e4567-e89b-12d3-a456-42661417400', // 太短
-      '123e4567-e89b-12d3-a456-4266141740000', // 太长
+      '123e4567-e89b-4d3a-a456-4266141740000', // 太长
       '123e4567-e89b-12d3-a456-42661417400g', // 无效字符
       '123e4567-e89b-12d3-a456', // 不完整
       'not-a-uuid-at-all',

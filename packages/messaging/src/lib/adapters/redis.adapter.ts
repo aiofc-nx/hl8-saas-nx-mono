@@ -89,7 +89,7 @@ export class RedisAdapter extends BaseAdapter {
   async disconnect(): Promise<void> {
     try {
       // 关闭所有订阅者
-      for (const [_topic, subscriber] of this.subscribers) {
+      for (const [, subscriber] of this.subscribers) {
         await subscriber.quit();
       }
       this.subscribers.clear();
@@ -209,7 +209,7 @@ export class RedisAdapter extends BaseAdapter {
    */
   override async unsubscribe(
     topic: string,
-    _handler?: MessageHandler<unknown>
+    handler?: MessageHandler<unknown>
   ): Promise<void> {
     this.validateConnection();
 
@@ -220,6 +220,10 @@ export class RedisAdapter extends BaseAdapter {
         await subscriber.unsubscribe(channel);
         await subscriber.quit();
         this.subscribers.delete(topic);
+      }
+      // 注意：Redis适配器暂不支持按处理器取消订阅
+      if (handler) {
+        console.debug('Handler-specific unsubscribe not supported in Redis adapter');
       }
     } catch (error) {
       throw new Error(
@@ -297,8 +301,9 @@ export class RedisAdapter extends BaseAdapter {
           '0',
           'MKSTREAM'
         );
-      } catch (_error) {
+      } catch (error) {
         // 消费者组可能已存在，忽略错误
+        console.debug('Consumer group may already exist:', error);
       }
 
       // 保存消费者组
@@ -423,7 +428,7 @@ export class RedisAdapter extends BaseAdapter {
       const queueKey = `${this.config.streamPrefix}${queue}`;
       const streamInfo = await this.redis!.xinfo('STREAM', queueKey);
 
-      const messageCount = (streamInfo as any)[1] as number; // length
+      const messageCount = (streamInfo as unknown as [string, number])[1]; // length
       const consumerCount = this.consumers.has(queue) ? 1 : 0;
 
       return {
@@ -477,7 +482,7 @@ export class RedisAdapter extends BaseAdapter {
         );
 
         if (messages && messages.length > 0) {
-          for (const [_stream, streamMessages] of messages as any) {
+          for (const [, streamMessages] of messages as unknown as [string, [string, string[]][]][]) {
             for (const [messageId, fields] of streamMessages) {
               try {
                 // 解析消息

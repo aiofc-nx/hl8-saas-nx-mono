@@ -3,6 +3,7 @@ import { TenantStatus, TenantStatusUtils } from '@hl8/hybrid-archi';
 import { TenantType, TenantTypeUtils } from '@hl8/hybrid-archi';
 import { TenantConfig } from '../value-objects/tenant-config.vo';
 import { ResourceLimits } from '../value-objects/resource-limits.vo';
+import { TenantCode } from '../value-objects/tenant-code.vo';
 
 /**
  * 租户实体
@@ -30,9 +31,10 @@ import { ResourceLimits } from '../value-objects/resource-limits.vo';
  *
  * @example
  * ```typescript
+ * const tenantCode = TenantCode.generate(); // 生成18位USCI格式租户代码
  * const tenant = new Tenant(
  *   tenantId,
- *   'TENANT001',
+ *   tenantCode,
  *   '示例租户',
  *   TenantType.BASIC,
  *   TenantStatus.PENDING,
@@ -43,6 +45,7 @@ import { ResourceLimits } from '../value-objects/resource-limits.vo';
  * 
  * tenant.activate(); // 激活租户
  * const canUse = tenant.canUseFeature('basic_user_management'); // true
+ * const codeValue = tenant.getCodeValue(); // 获取USCI格式租户代码字符串值
  * ```
  *
  * @since 1.0.0
@@ -55,7 +58,7 @@ export class Tenant extends BaseEntity {
    * 所有属性都是私有的，通过方法访问和修改
    *
    * @param id - 租户ID
-   * @param _code - 租户代码（唯一标识）
+   * @param _code - 租户代码值对象（18位统一社会信用代码USCI格式）
    * @param _name - 租户名称
    * @param _type - 租户类型
    * @param _status - 租户状态
@@ -65,7 +68,7 @@ export class Tenant extends BaseEntity {
    */
   constructor(
     id: EntityId,
-    private readonly _code: string,
+    private readonly _code: TenantCode,
     private _name: string,
     private _type: TenantType,
     private _status: TenantStatus,
@@ -450,7 +453,8 @@ export class Tenant extends BaseEntity {
   }
 
   // Getter 方法
-  public getCode(): string { return this._code; }
+  public getCode(): TenantCode { return this._code; }
+  public getCodeValue(): string { return this._code.value; }
   public getName(): string { return this._name; }
   public getType(): TenantType { return this._type; }
   public getStatus(): TenantStatus { return this._status; }

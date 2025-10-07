@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
+    "composite": true,
+    "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "importHelpers": true,
@@ -15,6 +17,9 @@
   "references": [
     {
       "path": "../multi-tenancy"
+    },
+    {
+      "path": "../logger"
     },
     {
       "path": "./tsconfig.lib.json"

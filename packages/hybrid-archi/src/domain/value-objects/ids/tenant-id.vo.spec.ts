@@ -7,12 +7,13 @@
  */
 
 import { TenantId, InvalidTenantIdException } from './tenant-id.vo';
+import { EntityId } from '../entity-id';
 
 describe('TenantId', () => {
   describe('构造函数', () => {
     it('should create TenantId with valid format', () => {
       // Arrange
-      const validId = 'my-tenant-123';
+      const validId = '123e4567-e89b-4d3a-a456-426614174000';
 
       // Act
       const tenantId = new TenantId(validId);
@@ -61,7 +62,7 @@ describe('TenantId', () => {
 
       // Assert
       expect(tenantId).toBeInstanceOf(TenantId);
-      expect(tenantId.value).toMatch(/^[a-zA-Z][a-zA-Z0-9_-]{2,19}$/);
+      expect(tenantId.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
     });
 
     it('should generate unique TenantIds', () => {
@@ -77,7 +78,7 @@ describe('TenantId', () => {
   describe('create', () => {
     it('should create TenantId from valid string', () => {
       // Arrange
-      const validId = 'test-tenant_123';
+      const validId = '123e4567-e89b-4d3a-a456-426614174000';
 
       // Act
       const tenantId = TenantId.create(validId);
@@ -98,8 +99,8 @@ describe('TenantId', () => {
   describe('equals', () => {
     it('should return true for equal TenantIds', () => {
       // Arrange
-      const tenantId1 = TenantId.create('same-tenant');
-      const tenantId2 = TenantId.create('same-tenant');
+      const tenantId1 = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
+      const tenantId2 = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act & Assert
       expect(tenantId1.equals(tenantId2)).toBe(true);
@@ -107,8 +108,8 @@ describe('TenantId', () => {
 
     it('should return false for different TenantIds', () => {
       // Arrange
-      const tenantId1 = TenantId.create('tenant-1');
-      const tenantId2 = TenantId.create('tenant-2');
+      const tenantId1 = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
+      const tenantId2 = TenantId.create('987fcdeb-51a2-4c3d-8e9f-123456789abc');
 
       // Act & Assert
       expect(tenantId1.equals(tenantId2)).toBe(false);
@@ -118,68 +119,64 @@ describe('TenantId', () => {
   describe('toString', () => {
     it('should return string representation', () => {
       // Arrange
-      const tenantId = TenantId.create('test-tenant');
+      const tenantId = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act & Assert
-      expect(tenantId.toString()).toBe('test-tenant');
+      expect(tenantId.toString()).toBe('123e4567-e89b-4d3a-a456-426614174000');
     });
   });
 
   describe('getEntityId', () => {
     it('should return EntityId instance', () => {
       // Arrange
-      const tenantId = TenantId.create('test-tenant');
+      const tenantId = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
 
       // Act
       const entityId = tenantId.getEntityId();
 
       // Assert
       expect(entityId).toBeDefined();
-      expect(entityId.toString()).toBe('test-tenant');
+      expect(entityId).toBeInstanceOf(EntityId);
     });
   });
 
-  describe('valid format examples', () => {
-    const validFormats = [
-      'abc',
-      'my-tenant',
-      'tenant_123',
-      'my-tenant_123',
-      'CompanyName',
-      'company-name-2024',
-      'tenant_123_abc',
-      'a'.repeat(20) // 最大长度
+  describe('valid UUID v4 examples', () => {
+    const validUuids = [
+      '123e4567-e89b-4d3a-a456-426614174000',
+      '987fcdeb-51a2-4c3d-8e9f-123456789abc',
+      '550e8400-e29b-41d4-a716-446655440000',
+      '6ba7b810-9dad-4d1a-80b4-00c04fd430c8',
+      '6ba7b811-9dad-4d1a-80b4-00c04fd430c8'
     ];
 
-    validFormats.forEach(format => {
-      it(`should accept valid format: ${format}`, () => {
+    validUuids.forEach(uuid => {
+      it(`should accept valid UUID v4: ${uuid}`, () => {
         // Act & Assert
-        expect(() => TenantId.create(format)).not.toThrow();
-        const tenantId = TenantId.create(format);
-        expect(tenantId.value).toBe(format);
+        expect(() => TenantId.create(uuid)).not.toThrow();
+        const tenantId = TenantId.create(uuid);
+        expect(tenantId.value).toBe(uuid);
       });
     });
   });
 
-  describe('invalid format examples', () => {
-    const invalidFormats = [
-      'ab', // 太短
-      '123-tenant', // 数字开头
-      'my@tenant', // 无效字符
-      'my tenant', // 空格
-      'my.tenant', // 点号
-      'my/tenant', // 斜杠
-      'my+tenant', // 加号
-      'a'.repeat(21), // 太长
+  describe('invalid UUID format examples', () => {
+    const invalidUuids = [
+      '123e4567-e89b-12d3-a456-426614174000', // 无效的UUID版本（不是v4）
+      '123e4567-e89b-4d3a-a456-42661417400', // 太短
+      '123e4567-e89b-4d3a-a456-4266141740000', // 太长
+      '123e4567-e89b-4d3a-a456-42661417400g', // 无效字符
+      '123e4567-e89b-4d3a-a456-42661417400-', // 无效字符
+      '123e4567-e89b-4d3a-a456-42661417400 ', // 空格
+      '123e4567-e89b-4d3a-a456-42661417400.', // 点号
       '', // 空字符串
-      'a', // 单字符
-      'ab' // 两字符
+      'not-a-uuid', // 完全不是UUID
+      '123e4567-e89b-4d3a-a456' // 不完整的UUID
     ];
 
-    invalidFormats.forEach(format => {
-      it(`should reject invalid format: "${format}"`, () => {
+    invalidUuids.forEach(uuid => {
+      it(`should reject invalid UUID: "${uuid}"`, () => {
         // Act & Assert
-        expect(() => TenantId.create(format)).toThrow(InvalidTenantIdException);
+        expect(() => TenantId.create(uuid)).toThrow();
       });
     });
   });

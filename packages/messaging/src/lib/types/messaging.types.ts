@@ -571,6 +571,8 @@ export enum HealthStatus {
  * 健康检查接口
  */
 export interface HealthCheck {
+  /** 检查名称 */
+  name: string;
   /** 健康状态 */
   status: HealthStatus;
   /** 检查时间 */
@@ -1048,3 +1050,4 @@ export interface DeadLetterStats {
   /** 死信消息平均处理时间（毫秒） */
   averageProcessingTime: number;
 }
+

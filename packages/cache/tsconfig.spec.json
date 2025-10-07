@@ -8,8 +8,14 @@
   },
   "include": [
     "jest.config.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../multi-tenancy/tsconfig.lib.json"
+    },
+    {
+      "path": "../logger/tsconfig.lib.json"
+    }
   ]
 }

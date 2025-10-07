@@ -9,7 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerModule } from './logger.module';
 import { PinoLogger } from './pino-logger';
 import { PinoLoggerMiddleware } from './fastify-middleware';
-import { LOGGER_MODULE_PARAMS, LOGGER_PROVIDER } from './constants';
+import { DI_TOKENS } from './constants';
 
 describe('LoggerModule', () => {
   let module: TestingModule;
@@ -28,7 +28,7 @@ describe('LoggerModule', () => {
       expect(module).toBeDefined();
     });
 
-    it('应该提供 LOGGER_PROVIDER 实例', async () => {
+    it('应该提供 DI_TOKENS.LOGGER_PROVIDER 实例', async () => {
       const config = {
         level: 'debug' as const,
         destination: { type: 'console' as const }
@@ -38,7 +38,7 @@ describe('LoggerModule', () => {
         imports: [LoggerModule.forRoot({ config })],
       }).compile();
 
-      const logger = module.get<PinoLogger>(LOGGER_PROVIDER);
+      const logger = module.get<PinoLogger>(DI_TOKENS.LOGGER_PROVIDER);
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });
@@ -57,7 +57,7 @@ describe('LoggerModule', () => {
         imports: [LoggerModule.forRoot(params)],
       }).compile();
 
-      const moduleParams = module.get(LOGGER_MODULE_PARAMS);
+      const moduleParams = module.get(DI_TOKENS.MODULE_PARAMS);
       expect(moduleParams).toEqual(params);
     });
 
@@ -146,7 +146,7 @@ describe('LoggerModule', () => {
       expect(useFactory).toHaveBeenCalledWith(mockService);
     });
 
-    it('应该提供 LOGGER_PROVIDER 实例', async () => {
+    it('应该提供 DI_TOKENS.LOGGER_PROVIDER 实例', async () => {
       const useFactory = jest.fn().mockReturnValue({
         config: {
           level: 'debug' as const,
@@ -163,7 +163,7 @@ describe('LoggerModule', () => {
         ],
       }).compile();
 
-      const logger = module.get<PinoLogger>(LOGGER_PROVIDER);
+      const logger = module.get<PinoLogger>(DI_TOKENS.LOGGER_PROVIDER);
       expect(logger).toBeDefined();
       expect(logger).toBeInstanceOf(PinoLogger);
     });

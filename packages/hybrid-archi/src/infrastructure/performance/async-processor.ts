@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
 
@@ -131,7 +131,7 @@ export class AsyncProcessor {
   constructor(
     private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
-    private readonly config: AsyncProcessorConfig
+    @Inject('AsyncProcessorConfig') private readonly config: AsyncProcessorConfig
   ) {
     this.startProcessor();
   }

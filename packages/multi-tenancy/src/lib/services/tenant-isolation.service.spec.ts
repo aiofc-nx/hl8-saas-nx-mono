@@ -13,9 +13,9 @@ import { TenantIsolationService } from './tenant-isolation.service';
 import { TenantContextService } from './tenant-context.service';
 import {
   IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
   ITenantIsolationConfig,
 } from '../types/tenant-core.types';
+import { DI_TOKENS } from '../constants';
 import { ITenantIsolationStrategy } from '../strategies/isolation-strategy.interface';
 import { TenantConfigInvalidException } from '../exceptions';
 
@@ -184,7 +184,7 @@ describe('TenantIsolationService', () => {
           useValue: mockLogger,
         },
         {
-          provide: MULTI_TENANCY_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: mockModuleOptions,
         },
       ],
@@ -306,7 +306,7 @@ describe('TenantIsolationService', () => {
             useValue: mockLogger,
           },
           {
-            provide: MULTI_TENANCY_MODULE_OPTIONS,
+            provide: DI_TOKENS.MODULE_OPTIONS,
             useValue: disabledConfig,
           },
         ],
@@ -741,7 +741,7 @@ describe('TenantIsolationService', () => {
             useValue: mockLogger,
           },
           {
-            provide: MULTI_TENANCY_MODULE_OPTIONS,
+            provide: DI_TOKENS.MODULE_OPTIONS,
             useValue: disabledConfig,
           },
         ],
@@ -822,7 +822,7 @@ describe('TenantIsolationService', () => {
               useValue: mockLogger,
             },
             {
-              provide: MULTI_TENANCY_MODULE_OPTIONS,
+              provide: DI_TOKENS.MODULE_OPTIONS,
               useValue: invalidConfig,
             },
           ],

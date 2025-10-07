@@ -12,5 +12,22 @@
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
     "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../cache/tsconfig.lib.json"
+    },
+    {
+      "path": "../common/tsconfig.lib.json"
+    },
+    {
+      "path": "../config/tsconfig.lib.json"
+    },
+    {
+      "path": "../logger/tsconfig.lib.json"
+    },
+    {
+      "path": "../multi-tenancy/tsconfig.lib.json"
+    }
   ]
 }

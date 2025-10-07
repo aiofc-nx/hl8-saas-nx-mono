@@ -25,7 +25,9 @@ describe('MessagingConfig Integration', () => {
             cache: true,
           }),
           // 消息队列模块 - 使用配置
-          MessagingModule.forRootWithConfig(MessagingConfig),
+          MessagingModule.forRoot({
+            adapter: MessagingAdapterType.MEMORY,
+          }),
         ],
       }).compile();
 
@@ -106,7 +108,9 @@ describe('MessagingConfig Integration', () => {
             cache: true,
           }),
           // 消息队列模块
-          MessagingModule.forRootWithConfig(ConfigService),
+          MessagingModule.forRoot({
+            adapter: MessagingAdapterType.MEMORY,
+          }),
         ],
       }).compile();
 
@@ -169,8 +173,7 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
-      const config = testConfigService.get<MessagingConfig>('messaging');
+      const config = testModule.get<MessagingConfig>(MessagingConfig);
 
       expect(config?.adapter).toBe('redis');
       expect(config?.keyPrefix).toBe('env-test:');
@@ -241,11 +244,10 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
+      const config1 = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 多次获取配置应该返回相同的实例（缓存效果）
-      const config1 = testConfigService.get<MessagingConfig>('messaging');
-      const config2 = testConfigService.get<MessagingConfig>('messaging');
+      const config2 = testModule.get<MessagingConfig>(MessagingConfig);
 
       expect(config1).toBe(config2); // 应该是同一个对象引用
 
@@ -264,11 +266,11 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
+      const testConfigService = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 多次获取配置可能返回不同的实例（无缓存）
-      const config1 = testConfigService.get<MessagingConfig>('messaging');
-      const config2 = testConfigService.get<MessagingConfig>('messaging');
+      const config1 = testModule.get<MessagingConfig>(MessagingConfig);
+      const config2 = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 即使禁用缓存，ConfigService通常也会缓存配置
       // 这里主要测试缓存配置不会导致错误
@@ -294,8 +296,7 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
-      const config = testConfigService.get<MessagingConfig>('messaging');
+      const config = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 开发环境通常使用内存适配器
       expect(config).toBeDefined();
@@ -318,8 +319,7 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
-      const config = testConfigService.get<MessagingConfig>('messaging');
+      const config = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 生产环境通常使用RabbitMQ适配器
       expect(config).toBeDefined();
@@ -342,8 +342,7 @@ describe('MessagingConfig Integration', () => {
         ],
       }).compile();
 
-      const testConfigService = testModule.get<ConfigService>(ConfigService);
-      const config = testConfigService.get<MessagingConfig>('messaging');
+      const config = testModule.get<MessagingConfig>(MessagingConfig);
 
       // 测试环境通常使用内存适配器
       expect(config).toBeDefined();

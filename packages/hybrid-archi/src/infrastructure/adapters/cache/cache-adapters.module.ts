@@ -57,13 +57,6 @@ export class CacheAdaptersModule {
    */
   static forRoot(options: CacheAdaptersModuleOptions = {}): DynamicModule {
     const providers: Provider[] = [];
-    const imports: DynamicModule[] = [];
-
-    // 添加基础模块
-    imports.push(
-      CacheModule.forRoot({ redis: {} as any }),
-      LoggerModule.forRoot({})
-    );
 
     // 添加管理组件
     providers.push(CacheFactory);
@@ -76,7 +69,10 @@ export class CacheAdaptersModule {
 
     return {
       module: CacheAdaptersModule,
-      imports,
+      imports: [
+        CacheModule.forRoot({ redis: {} as any }),
+        LoggerModule.forRoot({})
+      ],
       providers,
       exports: providers,
     };
@@ -90,13 +86,6 @@ export class CacheAdaptersModule {
    */
   static forRootAsync(options: CacheAdaptersModuleOptions = {}): DynamicModule {
     const providers: Provider[] = [];
-    const imports: DynamicModule[] = [];
-
-    // 添加基础模块
-    imports.push(
-      CacheModule.forRoot({ redis: {} as any }),
-      LoggerModule.forRoot({})
-    );
 
     // 添加管理组件
     providers.push(CacheFactory);
@@ -109,7 +98,10 @@ export class CacheAdaptersModule {
 
     return {
       module: CacheAdaptersModule,
-      imports,
+      imports: [
+        CacheModule.forRoot({ redis: {} as any }),
+        LoggerModule.forRoot({})
+      ],
       providers,
       exports: providers,
     };

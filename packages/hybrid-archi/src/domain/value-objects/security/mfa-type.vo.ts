@@ -341,7 +341,7 @@ export class MfaTypeUtils {
     const requirements = this.getConfigRequirements(mfaType);
     
     for (const requirement of requirements) {
-      if (!config[requirement]) {
+      if (!(config as Record<string, unknown>)[requirement]) {
         return false;
       }
     }

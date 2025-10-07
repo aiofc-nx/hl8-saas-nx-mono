@@ -6,7 +6,7 @@
  * @since 1.0.0
  */
 
-import { TenantId } from '@hl8/hybrid-archi';
+import { EntityId } from '@hl8/hybrid-archi';
 import { Tenant, TENANT_TYPES, TENANT_STATUS } from './src/domain/tenant/entities/tenant.entity';
 import { TenantAggregate } from './src/domain/tenant/aggregates/tenant.aggregate';
 
@@ -15,7 +15,7 @@ console.log('🚀 SAAS-CORE 验证脚本开始...\n');
 try {
   // 测试1: 创建TenantId
   console.log('📝 测试1: 创建TenantId');
-  const tenantId = TenantId.generate();
+  const tenantId = EntityId.generate();
   console.log(`✅ 生成的租户ID: ${tenantId.value}`);
   
   // 测试2: 从字符串创建TenantId
@@ -70,7 +70,7 @@ try {
   // 测试7: 创建TenantAggregate
   console.log('\n📝 测试7: 创建TenantAggregate');
   const tenantAggregate = TenantAggregate.create(
-    TenantId.generate(),
+    EntityId.generate(),
     'aggregate-tenant',
     'Aggregate Tenant',
     TENANT_TYPES.PROFESSIONAL,

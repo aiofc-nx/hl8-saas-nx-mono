@@ -21,16 +21,16 @@
   ],
   "references": [
     {
-      "path": "../../packages/logger"
+      "path": "../../packages/logger/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/fastify-pro"
+      "path": "../../packages/fastify-pro/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/config"
+      "path": "../../packages/config/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/common"
+      "path": "../../packages/common/tsconfig.lib.json"
     }
   ]
 }

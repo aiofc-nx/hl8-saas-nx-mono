@@ -121,11 +121,26 @@ describe('CoreCQRSBus', () => {
   let eventBus: CoreEventBus;
 
   beforeEach(async () => {
-    const mockUseCaseRegistry = {} as Record<string, unknown>;
+    const mockUseCaseRegistry = {
+      register: jest.fn(),
+      get: jest.fn(),
+      has: jest.fn(),
+      getRegisteredUseCases: jest.fn().mockReturnValue([]),
+      getByType: jest.fn().mockReturnValue(new Map()),
+    };
     const mockProjectorManager = {
+      projectorsByEventType: new Map(),
+      projectorsByName: new Map(),
+      register: jest.fn(),
       projectEvent: jest.fn().mockResolvedValue(undefined),
       projectEvents: jest.fn().mockResolvedValue(undefined),
-    } as Record<string, unknown>;
+      rebuildAllReadModels: jest.fn().mockResolvedValue(undefined),
+      getProjectors: jest.fn().mockReturnValue([]),
+      getAllProjectors: jest.fn().mockReturnValue([]),
+      hasProjector: jest.fn().mockReturnValue(false),
+      removeProjector: jest.fn(),
+      clear: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

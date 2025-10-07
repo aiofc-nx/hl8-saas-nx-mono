@@ -88,6 +88,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'messaging-connection',
         status: isConnected ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY,
         checkedAt: new Date(),
         duration,
@@ -100,6 +101,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'messaging-connection',
         status: HealthStatus.UNHEALTHY,
         checkedAt: new Date(),
         duration,
@@ -131,6 +133,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'tenant-context',
         status: HealthStatus.HEALTHY,
         checkedAt: new Date(),
         duration,
@@ -145,6 +148,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'tenant-context',
         status: HealthStatus.UNHEALTHY,
         checkedAt: new Date(),
         duration,
@@ -184,6 +188,7 @@ export class HealthCheckService {
       }
 
       return {
+        name: 'messaging-service',
         status,
         checkedAt: new Date(),
         duration,
@@ -199,6 +204,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'messaging-service',
         status: HealthStatus.UNHEALTHY,
         checkedAt: new Date(),
         duration,
@@ -229,6 +235,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'messaging-monitor',
         status: healthStatus,
         checkedAt: new Date(),
         duration,
@@ -241,6 +248,7 @@ export class HealthCheckService {
       const duration = Date.now() - startTime;
 
       return {
+        name: 'messaging-monitor',
         status: HealthStatus.UNHEALTHY,
         checkedAt: new Date(),
         duration,

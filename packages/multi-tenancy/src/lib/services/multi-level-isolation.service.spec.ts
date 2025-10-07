@@ -13,10 +13,10 @@ import { MultiLevelIsolationService } from './multi-level-isolation.service';
 import { TenantContextService } from './tenant-context.service';
 import {
   IMultiTenancyModuleOptions,
-  MULTI_TENANCY_MODULE_OPTIONS,
   IMultiLevelContext,
   IMultiLevelIsolationConfig,
 } from '../types/tenant-core.types';
+import { DI_TOKENS } from '../constants';
 import { TenantConfigInvalidException } from '../exceptions';
 
 /**
@@ -186,7 +186,7 @@ describe('MultiLevelIsolationService', () => {
           useValue: mockLogger,
         },
         {
-          provide: MULTI_TENANCY_MODULE_OPTIONS,
+          provide: DI_TOKENS.MODULE_OPTIONS,
           useValue: mockModuleOptions,
         },
       ],

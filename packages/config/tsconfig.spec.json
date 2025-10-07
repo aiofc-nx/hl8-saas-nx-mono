@@ -4,12 +4,18 @@
     "outDir": "../../dist/out-tsc",
     "module": "commonjs",
     "moduleResolution": "node10",
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "declaration": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strict": false
   },
   "include": [
     "jest.config.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/**/*.ts"
   ]
 }

@@ -54,38 +54,36 @@ export class LoggingMiddleware implements NestMiddleware {
       timestamp: new Date().toISOString(),
     });
 
-    // 监听响应完成
-    (res as { addHook: (event: string, handler: (request: unknown, reply: { statusCode: number }, payload: unknown, done: unknown) => void) => void }).addHook(
-      'onSend',
-      (request: unknown, reply: { statusCode: number }, payload: unknown, done: unknown) => {
-        const endTime = Date.now();
-        const duration = endTime - startTime;
-        const statusCode = reply.statusCode;
+    // 监听响应完成 - 重写 send 方法
+    const originalSend = res.send;
+    res.send = function(payload: any) {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      const statusCode = res.statusCode;
 
-        // 记录请求完成
-        console.log('HTTP请求完成', {
+      // 记录请求完成
+      console.log('HTTP请求完成', {
+        method,
+        url,
+        ip,
+        statusCode,
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+      });
+
+      // 记录慢请求
+      if (duration > 1000) {
+        console.warn('慢请求检测', {
           method,
           url,
           ip,
-          statusCode,
           duration: `${duration}ms`,
-          timestamp: new Date().toISOString(),
+          threshold: '1000ms',
         });
-
-        // 记录慢请求
-        if (duration > 1000) {
-          console.warn('慢请求检测', {
-            method,
-            url,
-            ip,
-            duration: `${duration}ms`,
-            threshold: '1000ms',
-          });
-        }
-
-        (done as () => void)();
       }
-    );
+
+      return originalSend.call(this, payload);
+    };
 
     next();
   }

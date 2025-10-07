@@ -115,14 +115,20 @@ export interface PasswordValidationResult {
  * @description 密码安全策略的领域对象
  * 包含密码验证逻辑和策略管理功能
  */
-export class PasswordPolicy extends BaseValueObject<PasswordPolicyProps> {
+export class PasswordPolicy extends BaseValueObject {
+  /**
+   * 密码策略属性
+   */
+  private readonly props: PasswordPolicyProps;
+
   /**
    * 构造函数
    *
    * @param props - 密码策略属性
    */
   constructor(props: PasswordPolicyProps) {
-    super(props);
+    super();
+    this.props = props;
     this.validateProps(props);
   }
 
@@ -545,7 +551,7 @@ export class PasswordPolicy extends BaseValueObject<PasswordPolicyProps> {
    *
    * @since 1.0.0
    */
-  public equals(other: PasswordPolicy): boolean {
+  public override equals(other: PasswordPolicy): boolean {
     if (!(other instanceof PasswordPolicy)) {
       return false;
     }

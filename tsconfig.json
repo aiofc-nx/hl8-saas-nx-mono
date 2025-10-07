@@ -22,10 +22,31 @@
       "path": "./apps/api"
     },
     {
-      "path": "./packages/system/user-management"
+      "path": "./packages/hybrid-archi"
     },
     {
-      "path": "./packages/hybrid-archi"
+      "path": "./packages/utils"
+    },
+    {
+      "path": "./packages/logger"
+    },
+    {
+      "path": "./packages/config"
+    },
+    {
+      "path": "./packages/database"
+    },
+    {
+      "path": "./packages/fastify-pro"
+    },
+    {
+      "path": "./packages/saas-core"
+    },
+    {
+      "path": "./packages/cache"
+    },
+    {
+      "path": "./packages/common"
     }
   ]
 }

@@ -10,6 +10,15 @@
     "jest.config.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../logger/tsconfig.lib.json"
+    },
+    {
+      "path": "../common/tsconfig.lib.json"
+    }
   ]
 }

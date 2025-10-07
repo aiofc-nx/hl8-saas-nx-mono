@@ -759,21 +759,28 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    if (tenantId.length < 3 || tenantId.length > 64) {
-      throw new TenantContextInvalidException(
-        'Invalid tenant ID length',
-        'The tenant ID length must be between 3 and 64 characters',
-        { tenantId, length: tenantId.length, minLength: 3, maxLength: 64 }
-      );
-    }
-
-    if (!/^[a-zA-Z0-9-_]+$/.test(tenantId)) {
+    // 只支持UUID v4格式
+    if (!this.isValidUuidV4(tenantId)) {
       throw new TenantContextInvalidException(
         'Invalid tenant ID format',
-        'The tenant ID can only contain letters, numbers, hyphens, and underscores',
-        { tenantId, pattern: '^[a-zA-Z0-9-_]+$' }
+        'The tenant ID must be a valid UUID v4 format',
+        { 
+          tenantId, 
+          expectedPattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        }
       );
     }
+  }
+
+  /**
+   * 验证UUID v4格式
+   * 
+   * @param value 要验证的字符串
+   * @returns true如果是有效的UUID v4格式
+   */
+  private isValidUuidV4(value: string): boolean {
+    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidV4Regex.test(value);
   }
 
   /**

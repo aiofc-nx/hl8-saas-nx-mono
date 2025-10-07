@@ -83,6 +83,7 @@ export {
 
 // 通用值对象导出
 export * from './domain/value-objects/identities';
+export * from './domain/value-objects/ids';
 export * from './domain/value-objects/statuses';
 export * from './domain/value-objects/types';
 

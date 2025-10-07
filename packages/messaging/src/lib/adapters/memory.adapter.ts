@@ -277,12 +277,16 @@ export class MemoryAdapter extends BaseAdapter {
    * @param options 队列选项
    * @throws {Error} 创建队列失败时抛出错误
    */
-  async createQueue(queue: string, _options?: QueueOptions): Promise<void> {
+  async createQueue(queue: string, options?: QueueOptions): Promise<void> {
     this.validateConnection();
 
     try {
       if (!this.queues.has(queue)) {
         this.queues.set(queue, []);
+      }
+      // 注意：内存适配器暂不支持队列选项配置
+      if (options) {
+        console.debug('Queue options not supported in memory adapter:', options);
       }
     } catch (error) {
       throw new Error(

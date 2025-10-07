@@ -11,7 +11,6 @@ describe('EventService', () => {
   let service: EventService;
   let messagingService: jest.Mocked<MessagingService>;
   let tenantContextService: jest.Mocked<TenantContextService>;
-  let tenantIsolationService: jest.Mocked<TenantIsolationService>;
   let mockLogger: jest.Mocked<PinoLogger>;
 
   beforeEach(async () => {
@@ -60,14 +59,25 @@ describe('EventService', () => {
     };
 
     // 创建模拟的日志服务
-    const mockLogger = {
+    mockLogger = {
       setContext: jest.fn(),
       info: jest.fn(),
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
       trace: jest.fn(),
-    };
+      log: jest.fn(),
+      verbose: jest.fn(),
+      fatal: jest.fn(),
+      setLevel: jest.fn(),
+      getLevel: jest.fn(),
+      isLevelEnabled: jest.fn(),
+      child: jest.fn(),
+      bindings: jest.fn(),
+      flush: jest.fn(),
+      level: 'info',
+      silent: jest.fn(),
+    } as unknown as jest.Mocked<PinoLogger>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,7 +104,6 @@ describe('EventService', () => {
     service = module.get<EventService>(EventService);
     messagingService = module.get(MessagingService);
     tenantContextService = module.get(TenantContextService);
-    tenantIsolationService = module.get(TenantIsolationService);
     mockLogger = module.get(PinoLogger);
   });
 

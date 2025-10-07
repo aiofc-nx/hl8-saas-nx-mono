@@ -44,8 +44,8 @@ export class UserId {
    * @since 1.0.0
    */
   constructor(value: string) {
+    this.validate(value);
     this._entityId = EntityId.fromString(value);
-    this.validate();
   }
 
   /**
@@ -82,9 +82,9 @@ export class UserId {
    * @throws {InvalidUserIdException} 当ID格式不符合要求时
    * @since 1.0.0
    */
-  private validate(): void {
-    if (!this.isValidUserId(this.value)) {
-      throw new InvalidUserIdException(this.value);
+  private validate(value: string): void {
+    if (!this.isValidUserId(value)) {
+      throw new InvalidUserIdException(value);
     }
   }
 

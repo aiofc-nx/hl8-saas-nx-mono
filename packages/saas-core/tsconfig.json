@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "module": "commonjs",
+    "composite": true,
+    "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "importHelpers": true,
@@ -14,10 +16,13 @@
   "include": [],
   "references": [
     {
-      "path": "../multi-tenancy"
+      "path": "../fastify-pro"
     },
     {
       "path": "../hybrid-archi"
+    },
+    {
+      "path": "../multi-tenancy"
     },
     {
       "path": "./tsconfig.lib.json"

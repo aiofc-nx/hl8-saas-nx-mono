@@ -300,7 +300,22 @@ export interface ApplicationPluginConfig {
   /** 数据库配置 - 数据持久化相关配置 */
   database?: {
     /** MikroORM 配置 */
-    mikroOrm?: unknown;
+    mikroOrm?: {
+      /** 数据库类型 */
+      type?: string;
+      /** 数据库主机 */
+      host?: string;
+      /** 数据库端口 */
+      port?: number;
+      /** 数据库名称 */
+      database?: string;
+      /** 用户名 */
+      username?: string;
+      /** 密码 */
+      password?: string;
+      /** 其他配置选项 */
+      [key: string]: unknown;
+    };
   };
 
   /** 认证配置 - 身份验证和授权相关配置 */

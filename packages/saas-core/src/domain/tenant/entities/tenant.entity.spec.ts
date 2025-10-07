@@ -7,10 +7,11 @@
  */
 
 import { Tenant } from './tenant.entity';
-import { TenantId } from '@hl8/hybrid-archi';
+import { EntityId } from '@hl8/hybrid-archi';
 import { TENANT_TYPES, TENANT_STATUS } from '../../../constants/business.constants';
 import { TenantConfig } from '../value-objects/tenant-config.vo';
 import { ResourceLimits } from '../value-objects/resource-limits.vo';
+import { TenantCode } from '../value-objects/tenant-code.vo';
 import { 
   TenantNotPendingException, 
   TenantNotActiveException, 
@@ -19,12 +20,12 @@ import {
 
 describe('Tenant Entity', () => {
   let tenant: Tenant;
-  let tenantId: TenantId;
+  let tenantId: EntityId;
   let config: TenantConfig;
   let resourceLimits: ResourceLimits;
 
   beforeEach(() => {
-    tenantId = TenantId.generate();
+    tenantId = EntityId.generate();
     config = TenantConfig.create({
       features: ['user_management', 'organization'],
       theme: 'default',
@@ -40,7 +41,7 @@ describe('Tenant Entity', () => {
 
     tenant = new Tenant(
       tenantId,
-      'test-tenant',
+      TenantCode.generate(),
       'Test Tenant',
       TENANT_TYPES.BASIC,
       TENANT_STATUS.PENDING,
@@ -110,7 +111,7 @@ describe('Tenant Entity', () => {
       const enterpriseConfig = { ...config, features: ['all_features'] };
       const enterpriseTenant = new Tenant(
         tenantId,
-        'enterprise-tenant',
+        TenantCode.generate(),
         'Enterprise Tenant',
         TENANT_TYPES.ENTERPRISE,
         TENANT_STATUS.ACTIVE,
@@ -140,7 +141,7 @@ describe('Tenant Entity', () => {
       const unlimitedLimits = { ...resourceLimits, maxUsers: -1 };
       const unlimitedTenant = new Tenant(
         tenantId,
-        'unlimited-tenant',
+        TenantCode.generate(),
         'Unlimited Tenant',
         TENANT_TYPES.ENTERPRISE,
         TENANT_STATUS.ACTIVE,

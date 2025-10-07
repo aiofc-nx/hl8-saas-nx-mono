@@ -1,32 +1,30 @@
 /**
  * 租户ID值对象
  * 
- * @description 租户的唯一标识符，封装了租户ID的创建、验证和比较逻辑
- * 租户ID格式：3-20个字符，字母开头，只能包含字母、数字、连字符、下划线
+ * @description 租户的唯一标识符，使用UUID v4格式确保全局唯一性
+ * 租户代码作为租户实体的独立属性，用于人类可读的标识
  * 
  * ## 业务规则
  * 
  * ### 格式规则
- * - 长度：3-20个字符
- * - 开头：必须是字母（a-z, A-Z）
- * - 字符集：字母、数字、连字符(-)、下划线(_)
- * - 唯一性：全局唯一
+ * - 租户ID：UUID v4格式，全局唯一
+ * - 唯一性：租户ID在系统中必须唯一
  * 
  * ### 验证规则
+ * - 租户ID必须符合UUID v4格式
  * - 创建时自动验证格式
  * - 格式不符合要求时抛出异常
- * - 支持从字符串创建和生成新ID
  * 
  * @example
  * ```typescript
  * // 生成新的租户ID
  * const tenantId = TenantId.generate();
  * 
- * // 从字符串创建租户ID
- * const tenantId = TenantId.create('my-tenant-123');
+ * // 从UUID字符串创建租户ID
+ * const tenantId = TenantId.create('123e4567-e89b-4d3a-a456-426614174000');
  * 
- * // 验证租户ID
- * const isValid = tenantId.value; // 返回验证后的ID字符串
+ * // 获取租户ID值
+ * const idValue = tenantId.value; // UUID字符串
  * ```
  * 
  * @since 1.0.0
@@ -40,13 +38,16 @@ export class TenantId {
   /**
    * 构造函数
    * 
-   * @param value 租户ID字符串值
+   * @param value 租户ID字符串值（UUID v4格式）
    * @throws {InvalidTenantIdException} 当ID格式不符合要求时
    * @since 1.0.0
    */
   constructor(value: string) {
-    this._entityId = EntityId.fromString(value);
-    this.validate();
+    try {
+      this._entityId = EntityId.fromString(value);
+    } catch (error) {
+      throw new InvalidTenantIdException(value);
+    }
   }
 
   /**
@@ -75,34 +76,6 @@ export class TenantId {
     return new TenantId(value);
   }
 
-  /**
-   * 验证租户ID格式
-   * 
-   * @description 验证租户ID是否符合格式要求
-   * 
-   * @throws {InvalidTenantIdException} 当ID格式不符合要求时
-   * @since 1.0.0
-   */
-  private validate(): void {
-    if (!this.isValidTenantId(this.value)) {
-      throw new InvalidTenantIdException(this.value);
-    }
-  }
-
-  /**
-   * 检查租户ID格式是否有效
-   * 
-   * @description 使用正则表达式验证租户ID格式
-   * 
-   * @param value 要验证的租户ID字符串
-   * @returns true如果格式有效，否则false
-   * @since 1.0.0
-   */
-  private isValidTenantId(value: string): boolean {
-    // 租户ID格式验证：3-20个字符，字母开头，只能包含字母、数字、连字符、下划线
-    const tenantIdRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,19}$/;
-    return tenantIdRegex.test(value);
-  }
 
   /**
    * 获取租户ID的字符串值
@@ -140,7 +113,7 @@ export class TenantId {
   /**
    * 获取EntityId实例
    * 
-   * @description 获取内部的EntityId实例，用于与hybrid-archi集成
+   * @description 基于租户ID字符串生成EntityId实例，用于与hybrid-archi集成
    * 
    * @returns EntityId实例
    * @since 1.0.0

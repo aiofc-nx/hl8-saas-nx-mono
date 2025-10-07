@@ -22,6 +22,24 @@
       "path": "../messaging"
     },
     {
+      "path": "../logger"
+    },
+    {
+      "path": "../fastify-pro"
+    },
+    {
+      "path": "../database"
+    },
+    {
+      "path": "../config"
+    },
+    {
+      "path": "../common"
+    },
+    {
+      "path": "../cache"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

@@ -8,8 +8,32 @@
   },
   "include": [
     "jest.config.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "../cache/tsconfig.lib.json"
+    },
+    {
+      "path": "../common/tsconfig.lib.json"
+    },
+    {
+      "path": "../config/tsconfig.lib.json"
+    },
+    {
+      "path": "../database/tsconfig.lib.json"
+    },
+    {
+      "path": "../fastify-pro/tsconfig.lib.json"
+    },
+    {
+      "path": "../logger/tsconfig.lib.json"
+    },
+    {
+      "path": "../messaging/tsconfig.lib.json"
+    },
+    {
+      "path": "../multi-tenancy/tsconfig.lib.json"
+    }
   ]
 }

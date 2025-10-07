@@ -38,7 +38,7 @@ describe('EventHandler', () => {
       }
     }
 
-    TestClass = TestService;
+    TestClass = TestService as unknown as new () => TestClassType;
   });
 
   it('should register event handlers', () => {

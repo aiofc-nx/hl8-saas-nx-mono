@@ -19,3 +19,5 @@
 [Swagger2MCP](https://github.com/Gabriel-Pasternak/Swagger2MCP/tree/main)
 
 [nestjs-saas-tenant-boilerplate](https://github.com/Khidir-Karawita/nestjs-saas-tenant-boilerplate/tree/main)
+
+[happyaicoding](https://happyaicoding.com/)

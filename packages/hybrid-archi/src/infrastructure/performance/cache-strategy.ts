@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PinoLogger } from '@hl8/logger';
 import { CacheService } from '@hl8/cache';
 
@@ -114,7 +114,7 @@ export class CacheStrategy {
   constructor(
     private readonly logger: PinoLogger,
     private readonly cacheService: CacheService,
-    private readonly config: CacheStrategyConfig
+    @Inject('CacheStrategyConfig') private readonly config: CacheStrategyConfig
   ) {
     this.initializePartitions();
   }
@@ -287,8 +287,8 @@ export class CacheStrategy {
       this.initializePartitions();
 
       // 清空外部缓存
-      // 清空所有缓存 - 需要实现具体的清空逻辑
-      // await this.cacheService.clear();
+      // 清空所有缓存 - 使用flush方法清空Redis缓存
+      await this.cacheService.flush();
 
       // 重置统计信息
       this.stats.size = 0;

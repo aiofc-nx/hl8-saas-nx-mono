@@ -19,6 +19,18 @@
       "path": "../multi-tenancy"
     },
     {
+      "path": "../logger"
+    },
+    {
+      "path": "../config"
+    },
+    {
+      "path": "../common"
+    },
+    {
+      "path": "../cache"
+    },
+    {
       "path": "./tsconfig.lib.json"
     },
     {

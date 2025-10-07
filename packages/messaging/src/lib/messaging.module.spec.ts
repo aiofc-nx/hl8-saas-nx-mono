@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagingModule } from './messaging.module';
-import {
-  MessagingService,
-  EventService,
-  TaskService,
-  MessagingMonitor,
-  MessagingStatsService,
-  HealthCheckService,
-} from './index';
+import { MessagingService } from './messaging.service';
+import { EventService } from './event.service';
+import { TaskService } from './task.service';
+import { MessagingMonitor } from './monitoring/messaging-monitor.service';
+import { MessagingStatsService } from './monitoring/messaging-stats.service';
+import { HealthCheckService } from './monitoring/health-check.service';
 import {
   MessagingModuleOptions,
   MessagingAdapterType,
@@ -159,10 +157,10 @@ describe('MessagingModule', () => {
 
     it('should create async module with dependencies', () => {
       const options = {
-        useFactory: (configService: Record<string, unknown>) => ({
+        useFactory: (...args: unknown[]) => ({
           adapter: MessagingAdapterType.RABBITMQ,
           rabbitmq: {
-            url: configService.get('RABBITMQ_URL'),
+            url: 'amqp://localhost:5672',
             exchange: 'test-exchange',
             queuePrefix: 'test_',
           },
