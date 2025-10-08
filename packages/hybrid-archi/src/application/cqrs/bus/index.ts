@@ -6,7 +6,7 @@
  */
 
 export * from './cqrs-bus.interface';
-export * from './core-command-bus';
-export * from './core-query-bus';
-export * from './core-event-bus';
-export * from './core-cqrs-bus';
+export * from './command-bus';
+export * from './query-bus';
+export * from './event-bus';
+export * from './cqrs-bus';

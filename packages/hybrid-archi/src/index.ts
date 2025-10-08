@@ -37,9 +37,10 @@ export * from './infrastructure/event-driven/common';
 // 应用层 - 只导出应用层特有的接口
 export {
   // CQRS 相关
-  CoreCommandBus,
-  CoreQueryBus,
-  CoreEventBus,
+  CommandBus,
+  QueryBus,
+  EventBus,
+  CQRSBus,
   // 用例接口
   IUseCase,
   ICommand,

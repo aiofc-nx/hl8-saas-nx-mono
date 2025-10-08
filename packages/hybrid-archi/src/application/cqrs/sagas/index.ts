@@ -11,5 +11,5 @@
 export * from './saga.interface';
 
 // 实现类导出
-export * from './core-saga';
-export * from './core-saga-manager';
+export * from './base-saga';
+export * from './saga-manager';

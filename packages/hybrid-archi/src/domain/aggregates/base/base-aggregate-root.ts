@@ -251,6 +251,40 @@ export abstract class BaseAggregateRoot extends BaseEntity implements IAggregate
   }
 
   /**
+   * 标记事件为已提交
+   *
+   * @description 标记所有未提交的领域事件为已提交状态（实际执行清除）
+   * 这是 clearUncommittedEvents() 的语义化别名方法，
+   * 用于在事件发布到事件总线后调用，表明事件已被处理
+   *
+   * ## 业务规则
+   *
+   * ### 调用时机
+   * - 事件成功保存到事件存储后
+   * - 事件成功发布到事件总线后
+   * - 聚合根状态持久化完成后
+   *
+   * ### 使用场景
+   * - Event Sourcing: 事件存储保存成功后调用
+   * - Event-Driven Architecture: 事件发布成功后调用
+   * - CQRS: 命令处理完成后调用
+   *
+   * @example
+   * ```typescript
+   * // 在命令处理器中使用
+   * const events = aggregate.getUncommittedEvents();
+   * await this.eventStore.saveEvents(aggregateId, events);
+   * await this.eventBus.publishAll(events);
+   * aggregate.markEventsAsCommitted(); // 标记事件为已提交
+   * ```
+   *
+   * @since 1.0.0
+   */
+  public markEventsAsCommitted(): void {
+    this.clearUncommittedEvents();
+  }
+
+  /**
    * 检查是否有未提交的事件
    *
    * @returns 如果有未提交的事件则返回 true，否则返回 false
