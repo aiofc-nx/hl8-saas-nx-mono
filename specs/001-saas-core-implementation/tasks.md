@@ -148,14 +148,14 @@
 
 ### 接口层 - Tenant API
 
-- [ ] T068 [P] [US1] 创建创建租户DTO（packages/saas-core/src/interface/dtos/tenant/create-tenant.dto.ts）
-- [ ] T069 [P] [US1] 创建更新租户DTO（packages/saas-core/src/interface/dtos/tenant/update-tenant.dto.ts）
-- [ ] T070 [P] [US1] 创建租户响应DTO（packages/saas-core/src/interface/dtos/tenant/tenant-response.dto.ts）
-- [ ] T071 [P] [US1] 创建租户列表响应DTO（packages/saas-core/src/interface/dtos/tenant/tenant-list-response.dto.ts）
-- [ ] T072 [US1] 创建租户控制器（packages/saas-core/src/interface/controllers/tenant.controller.ts）
-- [ ] T073 [US1] 创建租户控制器测试（packages/saas-core/src/interface/controllers/tenant.controller.spec.ts）
+- [X] T068 [P] [US1] 创建创建租户DTO（packages/saas-core/src/interface/dtos/tenant/create-tenant.dto.ts）
+- [X] T069 [P] [US1] 创建更新租户DTO（packages/saas-core/src/interface/dtos/tenant/update-tenant.dto.ts）
+- [X] T070 [P] [US1] 创建租户响应DTO（packages/saas-core/src/interface/dtos/tenant/tenant-response.dto.ts）
+- [X] T071 [P] [US1] 创建租户列表响应DTO（packages/saas-core/src/interface/dtos/tenant/tenant-list-response.dto.ts）
+- [X] T072 [US1] 创建租户控制器（packages/saas-core/src/interface/controllers/tenant.controller.ts）
+- [X] T073 [US1] 创建租户控制器测试（packages/saas-core/src/interface/controllers/tenant.controller.spec.ts）
 
-**Checkpoint**: User Story 1 完成 - 租户管理功能可独立测试和部署（MVP可交付）
+**Checkpoint**: ✅ User Story 1 完成 - 租户管理功能可独立测试和部署（MVP可交付）
 
 ---
 
