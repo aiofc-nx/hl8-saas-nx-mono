@@ -184,11 +184,11 @@
 
 ### 应用层 - User 用例
 
-- [ ] T082 [P] [US2] 创建注册用户用例（packages/saas-core/src/application/use-cases/user/register-user.use-case.ts）
-- [ ] T083 [P] [US2] 创建激活用户用例（packages/saas-core/src/application/use-cases/user/activate-user.use-case.ts）
-- [ ] T084 [P] [US2] 创建用户登录用例（packages/saas-core/src/application/use-cases/user/login-user.use-case.ts）
-- [ ] T085 [P] [US2] 创建修改密码用例（packages/saas-core/src/application/use-cases/user/change-password.use-case.ts）
-- [ ] T086 [P] [US2] 创建更新用户信息用例（packages/saas-core/src/application/use-cases/user/update-profile.use-case.ts）
+- [X] T082 [P] [US2] 创建注册用户用例（packages/saas-core/src/application/use-cases/user/register-user.use-case.ts）
+- [X] T083 [P] [US2] 创建激活用户用例（packages/saas-core/src/application/use-cases/user/activate-user.use-case.ts）
+- [X] T084 [P] [US2] 创建用户登录用例（packages/saas-core/src/application/use-cases/user/login-user.use-case.ts）
+- [X] T085 [P] [US2] 创建修改密码用例（packages/saas-core/src/application/use-cases/user/change-password.use-case.ts）
+- [X] T086 [P] [US2] 创建更新用户信息用例（packages/saas-core/src/application/use-cases/user/update-profile.use-case.ts）
 
 ### CQRS - User 命令和查询
 
