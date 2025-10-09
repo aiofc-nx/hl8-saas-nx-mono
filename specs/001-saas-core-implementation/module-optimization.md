@@ -52,6 +52,7 @@
 ### 为什么要用内部配置模块？
 
 1. **💯 完全类型安全**
+
 ```typescript
 // ✅ 定义配置类
 export class DatabaseConfig {
@@ -78,6 +79,7 @@ export class MyService {
 ```
 
 2. **✅ 配置验证**
+
 ```typescript
 // 使用 class-validator 进行验证
 export class RedisConfig {
@@ -97,6 +99,7 @@ export class RedisConfig {
 ```
 
 3. **🔄 变量扩展**
+
 ```typescript
 // .env 文件
 DATABASE__HOST=${DB_HOST:-localhost}
@@ -107,6 +110,7 @@ REDIS__HOST=${REDIS_HOST:-${DATABASE__HOST}}  // ✅ 嵌套引用
 ```
 
 4. **📁 多格式支持**
+
 ```typescript
 TypedConfigModule.forRoot({
   schema: SaasCoreConfig,
@@ -119,6 +123,7 @@ TypedConfigModule.forRoot({
 ```
 
 5. **🔄 嵌套配置**
+
 ```typescript
 // 支持任意深度的嵌套
 DATABASE__CONNECTION__POOL__MAX=10
