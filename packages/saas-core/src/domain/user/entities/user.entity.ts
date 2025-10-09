@@ -191,11 +191,7 @@ export class User extends BaseEntity {
     this._status = UserStatus.DISABLED;
     this.updateTimestamp();
     
-    this.logger.warn({
-      message: '用户已禁用',
-      userId: this.id.toString(),
-      reason,
-    });
+    this.logger.warn(`用户已禁用 - userId: ${this.id.toString()}, reason: ${reason}`);
   }
 
   /**

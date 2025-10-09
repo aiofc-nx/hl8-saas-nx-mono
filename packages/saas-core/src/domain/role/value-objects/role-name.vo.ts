@@ -41,15 +41,15 @@ export class RoleName extends BaseValueObject {
     }
   }
 
-  public toString(): string {
+  public override toString(): string {
     return this.value;
   }
 
-  public toJSON(): string {
-    return this.value;
+  public override toJSON(): Record<string, unknown> {
+    return { value: this.value };
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof RoleName)) {
       return false;
     }

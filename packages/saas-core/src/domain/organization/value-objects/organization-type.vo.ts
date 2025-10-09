@@ -196,7 +196,7 @@ export class OrganizationType extends BaseValueObject {
    *
    * @returns {string}
    */
-  public toString(): string {
+  public override toString(): string {
     return this.value;
   }
 
@@ -205,11 +205,11 @@ export class OrganizationType extends BaseValueObject {
    *
    * @returns {OrganizationTypeValue}
    */
-  public toJSON(): OrganizationTypeValue {
-    return this.value;
+  public override toJSON(): Record<string, unknown> {
+    return { value: this.value };
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof OrganizationType)) {
       return false;
     }

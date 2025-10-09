@@ -278,12 +278,7 @@ export class Tenant extends BaseEntity {
     this.updateTimestamp();
     
     // 记录暂停原因到日志
-    this.logger.warn({
-      message: '租户已暂停',
-      tenantId: this.id.toString(),
-      reason,
-      updatedBy,
-    });
+    this.logger.warn(`租户已暂停 - tenantId: ${this.id.toString()}, reason: ${reason}, updatedBy: ${updatedBy}`);
   }
 
   /**
@@ -310,8 +305,8 @@ export class Tenant extends BaseEntity {
    * @param {string} [updatedBy] - 更新人ID
    */
   public expire(updatedBy?: string): void {
-    this.validateStatusTransition(TenantStatus.EXPIRED);
-    this._status = TenantStatus.EXPIRED;
+    this.validateStatusTransition(TenantStatus.DISABLED);
+    this._status = TenantStatus.DISABLED;
     this.updateTimestamp();
   }
 
@@ -325,7 +320,7 @@ export class Tenant extends BaseEntity {
    * @private
    * @throws {Error} 当数据无效时抛出错误
    */
-  private validate(): void {
+  protected override validate(): void {
     this.validateName(this._name);
   }
 
@@ -398,7 +393,7 @@ export class Tenant extends BaseEntity {
    * @returns {boolean}
    */
   public isExpired(): boolean {
-    return this._status === TenantStatus.EXPIRED;
+    return this._status === TenantStatus.DISABLED;
   }
 
   /**
