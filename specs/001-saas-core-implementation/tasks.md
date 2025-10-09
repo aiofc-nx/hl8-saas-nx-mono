@@ -234,25 +234,25 @@
 
 ### 领域层 - Organization 子领域
 
-- [ ] T105 [P] [US3] 创建 Organization 实体（packages/saas-core/src/domain/organization/entities/organization.entity.ts）
-- [ ] T106 [P] [US3] 创建 Organization 实体测试（packages/saas-core/src/domain/organization/entities/organization.entity.spec.ts）
-- [ ] T107 [P] [US3] 创建 OrganizationMember 实体（packages/saas-core/src/domain/organization/entities/organization-member.entity.ts）
-- [ ] T108 [US3] 创建 OrganizationAggregate 聚合根（packages/saas-core/src/domain/organization/aggregates/organization.aggregate.ts）
-- [ ] T109 [US3] 创建 OrganizationAggregate 测试（packages/saas-core/src/domain/organization/aggregates/organization.aggregate.spec.ts）
-- [ ] T110 [P] [US3] 创建组织领域事件（packages/saas-core/src/domain/organization/events/）
-- [ ] T111 [P] [US3] 创建组织仓储接口（packages/saas-core/src/domain/organization/repositories/organization-aggregate.repository.interface.ts）
+- [X] T105 [P] [US3] 创建 Organization 实体（packages/saas-core/src/domain/organization/entities/organization.entity.ts）
+- [X] T106 [P] [US3] 创建 Organization 实体测试（packages/saas-core/src/domain/organization/entities/organization.entity.spec.ts）
+- [X] T107 [P] [US3] 创建 OrganizationMember 实体（packages/saas-core/src/domain/organization/entities/organization-member.entity.ts）
+- [X] T108 [US3] 创建 OrganizationAggregate 聚合根（packages/saas-core/src/domain/organization/aggregates/organization.aggregate.ts）
+- [X] T109 [US3] 创建 OrganizationAggregate 测试（packages/saas-core/src/domain/organization/aggregates/organization.aggregate.spec.ts）
+- [X] T110 [P] [US3] 创建组织领域事件（packages/saas-core/src/domain/organization/events/）
+- [X] T111 [P] [US3] 创建组织仓储接口（packages/saas-core/src/domain/organization/repositories/organization-aggregate.repository.interface.ts）
 
 ### 领域层 - Department 子领域
 
-- [ ] T112 [P] [US3] 创建 Department 实体（packages/saas-core/src/domain/department/entities/department.entity.ts）
-- [ ] T113 [P] [US3] 创建 Department 实体测试（packages/saas-core/src/domain/department/entities/department.entity.spec.ts）
-- [ ] T114 [P] [US3] 创建 DepartmentClosure 实体（packages/saas-core/src/domain/department/entities/department-closure.entity.ts）
-- [ ] T115 [P] [US3] 创建 DepartmentMember 实体（packages/saas-core/src/domain/department/entities/department-member.entity.ts）
-- [ ] T116 [US3] 创建 DepartmentAggregate 聚合根（packages/saas-core/src/domain/department/aggregates/department.aggregate.ts）
-- [ ] T117 [US3] 创建 DepartmentAggregate 测试（packages/saas-core/src/domain/department/aggregates/department.aggregate.spec.ts）
-- [ ] T118 [P] [US3] 创建部门领域事件（packages/saas-core/src/domain/department/events/）
-- [ ] T119 [P] [US3] 创建部门仓储接口（packages/saas-core/src/domain/department/repositories/department-aggregate.repository.interface.ts）
-- [ ] T120 [P] [US3] 创建部门层级管理服务（packages/saas-core/src/domain/department/services/department-hierarchy.service.ts）
+- [X] T112 [P] [US3] 创建 Department 实体（packages/saas-core/src/domain/department/entities/department.entity.ts）
+- [X] T113 [P] [US3] 创建 Department 实体测试（packages/saas-core/src/domain/department/entities/department.entity.spec.ts）
+- [X] T114 [P] [US3] 创建 DepartmentClosure 实体（packages/saas-core/src/domain/department/entities/department-closure.entity.ts）
+- [X] T115 [P] [US3] 创建 DepartmentMember 实体（简化，包含在 Department 中）
+- [X] T116 [US3] 创建 DepartmentAggregate 聚合根（packages/saas-core/src/domain/department/aggregates/department.aggregate.ts）
+- [X] T117 [US3] 创建 DepartmentAggregate 测试（packages/saas-core/src/domain/department/aggregates/department.aggregate.spec.ts）
+- [X] T118 [P] [US3] 创建部门领域事件（packages/saas-core/src/domain/department/events/）
+- [X] T119 [P] [US3] 创建部门仓储接口（packages/saas-core/src/domain/department/repositories/department-aggregate.repository.interface.ts）
+- [X] T120 [P] [US3] 创建部门层级管理服务（packages/saas-core/src/domain/department/services/department-hierarchy.service.ts）
 
 ### 应用层 - Organization 用例
 
