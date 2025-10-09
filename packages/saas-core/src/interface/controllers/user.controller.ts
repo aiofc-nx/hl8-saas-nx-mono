@@ -6,7 +6,7 @@
  */
 
 import { Controller, Post, Get, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@hl8/hybrid-archi';
 import { RegisterUserDto } from '../dtos/user/register-user.dto';
 import { LoginUserDto } from '../dtos/user/login-user.dto';
 import { UserResponseDto } from '../dtos/user/user-response.dto';
