@@ -103,12 +103,12 @@
 
 ### 领域层 - Tenant 子领域
 
-- [ ] T036 [P] [US1] 创建 Tenant 实体（packages/saas-core/src/domain/tenant/entities/tenant.entity.ts）
-- [ ] T037 [P] [US1] 创建 Tenant 实体单元测试（packages/saas-core/src/domain/tenant/entities/tenant.entity.spec.ts）
-- [ ] T038 [P] [US1] 创建 TenantConfiguration 实体（packages/saas-core/src/domain/tenant/entities/tenant-configuration.entity.ts）
-- [ ] T039 [P] [US1] 创建 TenantQuota 实体（packages/saas-core/src/domain/tenant/entities/tenant-quota.entity.ts）
-- [ ] T040 [US1] 创建 TenantAggregate 聚合根（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.ts）
-- [ ] T041 [US1] 创建 TenantAggregate 单元测试（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.spec.ts）
+- [X] T036 [P] [US1] 创建 Tenant 实体（packages/saas-core/src/domain/tenant/entities/tenant.entity.ts）
+- [X] T037 [P] [US1] 创建 Tenant 实体单元测试（packages/saas-core/src/domain/tenant/entities/tenant.entity.spec.ts）
+- [X] T038 [P] [US1] 创建 TenantConfiguration 实体（packages/saas-core/src/domain/tenant/entities/tenant-configuration.entity.ts）
+- [X] T039 [P] [US1] 创建 TenantQuota 实体（作为值对象已实现，见 tenant-quota.vo.ts）
+- [X] T040 [US1] 创建 TenantAggregate 聚合根（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.ts）
+- [X] T041 [US1] 创建 TenantAggregate 单元测试（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.spec.ts）
 - [ ] T042 [P] [US1] 创建租户领域事件（packages/saas-core/src/domain/tenant/events/）
   - TenantCreatedEvent, TenantActivatedEvent, TenantSuspendedEvent, TenantUpgradedEvent, TenantDeletedEvent
 - [ ] T043 [P] [US1] 创建租户仓储接口（packages/saas-core/src/domain/tenant/repositories/tenant-aggregate.repository.interface.ts）
