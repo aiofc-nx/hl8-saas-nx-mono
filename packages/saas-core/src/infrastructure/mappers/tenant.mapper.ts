@@ -98,12 +98,8 @@ export class TenantMapper {
       tenantOrm.trialEndsAt || null,
       tenantOrm.activatedAt || null,
       {
-        createdAt: tenantOrm.createdAt,
-        updatedAt: tenantOrm.updatedAt,
-        deletedAt: tenantOrm.deletedAt,
         createdBy: tenantOrm.createdBy,
         updatedBy: tenantOrm.updatedBy,
-        deletedBy: tenantOrm.deletedBy,
         tenantId: EntityId.fromString(tenantOrm.tenantId),
         version: tenantOrm.version,
       },
@@ -123,8 +119,6 @@ export class TenantMapper {
       configOrm.enabledFeatures,
       configOrm.customSettings || {},
       {
-        createdAt: configOrm.createdAt,
-        updatedAt: configOrm.updatedAt,
         createdBy: configOrm.createdBy,
         updatedBy: configOrm.updatedBy,
         tenantId: EntityId.fromString(configOrm.tenantId),
@@ -137,8 +131,6 @@ export class TenantMapper {
       tenant,
       configuration,
       {
-        createdAt: tenantOrm.createdAt,
-        updatedAt: tenantOrm.updatedAt,
         createdBy: tenantOrm.createdBy,
         updatedBy: tenantOrm.updatedBy,
         tenantId: EntityId.fromString(tenantOrm.tenantId),
