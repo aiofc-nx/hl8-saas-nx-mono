@@ -153,17 +153,17 @@ export class TenantCode extends BaseValueObject {
    *
    * @returns {string} 租户代码字符串
    */
-  public toString(): string {
+  public override toString(): string {
     return this.value;
   }
 
   /**
    * 转换为JSON
    *
-   * @returns {string} 租户代码字符串
+   * @returns {Record<string, unknown>} 租户代码JSON对象
    */
-  public toJSON(): string {
-    return this.value;
+  public override toJSON(): Record<string, unknown> {
+    return { value: this.value };
   }
 
   /**
@@ -172,7 +172,7 @@ export class TenantCode extends BaseValueObject {
    * @param {BaseValueObject} other - 另一个值对象
    * @returns {boolean}
    */
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof TenantCode)) {
       return false;
     }
