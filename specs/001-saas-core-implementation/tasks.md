@@ -138,13 +138,13 @@
 
 ### 基础设施层 - Tenant 持久化
 
-- [ ] T061 [P] [US1] 创建 Tenant ORM实体（packages/saas-core/src/infrastructure/persistence/entities/tenant.orm-entity.ts）
-- [ ] T062 [P] [US1] 创建 TenantConfiguration ORM实体（packages/saas-core/src/infrastructure/persistence/entities/tenant-configuration.orm-entity.ts）
-- [ ] T063 [US1] 创建租户映射器（packages/saas-core/src/infrastructure/mappers/tenant.mapper.ts）
-- [ ] T064 [US1] 创建租户仓储适配器（packages/saas-core/src/infrastructure/adapters/repositories/tenant-aggregate.repository.ts）
-- [ ] T065 [US1] 创建租户仓储适配器测试（packages/saas-core/src/infrastructure/adapters/repositories/tenant-aggregate.repository.spec.ts）
-- [ ] T066 [P] [US1] 创建租户配置缓存适配器（packages/saas-core/src/infrastructure/adapters/cache/tenant-config-cache.adapter.ts）
-- [ ] T067 [US1] 创建初始化数据库迁移（packages/saas-core/src/infrastructure/persistence/migrations/Migration001_InitialSchema.ts）
+- [X] T061 [P] [US1] 创建 Tenant ORM实体（packages/saas-core/src/infrastructure/persistence/entities/tenant.orm-entity.ts）
+- [X] T062 [P] [US1] 创建 TenantConfiguration ORM实体（packages/saas-core/src/infrastructure/persistence/entities/tenant-configuration.orm-entity.ts）
+- [X] T063 [US1] 创建租户映射器（packages/saas-core/src/infrastructure/mappers/tenant.mapper.ts）
+- [X] T064 [US1] 创建租户仓储适配器（packages/saas-core/src/infrastructure/adapters/repositories/tenant-aggregate.repository.ts）
+- [X] T065 [US1] 创建租户仓储适配器测试（packages/saas-core/src/infrastructure/adapters/repositories/tenant-aggregate.repository.spec.ts）
+- [X] T066 [P] [US1] 创建租户配置缓存适配器（packages/saas-core/src/infrastructure/adapters/cache/tenant-config-cache.adapter.ts）
+- [X] T067 [US1] 创建初始化数据库迁移（packages/saas-core/src/infrastructure/persistence/migrations/Migration001_InitialSchema.ts）
 
 ### 接口层 - Tenant API
 
