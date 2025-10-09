@@ -10,6 +10,7 @@
 ### 依赖变化对比
 
 #### 优化前（使用外部依赖）
+
 ```json
 {
   "dependencies": {
@@ -22,6 +23,7 @@
 ```
 
 #### 优化后（使用内部模块）
+
 ```json
 {
   "dependencies": {
@@ -32,20 +34,114 @@
 ```
 
 ### 减少的外部依赖
+
 - ❌ `@nestjs/cache-manager` - 已移除
 - ❌ `cache-manager` - 已移除
 - ❌ `cache-manager-redis-store` - 已移除
 - ❌ `redis` - 已移除（@hl8/cache 内部使用 ioredis）
 
 ### 新增的内部模块
+
 - ✅ `@hl8/cache` - 高性能多租户缓存模块
 - ✅ `@hl8/logger` - 统一日志模块
+
+---
+
+## 🎯 @hl8/config 模块优势
+
+### 为什么要用内部配置模块？
+
+1. **💯 完全类型安全**
+```typescript
+// ✅ 定义配置类
+export class DatabaseConfig {
+  @IsString()
+  public readonly host!: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(1) @Max(65535)
+  public readonly port!: number;
+}
+
+// ✅ 注入时自动类型推断
+@Injectable()
+export class MyService {
+  constructor(private readonly config: SaasCoreConfig) {}
+  
+  connect() {
+    // 完全的类型推断和自动补全
+    const host = this.config.database.host;  // ✅ string
+    const port = this.config.database.port;  // ✅ number
+  }
+}
+```
+
+2. **✅ 配置验证**
+```typescript
+// 使用 class-validator 进行验证
+export class RedisConfig {
+  @IsString()
+  public readonly host!: string;
+
+  @IsNumber()
+  @Min(1) @Max(65535)  // ✅ 端口范围验证
+  public readonly port!: number;
+
+  @IsString()
+  @IsOptional()  // ✅ 可选字段
+  public readonly password?: string;
+}
+
+// 配置无效时应用无法启动，及早发现错误
+```
+
+3. **🔄 变量扩展**
+```typescript
+// .env 文件
+DATABASE__HOST=${DB_HOST:-localhost}
+DATABASE__PORT=${DB_PORT:-5432}
+REDIS__HOST=${REDIS_HOST:-${DATABASE__HOST}}  // ✅ 嵌套引用
+
+// 自动扩展和默认值
+```
+
+4. **📁 多格式支持**
+```typescript
+TypedConfigModule.forRoot({
+  schema: SaasCoreConfig,
+  load: [
+    fileLoader({ path: './config/app.yml' }),     // YAML
+    fileLoader({ path: './config/app.json' }),    // JSON
+    dotenvLoader({ separator: '__' }),            // .env
+  ],
+})
+```
+
+5. **🔄 嵌套配置**
+```typescript
+// 支持任意深度的嵌套
+DATABASE__CONNECTION__POOL__MAX=10
+// → config.database.connection.pool.max = 10
+```
+
+### @hl8/config vs @nestjs/config
+
+| 特性 | @hl8/config | @nestjs/config |
+|------|-------------|----------------|
+| **类型安全** | ✅ 完全类型安全 | ⚠️ 需要手动转换 |
+| **自动补全** | ✅ IDE 完全支持 | ❌ 字符串键 |
+| **配置验证** | ✅ class-validator | ⚠️ 需要 Joi |
+| **嵌套配置** | ✅ 无限嵌套 | ⚠️ 有限支持 |
+| **变量扩展** | ✅ 内置支持 | ❌ 需要插件 |
+| **多格式** | ✅ YAML/JSON/ENV | ⚠️ 主要ENV |
 
 ---
 
 ## 🎯 @hl8/cache 模块优势
 
 ### 1. **专为多租户设计**
+
 ```typescript
 // ✅ 自动租户隔离
 CacheModule.forRoot({
@@ -62,6 +158,7 @@ async getTenantConfig(tenantId: string) {
 ```
 
 ### 2. **基于 nestjs-cls 的上下文管理**
+
 ```typescript
 // ✅ 透明的上下文传递
 CacheModule.forRoot({
@@ -76,6 +173,7 @@ CacheModule.forRoot({
 ```
 
 ### 3. **强大的装饰器支持**
+
 ```typescript
 import { Cacheable, CacheEvict, CachePut } from '@hl8/cache';
 
@@ -99,6 +197,7 @@ async refreshUser(userId: string): Promise<User> {
 ```
 
 ### 4. **完整的监控和统计**
+
 ```typescript
 import { CacheMonitorService, CacheStatsService } from '@hl8/cache';
 
@@ -115,6 +214,7 @@ const health = await healthCheckService.check();
 ```
 
 ### 5. **企业级特性**
+
 - ✅ **高性能**: 基于 ioredis，连接池管理
 - ✅ **可靠性**: 自动重连，错误处理
 - ✅ **安全性**: 租户数据完全隔离
@@ -128,6 +228,7 @@ const health = await healthCheckService.check();
 ### 1. package.json 更新
 
 **变化统计**:
+
 - 移除依赖: 4个
 - 新增依赖: 2个
 - 净减少: 2个外部依赖
@@ -135,6 +236,7 @@ const health = await healthCheckService.check();
 ### 2. TenantConfigCacheAdapter 重写
 
 #### 优化前（占位实现）
+
 ```typescript
 @Injectable()
 export class TenantConfigCacheAdapter {
@@ -150,6 +252,7 @@ export class TenantConfigCacheAdapter {
 ```
 
 #### 优化后（完整实现）
+
 ```typescript
 @Injectable()
 export class TenantConfigCacheAdapter {
@@ -175,6 +278,7 @@ export class TenantConfigCacheAdapter {
 ```
 
 **改进**:
+
 - ✅ 注入 `CacheService`
 - ✅ 使用装饰器简化缓存操作
 - ✅ 类型安全（`ITenantConfig`）
@@ -183,6 +287,7 @@ export class TenantConfigCacheAdapter {
 ### 3. SaasCoreModule 更新
 
 #### 优化前
+
 ```typescript
 imports: [
   CqrsModule,  // ❌ 来自 @nestjs/cqrs
@@ -191,6 +296,7 @@ imports: [
 ```
 
 #### 优化后
+
 ```typescript
 imports: [
   MikroOrmModule.forRoot(config),
@@ -214,6 +320,7 @@ imports: [
 ```
 
 **改进**:
+
 - ✅ 移除 `CqrsModule`（改用 @hl8/hybrid-archi 的 CQRS）
 - ✅ 添加 `CacheModule` 配置
 - ✅ 环境变量配置 Redis 连接
@@ -224,6 +331,7 @@ imports: [
 ## 📈 整体优化成果
 
 ### 依赖管理优化
+
 | 指标 | 优化前 | 优化后 | 改进 |
 |------|--------|--------|------|
 | **外部依赖** | 4个缓存相关 | 0个 | -100% ✅ |
@@ -231,6 +339,7 @@ imports: [
 | **总依赖数** | 23个 | 21个 | -9% ✅ |
 
 ### 模块一致性
+
 | 模块类型 | 使用的包 | 状态 |
 |----------|----------|------|
 | **CQRS** | @hl8/hybrid-archi | ✅ 内部 |
@@ -240,6 +349,7 @@ imports: [
 | **架构** | @hl8/hybrid-archi | ✅ 内部 |
 
 ### 代码质量
+
 - ✅ Linter: 0 错误, 92 警告
 - ✅ 类型安全: 添加 `ITenantConfig` 接口
 - ✅ 装饰器: 使用 `@Cacheable` 和 `@CacheEvict`
@@ -252,6 +362,7 @@ imports: [
 ### 使用场景示例
 
 #### 1. 租户配置缓存
+
 ```typescript
 @Injectable()
 export class TenantService {
@@ -283,6 +394,7 @@ export class TenantService {
 ```
 
 #### 2. 权限缓存（后续实现）
+
 ```typescript
 @Injectable()
 export class PermissionCacheAdapter {
@@ -302,6 +414,7 @@ export class PermissionCacheAdapter {
 ```
 
 #### 3. 使用监控（运维）
+
 ```typescript
 @Injectable()
 export class CacheMonitoringService {
@@ -325,27 +438,33 @@ export class CacheMonitoringService {
 ## 📋 后续工作建议
 
 ### 立即可用
+
 - ✅ TenantConfigCacheAdapter 已完成
 - ✅ CacheModule 已配置
 - ✅ 可以开始使用缓存功能
 
 ### 建议补充（可选）
+
 1. **权限缓存适配器**
+
    ```typescript
    packages/saas-core/src/infrastructure/adapters/cache/permission-cache.adapter.ts
    ```
 
 2. **用户会话缓存**
+
    ```typescript
    packages/saas-core/src/infrastructure/adapters/cache/user-session-cache.adapter.ts
    ```
 
 3. **组织架构缓存**
+
    ```typescript
    packages/saas-core/src/infrastructure/adapters/cache/org-structure-cache.adapter.ts
    ```
 
 4. **缓存监控端点**
+
    ```typescript
    packages/saas-core/src/interface/controllers/cache-monitor.controller.ts
    ```
@@ -355,6 +474,7 @@ export class CacheMonitoringService {
 ## 🎯 关键收益
 
 ### 技术收益
+
 1. ✅ **减少依赖**: 移除4个外部包
 2. ✅ **统一架构**: 所有基础设施使用内部模块
 3. ✅ **自动隔离**: 租户缓存自动隔离
@@ -362,6 +482,7 @@ export class CacheMonitoringService {
 5. ✅ **易于测试**: CacheService 可轻松 mock
 
 ### 业务收益
+
 1. ✅ **性能提升**: 高性能的 ioredis 客户端
 2. ✅ **可靠性**: 完善的错误处理和重连机制
 3. ✅ **可观测性**: 内置监控和统计
@@ -369,6 +490,7 @@ export class CacheMonitoringService {
 5. ✅ **可维护性**: 统一的缓存策略和配置
 
 ### 开发体验
+
 1. ✅ **简单易用**: 装饰器式声明，代码简洁
 2. ✅ **上下文管理**: nestjs-cls 透明传递上下文
 3. ✅ **开箱即用**: 无需额外配置，自动集成
@@ -380,6 +502,7 @@ export class CacheMonitoringService {
 ## 🏗️ 架构对比
 
 ### 优化前的架构
+
 ```
 ┌─────────────────────────┐
 │   SAAS Core             │
@@ -393,6 +516,7 @@ export class CacheMonitoringService {
 ```
 
 ### 优化后的架构
+
 ```
 ┌─────────────────────────┐
 │   SAAS Core             │
@@ -418,6 +542,7 @@ export class CacheMonitoringService {
 ## 📝 配置说明
 
 ### CacheModule 配置项
+
 ```typescript
 CacheModule.forRoot({
   // Redis 连接配置
@@ -447,6 +572,7 @@ CacheModule.forRoot({
 ```
 
 ### 环境变量
+
 ```bash
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -459,6 +585,7 @@ REDIS_DB=0
 ## ✅ 验证结果
 
 ### Linter 检查
+
 ```
 ✅ Exit Code: 0
 ✅ 0 错误
@@ -466,6 +593,7 @@ REDIS_DB=0
 ```
 
 ### 依赖安装
+
 ```bash
 pnpm install
 # ✅ @hl8/cache 作为 workspace 依赖自动链接
@@ -473,6 +601,7 @@ pnpm install
 ```
 
 ### 模块导入
+
 ```typescript
 import { CacheService } from '@hl8/cache';  // ✅ 正常导入
 ```
@@ -494,8 +623,8 @@ import { CacheService } from '@hl8/cache';  // ✅ 正常导入
 ---
 
 **相关文件**:
+
 - `packages/saas-core/package.json` - 依赖配置
 - `packages/saas-core/src/saas-core.module.ts` - 模块配置
 - `packages/saas-core/src/infrastructure/adapters/cache/tenant-config-cache.adapter.ts` - 缓存适配器
 - `packages/cache/README.md` - @hl8/cache 使用文档
-
