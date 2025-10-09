@@ -11,7 +11,7 @@
 import {
   ITenantContext,
   ITenantIsolationConfig,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 
 /**
  * 租户隔离策略接口

@@ -77,11 +77,8 @@ import { RedisService } from './redis.service';
 import { CacheMonitorService } from './monitoring/cache-monitor.service';
 import { CacheStatsService } from './monitoring/cache-stats.service';
 import { HealthCheckService } from './monitoring/health-check.service';
-import {
-  MultiTenancyModule,
-  TenantContextService,
-  TenantIsolationService,
-} from '@hl8/multi-tenancy';
+import { MultiTenancyModule } from '@hl8/multi-tenancy';
+import { LoggerModule } from '@hl8/logger';
 
 /**
  * 缓存模块异步配置选项
@@ -229,6 +226,15 @@ export class CacheModule {
     return {
       module: CacheModule,
       imports: [
+        // 集成日志模块
+        LoggerModule.forRoot({
+          config: {
+            level: 'info',
+            format: {
+              prettyPrint: process.env['NODE_ENV'] !== 'production',
+            },
+          },
+        }),
         // 集成 multi-tenancy 模块
         MultiTenancyModule.forRoot(
           options.multiTenancy || {
@@ -288,8 +294,7 @@ export class CacheModule {
       ],
       exports: [
         CacheService,
-        TenantContextService,
-        TenantIsolationService,
+        MultiTenancyModule,
         CacheMonitorService,
         CacheStatsService,
         HealthCheckService,
@@ -347,6 +352,15 @@ export class CacheModule {
     return {
       module: CacheModule,
       imports: [
+        // 集成日志模块
+        LoggerModule.forRoot({
+          config: {
+            level: 'info',
+            format: {
+              prettyPrint: process.env['NODE_ENV'] !== 'production',
+            },
+          },
+        }),
         // 集成 multi-tenancy 模块（异步配置）
         MultiTenancyModule.forRootAsync({
           useFactory: async (...args: any[]) => {
@@ -420,8 +434,7 @@ export class CacheModule {
       ],
       exports: [
         CacheService,
-        TenantContextService,
-        TenantIsolationService,
+        MultiTenancyModule,
         CacheMonitorService,
         CacheStatsService,
         HealthCheckService,

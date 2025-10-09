@@ -12,7 +12,7 @@ import {
   ITenantPermission,
   ITenantAction,
   ITenantContext,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 
 /**
  * 租户安全策略接口

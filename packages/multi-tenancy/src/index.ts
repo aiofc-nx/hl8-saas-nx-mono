@@ -54,7 +54,7 @@ export * from './lib/config';
 export * from './lib/constants';
 
 // 类型定义
-export * from './lib/types/tenant-core.types';
+export * from './lib/types/tenant-context.types';
 
 // 策略接口
 export * from './lib/strategies/isolation-strategy.interface';

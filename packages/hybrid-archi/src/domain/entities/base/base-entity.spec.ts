@@ -47,7 +47,7 @@ describe('BaseEntity', () => {
     entityId = EntityId.generate();
     auditInfo = {
       createdBy: 'test-user',
-      tenantId: 'test-tenant',
+      tenantId: EntityId.generate(),
       version: 1,
     };
     logger = new PinoLogger({ level: 'error' as const });
@@ -59,7 +59,7 @@ describe('BaseEntity', () => {
 
       expect(entity).toBeDefined();
       expect(entity.id).toBe(entityId);
-      expect(entity.tenantId).toBe('test-tenant');
+      expect(entity.tenantId.equals(auditInfo.tenantId!)).toBe(true);
       expect(entity.createdBy).toBe('test-user');
       expect(entity.version).toBe(1);
     });
@@ -76,7 +76,7 @@ describe('BaseEntity', () => {
 
       expect(entity.auditInfo).toBeDefined();
       expect(entity.auditInfo.createdBy).toBe('test-user');
-      expect(entity.auditInfo.tenantId).toBe('test-tenant');
+      expect(entity.auditInfo.tenantId.equals(auditInfo.tenantId!)).toBe(true);
       expect(entity.auditInfo.version).toBe(1);
       expect(entity.auditInfo.createdAt).toBeInstanceOf(Date);
       expect(entity.auditInfo.updatedAt).toBeInstanceOf(Date);
@@ -117,7 +117,7 @@ describe('BaseEntity', () => {
     it('应该正确返回租户标识符', () => {
       const entity = new TestEntity(entityId, auditInfo, logger);
 
-      expect(entity.tenantId).toBe('test-tenant');
+      expect(entity.tenantId.equals(auditInfo.tenantId!)).toBe(true);
     });
 
     it('应该正确返回版本号', () => {
@@ -248,7 +248,8 @@ describe('BaseEntity', () => {
       expect(json).toHaveProperty('type', 'TestEntity');
       expect(json).toHaveProperty('auditInfo');
       expect(json['auditInfo']).toHaveProperty('createdBy', 'test-user');
-      expect(json['auditInfo']).toHaveProperty('tenantId', 'test-tenant');
+      const jsonAuditInfo = (json as any)['auditInfo'];
+      expect(jsonAuditInfo['tenantId']).toBe(auditInfo.tenantId!.toString());
     });
   });
 
@@ -268,20 +269,12 @@ describe('BaseEntity', () => {
       expect(() => entity['validate']()).not.toThrow();
     });
 
-    it('应该拒绝空租户标识符', () => {
-      const invalidAuditInfo = { ...auditInfo, tenantId: '' };
+    it('应该在缺少租户标识符时自动生成', () => {
+      const invalidAuditInfo = { createdBy: 'test-user', version: 1 };
       const entity = new TestEntity(entityId, invalidAuditInfo, logger);
 
-      expect(() => entity['validate']()).toThrow(GeneralBadRequestException);
-    });
-
-    it('应该拒绝未定义租户标识符', () => {
-      const invalidAuditInfo = { ...auditInfo, tenantId: undefined };
-      const entity = new TestEntity(entityId, invalidAuditInfo, logger);
-
-      // buildAuditInfo 会将 undefined 转换为 'default'，所以验证不会失败
-      // 测试应该验证 tenantId 被设置为 'default'
-      expect(entity.tenantId).toBe('default');
+      // buildAuditInfo 会为undefined的tenantId生成一个新的EntityId
+      expect(entity.tenantId).toBeInstanceOf(EntityId);
       expect(() => entity['validate']()).not.toThrow();
     });
   });
@@ -296,7 +289,7 @@ describe('BaseEntity', () => {
       expect(logSpy).toHaveBeenCalledWith('Entity test-operation', {
         entityId: entityId.toString(),
         entityType: 'TestEntity',
-        tenantId: 'test-tenant',
+        tenantId: auditInfo.tenantId?.toString(),
         operation: 'test-operation',
         details: { key: 'value' },
       });
@@ -312,7 +305,7 @@ describe('BaseEntity', () => {
       expect(logSpy).toHaveBeenCalledWith('Entity test-operation failed', {
         entityId: entityId.toString(),
         entityType: 'TestEntity',
-        tenantId: 'test-tenant',
+        tenantId: auditInfo.tenantId?.toString(),
         operation: 'test-operation',
         error: 'Test error',
         stack: error.stack,
@@ -345,21 +338,23 @@ describe('BaseEntity', () => {
 
   describe('边界情况', () => {
     it('应该正确处理最小审计信息', () => {
+      const minTenantId = EntityId.generate();
       const minimalAuditInfo: IPartialAuditInfo = {
-        tenantId: 'minimal-tenant',
+        tenantId: minTenantId,
       };
       const entity = new TestEntity(entityId, minimalAuditInfo, logger);
 
-      expect(entity.tenantId).toBe('minimal-tenant');
+      expect(entity.tenantId.equals(minTenantId)).toBe(true);
       expect(entity.createdBy).toBe('system');
       expect(entity.version).toBe(1);
     });
 
     it('应该正确处理完整审计信息', () => {
+      const fullTenantId = EntityId.generate();
       const fullAuditInfo: IPartialAuditInfo = {
         createdBy: 'creator',
         updatedBy: 'updater',
-        tenantId: 'full-tenant',
+        tenantId: fullTenantId,
         version: 5,
         lastOperation: 'UPDATE',
         lastOperationIp: '192.168.1.1',
@@ -370,7 +365,7 @@ describe('BaseEntity', () => {
 
       expect(entity.createdBy).toBe('creator');
       expect(entity.updatedBy).toBe('updater');
-      expect(entity.tenantId).toBe('full-tenant');
+      expect(entity.tenantId.equals(fullTenantId)).toBe(true);
       expect(entity.version).toBe(5);
     });
   });

@@ -33,7 +33,7 @@ cd /home/arligle/aiofix-ai/hl8-saas-nx-mono/packages/auth && pnpm build
 
 ## 代码注释规范
 
-本项目中严格执行`../docs/code-comment-standards.md`规定的注释规范
+本项目中严格执行`../constitutions/code-comment-standards.md`规定的注释规范
 
 ### 重要原则
 
@@ -129,15 +129,6 @@ cd /home/arligle/aiofix-ai/hl8-saas-nx-mono/packages/auth && pnpm build
  */
 ```
 
-### 代码规范要求
-
-1. **TypeScript**: 严格类型检查，使用强类型
-2. **NestJS**: 遵循依赖注入和模块化设计
-3. **DDD**: 领域驱动设计，清晰的领域边界
-4. **CQRS**: 命令查询职责分离
-5. **多租户**: 支持多租户架构
-6. **AI集成**: AI能力抽象和统一接口
-
 ### 文件组织规范
 
 1. **测试文件**: 单元测试文件(.spec.ts)应当与被测试文件放在同级目录下
@@ -151,19 +142,16 @@ cd /home/arligle/aiofix-ai/hl8-saas-nx-mono/packages/auth && pnpm build
 
 - **Monorepo结构**: 使用Nx管理多个相关项目，共享代码和配置
 - **工作区配置**: 通过`nx.json`和`pnpm-workspace.yaml`管理项目依赖关系
-- **项目生成**: 使用Nx生成器创建新的应用和库项目
 - **任务执行**: 使用`nx run`命令执行项目特定的任务
 
 ### 项目组织
 
-- **packages/**: 共享库和工具包
 - **apps/**: 应用程序项目
-- **libs/**: 业务库和领域模块
+- **packages/**: 业务库、领域模块、共享库和工具包
 - **examples/**: 示例和演示项目
 
 ### Nx工具使用
 
-- **项目生成**: 优先使用Nx生成器创建项目结构
 - **依赖管理**: 通过Nx项目图管理项目间依赖
 - **任务执行**: 使用Nx任务执行器运行构建、测试、lint等任务
 - **缓存机制**: 利用Nx的智能缓存提高构建效率
@@ -199,12 +187,11 @@ cd /home/arligle/aiofix-ai/hl8-saas-nx-mono/packages/auth && pnpm build
 ### 使用指导
 
 - **项目分析**: 使用`nx_workspace`了解项目结构
-- **代码生成**: 使用`nx_generators`和`nx_run_generator`创建项目结构
 - **任务执行**: 使用`nx_run`执行构建、测试等任务
 - **代码检查**: 使用`eslint_lint_files`检查代码质量
 - **问题诊断**: 使用MCP工具获取详细的错误信息和解决方案
 
-### 使用指导
+### 代码编写注意事项
 
 在编写或修改代码时，请：
 

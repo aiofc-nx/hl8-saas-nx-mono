@@ -12,6 +12,11 @@ import { CommandBus } from './command-bus';
 import { BaseCommand } from '../commands/base/base-command';
 import { ICommandHandler } from '../commands/base/command-handler.interface';
 import { PinoLogger } from '@hl8/logger';
+import { EntityId } from '../../../domain/value-objects/entity-id';
+
+// 测试用的有效UUID
+const TEST_TENANT_ID = EntityId.generate().toString();
+const TEST_USER_ID = 'test-user';
 
 describe('CommandBus', () => {
   let commandBus: CommandBus;
@@ -21,8 +26,8 @@ describe('CommandBus', () => {
     constructor(
       public readonly name: string,
       public readonly value: string,
-      tenantId: string = 'test-tenant',
-      userId: string = 'test-user'
+      tenantId: string = TEST_TENANT_ID,
+      userId: string = TEST_USER_ID
     ) {
       super(tenantId, userId);
     }
@@ -64,8 +69,8 @@ describe('CommandBus', () => {
   class AnotherCommand extends BaseCommand {
     constructor(
       public readonly id: string,
-      tenantId: string = 'test-tenant',
-      userId: string = 'test-user'
+      tenantId: string = TEST_TENANT_ID,
+      userId: string = TEST_USER_ID
     ) {
       super(tenantId, userId);
     }

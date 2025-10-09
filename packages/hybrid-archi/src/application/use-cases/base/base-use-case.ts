@@ -297,7 +297,7 @@ export abstract class BaseUseCase<TRequest, TResponse>
       const tenantContext = this.getTenantContext();
       if (tenantContext) {
         baseContext.tenant = {
-          id: tenantContext.tenantId,
+          id: tenantContext.tenantId.toString(),
           name: (tenantContext.metadata?.['tenantName'] as string) || 'Unknown',
         };
 

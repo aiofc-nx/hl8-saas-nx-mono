@@ -38,7 +38,7 @@
  *   constructor(
  *     aggregateId: EntityId,
  *     aggregateVersion: number,
- *     tenantId: string,
+ *     tenantId: EntityId,
  *     public readonly userId: EntityId,
  *     public readonly email: string,
  *     public readonly name: string
@@ -55,7 +55,7 @@
  * const event = new UserCreatedEvent(
  *   userId,
  *   1,
- *   'tenant-123',
+ *   EntityId.fromString('tenant-123'),  // ✅ 使用EntityId
  *   userId,
  *   'user@example.com',
  *   '张三'
@@ -70,7 +70,7 @@ export abstract class BaseDomainEvent {
   private readonly _eventId: EntityId;
   private readonly _aggregateId: EntityId;
   private readonly _aggregateVersion: number;
-  private readonly _tenantId: string;
+  private readonly _tenantId: EntityId;
   private readonly _occurredAt: Date;
   private readonly _eventVersion: number;
 
@@ -79,13 +79,13 @@ export abstract class BaseDomainEvent {
    *
    * @param aggregateId - 聚合根标识符
    * @param aggregateVersion - 聚合根版本号
-   * @param tenantId - 租户标识符
+   * @param tenantId - 租户标识符（EntityId类型，确保类型安全）
    * @param eventVersion - 事件版本号，默认为 1
    */
   protected constructor(
     aggregateId: EntityId,
     aggregateVersion: number,
-    tenantId: string,
+    tenantId: EntityId,
     eventVersion = 1
   ) {
     this._eventId = EntityId.generate();
@@ -126,9 +126,9 @@ export abstract class BaseDomainEvent {
   /**
    * 获取租户标识符
    *
-   * @returns 租户标识符
+   * @returns 租户标识符（EntityId类型）
    */
-  public get tenantId(): string {
+  public get tenantId(): EntityId {
     return this._tenantId;
   }
 
@@ -245,7 +245,7 @@ export abstract class BaseDomainEvent {
       eventType: this.eventType,
       aggregateId: this._aggregateId.toString(),
       aggregateVersion: this._aggregateVersion,
-      tenantId: this._tenantId,
+      tenantId: this._tenantId.toString(),  // ✅ 序列化为string
       occurredAt: this._occurredAt.toISOString(),
       eventVersion: this._eventVersion,
       eventData: this.eventData,
@@ -308,11 +308,11 @@ export abstract class BaseDomainEvent {
   /**
    * 检查事件是否属于指定的租户
    *
-   * @param tenantId - 租户标识符
+   * @param tenantId - 租户标识符（EntityId类型）
    * @returns 如果事件属于指定的租户则返回 true，否则返回 false
    */
-  public belongsToTenant(tenantId: string): boolean {
-    return this._tenantId === tenantId;
+  public belongsToTenant(tenantId: EntityId): boolean {
+    return this._tenantId.equals(tenantId);  // ✅ 使用equals方法
   }
 
   /**

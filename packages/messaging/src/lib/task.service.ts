@@ -16,6 +16,7 @@ import {
   ScheduleOptions,
   TaskMessage,
 } from './types/messaging.types';
+import { EntityId } from '@hl8/common';
 
 /**
  * 任务服务
@@ -182,14 +183,14 @@ export class TaskService implements ITaskService {
               // 设置租户上下文
               const originalTenant = this.tenantContextService.getTenant();
               this.tenantContextService.setContext({
-                tenantId,
+                tenantId: EntityId.fromString(tenantId),
                 timestamp: new Date(),
               });
               try {
                 await this.executeTask(taskId, taskName, data as T, handler);
               } finally {
                 this.tenantContextService.setContext({
-                  tenantId: originalTenant || '',
+                  tenantId: EntityId.fromString(originalTenant || EntityId.generate().toString()),
                   timestamp: new Date(),
                 });
               }

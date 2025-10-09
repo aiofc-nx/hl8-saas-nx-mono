@@ -10,3 +10,6 @@ export * from './logging.middleware';
 
 // 验证中间件
 export * from './validation.middleware';
+
+// 租户上下文中间件
+export * from './tenant-context.middleware';

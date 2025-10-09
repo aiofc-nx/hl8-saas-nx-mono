@@ -6,19 +6,21 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "@hl8/logger": "workspace:*",
     "@hl8/common": "workspace:*",
     "@hl8/config": "workspace:*",
+    "@hl8/logger": "workspace:*",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
-    "nestjs-cls": "^5.0.0",
-    "class-validator": "^0.14.0",
     "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
     "fastify": "^5.6.1",
+    "nestjs-cls": "^5.0.0",
     "reflect-metadata": "^0.2.2",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^24.5.2"
+    "@types/node": "^24.5.2",
+    "@types/uuid": "^9.0.8"
   }
 }

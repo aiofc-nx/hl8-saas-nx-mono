@@ -248,7 +248,7 @@ export abstract class TenantAwareUseCase<
       const tenantContext = this.tenantContextService.getContext();
       if (tenantContext) {
         baseContext.tenant = {
-          id: tenantContext.tenantId,
+          id: tenantContext.tenantId.toString(),
           name: (tenantContext.metadata?.['tenantName'] as string) || 'Unknown',
         };
 

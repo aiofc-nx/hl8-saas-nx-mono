@@ -18,7 +18,7 @@ class TestEvent extends BaseDomainEvent {
   constructor(
     aggregateId: EntityId,
     aggregateVersion: number,
-    tenantId: string,
+    tenantId: EntityId,
     public readonly data: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
@@ -132,7 +132,7 @@ describe('EventBus', () => {
 
       // 创建事件
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       // 发布事件
       await eventBus.publish(event);
@@ -147,9 +147,9 @@ describe('EventBus', () => {
 
       const aggregateId = EntityId.generate();
       const events = [
-        new TestEvent(aggregateId, 1, 'tenant-1', 'data1'),
-        new TestEvent(aggregateId, 2, 'tenant-1', 'data2'),
-        new TestEvent(aggregateId, 3, 'tenant-1', 'data3'),
+        new TestEvent(aggregateId, 1, EntityId.generate(), 'data1'),
+        new TestEvent(aggregateId, 2, EntityId.generate(), 'data2'),
+        new TestEvent(aggregateId, 3, EntityId.generate(), 'data3'),
       ];
 
       await eventBus.publishAll(events);
@@ -163,7 +163,7 @@ describe('EventBus', () => {
 
       // 创建无效事件
       const aggregateId = EntityId.generate();
-      const invalidEvent = new TestEvent(aggregateId, 1, 'tenant-1', '');
+      const invalidEvent = new TestEvent(aggregateId, 1, EntityId.generate(), '');
 
       // 事件发布不会抛出错误，而是记录错误
       await eventBus.publish(invalidEvent);
@@ -203,7 +203,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', unsupportedHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       // 事件应该被忽略，不会抛出错误
       await eventBus.publish(event);
@@ -244,7 +244,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', errorHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       // 应该不抛出错误，而是记录错误
       await eventBus.publish(event);
@@ -266,7 +266,7 @@ describe('EventBus', () => {
       expect(subscriptionId).toBeDefined();
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await eventBus.publish(event);
 
@@ -287,7 +287,7 @@ describe('EventBus', () => {
       eventBus.unsubscribe(subscriptionId);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await eventBus.publish(event);
 
@@ -307,7 +307,7 @@ describe('EventBus', () => {
       });
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await eventBus.publish(event);
 
@@ -413,7 +413,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', testHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
       await eventBus.publish(event);
 
       expect(middleware1.executedCount).toBe(1);
@@ -428,12 +428,13 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', testHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const tenantId = EntityId.generate();
+      const event = new TestEvent(aggregateId, 1, tenantId, 'test-data');
       await eventBus.publish(event);
 
       expect(middleware.context).toBeDefined();
       expect(middleware.context?.messageId).toBe(event.eventId.toString());
-      expect(middleware.context?.tenantId).toBe('tenant-1');
+      expect(middleware.context?.tenantId.toString()).toBe(tenantId.toString());
       expect(middleware.context?.messageType).toBe('TestEvent');
     });
 
@@ -447,7 +448,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', testHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await expect(eventBus.publish(event)).rejects.toThrow('Middleware error');
       expect(testHandler.handledEvents).toHaveLength(0);
@@ -493,7 +494,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', retryHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await eventBus.publish(event);
 
@@ -535,7 +536,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', retryHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await eventBus.publish(event);
 
@@ -578,7 +579,7 @@ describe('EventBus', () => {
       eventBus.registerHandler('TestEvent', idempotentHandler);
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       // 第一次发布
       await eventBus.publish(event);
@@ -689,7 +690,7 @@ describe('EventBus', () => {
       eventBus.clearSubscriptions();
       // 订阅数量无法直接获取，但可以通过发布事件验证
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       // 应该不会抛出错误，但也不会有订阅者处理
       expect(async () => await eventBus.publish(event)).not.toThrow();

@@ -57,6 +57,7 @@ export {
   // 基础实体
   BaseEntity,
   BaseAggregateRoot,
+  TenantAwareAggregateRoot,
   BaseValueObject,
   // 领域事件
   BaseDomainEvent,
@@ -82,7 +83,7 @@ export {
   IReadModelRepository,
 } from './domain/repositories';
 
-// 通用值对象导出
+// 通用值对象导出（EntityId已在domain中导出）
 export * from './domain/value-objects/identities';
 export * from './domain/value-objects/ids';
 export * from './domain/value-objects/statuses';

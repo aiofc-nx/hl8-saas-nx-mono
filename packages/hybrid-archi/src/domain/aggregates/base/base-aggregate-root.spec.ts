@@ -22,9 +22,10 @@ describe('BaseAggregateRoot', () => {
   class TestEvent extends BaseDomainEvent {
     constructor(
       aggregateId: EntityId,
+      tenantId: EntityId,
       public readonly data: string
     ) {
-      super(aggregateId, 1, 'test-tenant');
+      super(aggregateId, 1, tenantId);
     }
 
     get eventType(): string {
@@ -33,8 +34,8 @@ describe('BaseAggregateRoot', () => {
   }
 
   class TestAggregate extends BaseAggregateRoot {
-    constructor(id: EntityId, private name: string, private email: string) {
-      super(id, { tenantId: 'test-tenant', createdBy: 'test-user' }, {
+    constructor(id: EntityId, tenantId: EntityId, private name: string, private email: string) {
+      super(id, { tenantId: tenantId, createdBy: 'test-user' }, {
         info: jest.fn(),
         warn: jest.fn(),
         error: jest.fn(),
@@ -51,19 +52,19 @@ describe('BaseAggregateRoot', () => {
     }
 
     createUser(): void {
-      this.addDomainEvent(new TestEvent(this.id, 'User created'));
+      this.addDomainEvent(new TestEvent(this.id, this.tenantId, 'User created'));
     }
 
     updateUser(newName: string, newEmail: string): void {
       this.name = newName;
       this.email = newEmail;
-      this.addDomainEvent(new TestEvent(this.id, 'User updated'));
+      this.addDomainEvent(new TestEvent(this.id, this.tenantId, 'User updated'));
     }
 
     performComplexOperation(): void {
-      this.addDomainEvent(new TestEvent(this.id, 'Operation 1'));
-      this.addDomainEvent(new TestEvent(this.id, 'Operation 2'));
-      this.addDomainEvent(new TestEvent(this.id, 'Operation 3'));
+      this.addDomainEvent(new TestEvent(this.id, this.tenantId, 'Operation 1'));
+      this.addDomainEvent(new TestEvent(this.id, this.tenantId, 'Operation 2'));
+      this.addDomainEvent(new TestEvent(this.id, this.tenantId, 'Operation 3'));
     }
 
     // 公共方法用于测试replayEvents功能
@@ -98,6 +99,7 @@ describe('BaseAggregateRoot', () => {
     tenantContext = module.get<TenantContextService>(TenantContextService);
 
     aggregate = new TestAggregate(
+      EntityId.generate(),
       EntityId.generate(),
       'Test User',
       'test@example.com'
@@ -173,9 +175,9 @@ describe('BaseAggregateRoot', () => {
   describe('事件重放', () => {
     it('应该重放事件', () => {
       const events = [
-        new TestEvent(aggregate.id, 'Event 1'),
-        new TestEvent(aggregate.id, 'Event 2'),
-        new TestEvent(aggregate.id, 'Event 3'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'Event 1'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'Event 2'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'Event 3'),
       ];
 
       aggregate.testReplayEvents(events);
@@ -185,9 +187,9 @@ describe('BaseAggregateRoot', () => {
 
     it('应该按顺序重放事件', () => {
       const events = [
-        new TestEvent(aggregate.id, 'First'),
-        new TestEvent(aggregate.id, 'Second'),
-        new TestEvent(aggregate.id, 'Third'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'First'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'Second'),
+        new TestEvent(aggregate.id, aggregate.tenantId, 'Third'),
       ];
 
       aggregate.testReplayEvents(events);
@@ -317,7 +319,7 @@ describe('BaseAggregateRoot', () => {
 
       // 添加1000个事件
       for (let i = 0; i < 1000; i++) {
-        aggregate.addDomainEvent(new TestEvent(aggregate.id, `Event ${i}`));
+        aggregate.addDomainEvent(new TestEvent(aggregate.id, aggregate.tenantId, `Event ${i}`));
       }
 
       const endTime = Date.now();
@@ -352,7 +354,7 @@ describe('BaseAggregateRoot', () => {
           new Promise((resolve) => {
             setTimeout(() => {
               aggregate.addDomainEvent(
-                new TestEvent(aggregate.id, `Concurrent Event ${i}`)
+                new TestEvent(aggregate.id, aggregate.tenantId, `Concurrent Event ${i}`)
               );
               resolve(undefined);
             }, Math.random() * 10);

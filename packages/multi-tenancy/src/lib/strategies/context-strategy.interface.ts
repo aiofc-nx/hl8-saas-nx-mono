@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 
-import { ITenantContext } from '../types/tenant-core.types';
+import { ITenantContext } from '../types/tenant-context.types';
 
 /**
  * HTTP请求接口

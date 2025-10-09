@@ -12,8 +12,8 @@ export * from './base';
 // 装饰器
 export * from './decorators';
 
-// 示例（可选导出，用于学习参考）
-export * from './examples';
+// 聚合根验证
+export * from './validation';
 
 // 注意：具体业务实现的聚合根已移除，专注于通用功能组件
 // 通用验证和安全接口在对应的 domain/validation 和 domain/security 中提供

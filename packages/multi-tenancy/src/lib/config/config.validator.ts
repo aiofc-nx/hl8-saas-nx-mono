@@ -18,7 +18,7 @@ import {
   ITenantMiddlewareConfig,
   ITenantSecurityConfig,
   IMultiLevelIsolationConfig,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import { ILevelIsolationConfig } from '../types/multi-level.types';
 
 /**

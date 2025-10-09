@@ -14,7 +14,7 @@ import { TenantContextService } from './tenant-context.service';
 import {
   IMultiTenancyModuleOptions,
   ITenantIsolationConfig,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import { DI_TOKENS } from '../constants';
 import { ITenantIsolationStrategy } from '../strategies/isolation-strategy.interface';
 import { TenantConfigInvalidException } from '../exceptions';

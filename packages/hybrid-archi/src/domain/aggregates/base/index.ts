@@ -8,6 +8,9 @@
 // 基础聚合根类
 export { BaseAggregateRoot } from './base-aggregate-root';
 
+// 租户感知聚合根类
+export { TenantAwareAggregateRoot } from './tenant-aware-aggregate-root';
+
 // 聚合根接口
 export type {
   IAggregateRoot,

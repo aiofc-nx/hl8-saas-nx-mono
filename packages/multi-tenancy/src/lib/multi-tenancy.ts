@@ -72,7 +72,7 @@ import {
   createConfigServiceProvider,
   createConfigOptionsProvider,
 } from './config';
-import { IMultiTenancyModuleOptions } from './types/tenant-core.types';
+import { IMultiTenancyModuleOptions } from './types/tenant-context.types';
 import { DI_TOKENS } from './constants';
 
 /**

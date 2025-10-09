@@ -5,6 +5,13 @@
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./domain/value-objects": "./src/domain/value-objects/index.ts",
+    "./domain": "./src/domain/index.ts",
+    "./application": "./src/application/index.ts",
+    "./infrastructure": "./src/infrastructure/index.ts"
+  },
   "description": "HL8 SAAS平台混合架构核心模块 - 为业务模块的开发提供统一的混合架构设计模式，以及提供通用的功能组件",
   "dependencies": {
     "@hl8/cache": "workspace:*",

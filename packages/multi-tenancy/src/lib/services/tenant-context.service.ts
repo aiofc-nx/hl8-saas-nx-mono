@@ -20,13 +20,14 @@ import {
   ITenantContext,
   ITenantContextConfig,
   IMultiTenancyModuleOptions,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import {
   TenantNotFoundException,
   TenantContextInvalidException,
   TenantConfigInvalidException,
 } from '../exceptions';
 import { DI_TOKENS } from '../constants';
+import { EntityId } from '@hl8/common';
 
 /**
  * 租户上下文服务
@@ -487,7 +488,7 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
       // 更新完整上下文
       const context = this.getContext();
       if (context) {
-        context.tenantId = tenantId;
+        context.tenantId = EntityId.fromString(tenantId);
         this.cls.set('tenantContext', context);
       }
 
@@ -723,7 +724,7 @@ export class TenantContextService implements OnModuleInit, OnModuleDestroy {
       throw new Error('租户ID不能为空');
     }
 
-    this.validateTenantId(context.tenantId);
+    this.validateTenantId(context.tenantId.toString());
 
     if (context.userId) {
       this.validateUserId(context.userId);

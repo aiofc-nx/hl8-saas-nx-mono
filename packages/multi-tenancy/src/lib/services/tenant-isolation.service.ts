@@ -13,7 +13,7 @@ import { PinoLogger } from '@hl8/logger';
 import {
   ITenantIsolationConfig,
   IMultiTenancyModuleOptions,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import { ITenantIsolationStrategy } from '../strategies/isolation-strategy.interface';
 import { TenantContextService } from './tenant-context.service';
 import { DI_TOKENS } from '../constants';

@@ -187,9 +187,13 @@ export class LoggerModule implements NestModule {
         },
         inject: [DI_TOKENS.MODULE_PARAMS],
       },
+      {
+        provide: PinoLogger,
+        useExisting: DI_TOKENS.LOGGER_PROVIDER,
+      },
     ];
 
-    const exports: Array<string | symbol> = [DI_TOKENS.LOGGER_PROVIDER];
+    const exports: any[] = [DI_TOKENS.LOGGER_PROVIDER, PinoLogger];
 
     // 如果启用了请求日志记录，添加中间件提供者
     if (params.enableRequestLogging || params.enableResponseLogging) {
@@ -306,9 +310,13 @@ export class LoggerModule implements NestModule {
         },
         inject: [DI_TOKENS.MODULE_PARAMS],
       },
+      {
+        provide: PinoLogger,
+        useExisting: DI_TOKENS.LOGGER_PROVIDER,
+      },
     ];
 
-    const exports: Array<string | symbol> = [DI_TOKENS.LOGGER_PROVIDER];
+    const exports: any[] = [DI_TOKENS.LOGGER_PROVIDER, PinoLogger];
 
     // 添加中间件提供者（总是添加，因为配置是动态的）
     providers.push({

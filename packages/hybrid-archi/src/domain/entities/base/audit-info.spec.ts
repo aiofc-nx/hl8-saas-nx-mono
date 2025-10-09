@@ -8,10 +8,12 @@
  */
 
 import { IAuditInfo, IPartialAuditInfo, AuditInfoBuilder } from './audit-info';
+import { EntityId } from '../../value-objects/entity-id';
 
 describe('AuditInfo', () => {
   describe('IAuditInfo 接口', () => {
     it('应该正确定义审计信息结构', () => {
+      const tenantId = EntityId.generate();
       const auditInfo: IAuditInfo = {
         createdBy: 'user-123',
         updatedBy: 'user-123',
@@ -19,7 +21,7 @@ describe('AuditInfo', () => {
         createdAt: new Date('2024-01-01T00:00:00Z'),
         updatedAt: new Date('2024-01-01T00:00:00Z'),
         deletedAt: null,
-        tenantId: 'tenant-456',
+        tenantId: tenantId,
         version: 1,
         lastOperation: 'CREATE',
         lastOperationIp: '192.168.1.1',
@@ -34,7 +36,7 @@ describe('AuditInfo', () => {
       expect(auditInfo.createdAt).toBeInstanceOf(Date);
       expect(auditInfo.updatedAt).toBeInstanceOf(Date);
       expect(auditInfo.deletedAt).toBeNull();
-      expect(auditInfo.tenantId).toBe('tenant-456');
+      expect(auditInfo.tenantId.equals(tenantId)).toBe(true);
       expect(auditInfo.version).toBe(1);
       expect(auditInfo.lastOperation).toBe('CREATE');
       expect(auditInfo.lastOperationIp).toBe('192.168.1.1');
@@ -59,7 +61,7 @@ describe('AuditInfo', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
-          tenantId: 'tenant',
+          tenantId: EntityId.generate(),
           version: 1,
           lastOperation: operation,
           lastOperationIp: null,
@@ -89,7 +91,7 @@ describe('AuditInfo', () => {
           createdAt: new Date(),
           updatedAt: new Date(),
           deletedAt: null,
-          tenantId: 'tenant',
+          tenantId: EntityId.generate(),
           version: 1,
           lastOperation: 'CREATE',
           lastOperationIp: null,
@@ -105,14 +107,15 @@ describe('AuditInfo', () => {
 
   describe('IPartialAuditInfo 接口', () => {
     it('应该支持部分审计信息', () => {
+      const tenantId = EntityId.generate();
       const partialAuditInfo: IPartialAuditInfo = {
         createdBy: 'user-123',
-        tenantId: 'tenant-456',
+        tenantId: tenantId,
         version: 1,
       };
 
       expect(partialAuditInfo.createdBy).toBe('user-123');
-      expect(partialAuditInfo.tenantId).toBe('tenant-456');
+      expect(partialAuditInfo.tenantId?.equals(tenantId)).toBe(true);
       expect(partialAuditInfo.version).toBe(1);
       expect(partialAuditInfo.updatedBy).toBeUndefined();
     });
@@ -141,7 +144,7 @@ describe('AuditInfo', () => {
         expect(auditInfo.createdAt).toBeInstanceOf(Date);
         expect(auditInfo.updatedAt).toBeInstanceOf(Date);
         expect(auditInfo.deletedAt).toBeNull();
-        expect(auditInfo.tenantId).toBe('default');
+        expect(auditInfo.tenantId).toBeInstanceOf(EntityId);
         expect(auditInfo.version).toBe(1);
         expect(auditInfo.lastOperation).toBe('CREATE');
         expect(auditInfo.lastOperationIp).toBeNull();
@@ -172,22 +175,24 @@ describe('AuditInfo', () => {
 
     describe('链式调用', () => {
       it('应该支持链式调用', () => {
+        const tenantId = EntityId.generate();
         const auditInfo = builder
           .withCreatedBy('user-123')
           .withUpdatedBy('user-456')
-          .withTenantId('tenant-789')
+          .withTenantId(tenantId)
           .withVersion(5)
           .build();
 
         expect(auditInfo.createdBy).toBe('user-123');
         expect(auditInfo.updatedBy).toBe('user-456');
-        expect(auditInfo.tenantId).toBe('tenant-789');
+        expect(auditInfo.tenantId?.equals(tenantId)).toBe(true);
         expect(auditInfo.version).toBe(5);
       });
 
       it('应该返回构建器实例', () => {
+        const tenantId = EntityId.generate();
         const result1 = builder.withCreatedBy('user');
-        const result2 = builder.withTenantId('tenant');
+        const result2 = builder.withTenantId(tenantId);
         const result3 = builder.withVersion(2);
 
         expect(result1).toBe(builder);
@@ -233,8 +238,9 @@ describe('AuditInfo', () => {
 
     describe('withTenantId', () => {
       it('应该设置租户标识符', () => {
-        const auditInfo = builder.withTenantId('tenant-123').build();
-        expect(auditInfo.tenantId).toBe('tenant-123');
+        const tenantId = EntityId.generate();
+        const auditInfo = builder.withTenantId(tenantId).build();
+        expect(auditInfo.tenantId?.equals(tenantId)).toBe(true);
       });
     });
 
@@ -309,10 +315,11 @@ describe('AuditInfo', () => {
 
     describe('复杂场景', () => {
       it('应该构建完整的审计信息', () => {
+        const tenantId = EntityId.generate();
         const auditInfo = builder
           .withCreatedBy('admin')
           .withUpdatedBy('user')
-          .withTenantId('tenant-123')
+          .withTenantId(tenantId)
           .withVersion(5)
           .withLastOperation('UPDATE', '192.168.1.100', 'Chrome/91.0', 'WEB')
           .withDeleteReason('Data cleanup')
@@ -321,7 +328,7 @@ describe('AuditInfo', () => {
         expect(auditInfo.createdBy).toBe('admin');
         expect(auditInfo.updatedBy).toBe('user');
         expect(auditInfo.deletedBy).toBeNull();
-        expect(auditInfo.tenantId).toBe('tenant-123');
+        expect(auditInfo.tenantId?.equals(tenantId)).toBe(true);
         expect(auditInfo.version).toBe(5);
         expect(auditInfo.lastOperation).toBe('UPDATE');
         expect(auditInfo.lastOperationIp).toBe('192.168.1.100');
@@ -352,21 +359,23 @@ describe('AuditInfo', () => {
 
     describe('边界情况', () => {
       it('应该处理空字符串', () => {
-        const auditInfo = builder.withCreatedBy('').withTenantId('').build();
+        const tenantId = EntityId.generate();
+        const auditInfo = builder.withCreatedBy('').withTenantId(tenantId).build();
 
         expect(auditInfo.createdBy).toBe(''); // 空字符串应该被保留
-        expect(auditInfo.tenantId).toBe(''); // 空字符串应该被保留
+        expect(auditInfo.tenantId?.equals(tenantId)).toBe(true);
       });
 
       it('应该处理特殊字符', () => {
+        const tenantId = EntityId.generate();
         const auditInfo = builder
           .withCreatedBy('user@domain.com')
-          .withTenantId('tenant-123_456')
+          .withTenantId(tenantId)
           .withDeleteReason('Reason with special chars: @#$%')
           .build();
 
         expect(auditInfo.createdBy).toBe('user@domain.com');
-        expect(auditInfo.tenantId).toBe('tenant-123_456');
+        expect(auditInfo.tenantId?.equals(tenantId)).toBe(true);
         expect(auditInfo.deleteReason).toBe('Reason with special chars: @#$%');
       });
 

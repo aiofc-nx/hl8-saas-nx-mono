@@ -24,8 +24,19 @@ describe('CacheAdaptersModule Integration', () => {
     try {
       module = await Test.createTestingModule({
         imports: [
-          CacheModule,
-          LoggerModule,
+          CacheModule.forRoot({
+            redis: {
+              host: 'localhost',
+              port: 6379,
+            },
+            defaultTTL: 3600,
+            keyPrefix: 'test:',
+          }),
+          LoggerModule.forRoot({
+            config: {
+              level: 'error',
+            },
+          }),
           CacheAdaptersModule.forRoot({
             enableCache: true,
             enableMemoryCache: true,

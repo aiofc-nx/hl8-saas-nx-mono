@@ -14,6 +14,10 @@ import { BaseQuery, IQueryResult } from '../queries/base/base-query';
 import { BaseDomainEvent } from '../../../domain/events/base/base-domain-event';
 import { EntityId } from '../../../domain/value-objects/entity-id';
 
+// 测试用的有效UUID
+const TEST_TENANT_ID = EntityId.generate().toString();
+const TEST_USER_ID = 'test-user';
+
 /**
  * 测试命令类
  */
@@ -99,7 +103,7 @@ class TestEvent extends BaseDomainEvent {
   constructor(
     aggregateId: EntityId,
     aggregateVersion: number,
-    tenantId: string,
+    tenantId: EntityId,
     public readonly data: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
@@ -208,7 +212,7 @@ describe('CQRSBus', () => {
         },
       });
 
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
+      const command = new TestCommand('test-data', TEST_TENANT_ID, 'user-1');
       await cqrsBus.executeCommand(command);
 
       expect(executedCommands).toHaveLength(1);
@@ -216,7 +220,7 @@ describe('CQRSBus', () => {
     });
 
     it('应该在未初始化时拒绝执行命令', async () => {
-      const command = new TestCommand('test-data', 'tenant-1', 'user-1');
+      const command = new TestCommand('test-data', TEST_TENANT_ID, 'user-1');
 
       await expect(cqrsBus.executeCommand(command)).rejects.toThrow(
         'CQRS Bus is not initialized. Call initialize() first.'
@@ -248,7 +252,7 @@ describe('CQRSBus', () => {
         getCacheExpiration: () => 300,
       });
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
       const result = await cqrsBus.executeQuery<TestQuery, TestQueryResult>(
         query
       );
@@ -259,7 +263,7 @@ describe('CQRSBus', () => {
     });
 
     it('应该在未初始化时拒绝执行查询', async () => {
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       await expect(cqrsBus.executeQuery(query)).rejects.toThrow(
         'CQRS Bus is not initialized. Call initialize() first.'
@@ -303,7 +307,7 @@ describe('CQRSBus', () => {
       });
 
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
       await cqrsBus.publishEvent(event);
 
       expect(handledEvents).toHaveLength(1);
@@ -346,9 +350,9 @@ describe('CQRSBus', () => {
 
       const aggregateId = EntityId.generate();
       const events = [
-        new TestEvent(aggregateId, 1, 'tenant-1', 'data1'),
-        new TestEvent(aggregateId, 2, 'tenant-1', 'data2'),
-        new TestEvent(aggregateId, 3, 'tenant-1', 'data3'),
+        new TestEvent(aggregateId, 1, EntityId.generate(), 'data1'),
+        new TestEvent(aggregateId, 2, EntityId.generate(), 'data2'),
+        new TestEvent(aggregateId, 3, EntityId.generate(), 'data3'),
       ];
 
       await cqrsBus.publishEvents(events);
@@ -359,7 +363,7 @@ describe('CQRSBus', () => {
 
     it('应该在未初始化时拒绝发布事件', async () => {
       const aggregateId = EntityId.generate();
-      const event = new TestEvent(aggregateId, 1, 'tenant-1', 'test-data');
+      const event = new TestEvent(aggregateId, 1, EntityId.generate(), 'test-data');
 
       await expect(cqrsBus.publishEvent(event)).rejects.toThrow(
         'CQRS Bus is not initialized. Call initialize() first.'

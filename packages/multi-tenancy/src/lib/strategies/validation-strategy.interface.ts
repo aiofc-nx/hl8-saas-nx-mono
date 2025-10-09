@@ -12,7 +12,7 @@ import {
   ITenantInfo,
   ITenantValidationResult,
   ITenantContext,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 
 /**
  * 租户验证策略接口

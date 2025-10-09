@@ -13,7 +13,7 @@
  * @since 1.0.0
  */
 
-import { EntityId } from '../../../domain/value-objects/entity-id';
+import { EntityId } from './entity-id';
 
 describe('EntityId', () => {
   describe('生成标识符', () => {

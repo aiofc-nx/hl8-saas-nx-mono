@@ -43,7 +43,7 @@ describe('用户管理集成测试', () => {
       private email: string,
       private status: UserStatus = UserStatus.ACTIVE
     ) {
-      super(id, { tenantId: 'test-tenant' });
+      super(id, { tenantId: EntityId.generate() });
     }
 
 

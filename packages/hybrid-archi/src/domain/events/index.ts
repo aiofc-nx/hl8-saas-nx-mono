@@ -27,6 +27,3 @@ export {
   DOMAIN_EVENT_METADATA_KEY,
   DomainEventOptions,
 } from './decorators';
-
-// 示例（可选导出，用于学习参考）
-export * from './examples';

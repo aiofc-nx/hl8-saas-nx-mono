@@ -12,7 +12,7 @@ import { MultiTenancyModule } from './multi-tenancy';
 import { TenantContextService } from './services/tenant-context.service';
 import { TenantIsolationService } from './services/tenant-isolation.service';
 import { MultiLevelIsolationService } from './services/multi-level-isolation.service';
-import { IMultiTenancyModuleOptions } from './types/tenant-core.types';
+import { IMultiTenancyModuleOptions } from './types/tenant-context.types';
 import { DI_TOKENS } from './constants';
 import { PinoLogger } from '@hl8/logger';
 import { ClsService } from 'nestjs-cls';

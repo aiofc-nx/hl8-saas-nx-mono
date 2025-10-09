@@ -13,6 +13,11 @@ import {
 } from '../queries/base/base-query';
 import { IQueryHandler } from '../queries/base/query-handler.interface';
 import { IMiddleware, IMessageContext } from './cqrs-bus.interface';
+import { EntityId } from '../../../domain/value-objects/entity-id';
+
+// 测试用的有效UUID
+const TEST_TENANT_ID = EntityId.generate().toString();
+const TEST_USER_ID = 'test-user';
 
 /**
  * 测试查询类
@@ -165,7 +170,7 @@ describe('QueryBus', () => {
       queryBus.registerHandler('TestQuery', testHandler);
 
       // 创建查询
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 执行查询
       const result = await queryBus.execute(query);
@@ -178,7 +183,7 @@ describe('QueryBus', () => {
     });
 
     it('应该在没有注册处理器时抛出错误', async () => {
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       await expect(queryBus.execute(query)).rejects.toThrow(
         'No handler registered for query type: TestQuery'
@@ -189,7 +194,7 @@ describe('QueryBus', () => {
       queryBus.registerHandler('TestQuery', testHandler);
 
       // 创建无效查询
-      const invalidQuery = new TestQuery('', 'tenant-1', 'user-1');
+      const invalidQuery = new TestQuery('', TEST_TENANT_ID, 'user-1');
 
       await expect(queryBus.execute(invalidQuery)).rejects.toThrow(
         'Query filter is required'
@@ -222,7 +227,7 @@ describe('QueryBus', () => {
 
       queryBus.registerHandler('TestQuery', unsupportedHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       await expect(queryBus.execute(query)).rejects.toThrow(
         'Handler cannot process query: TestQuery'
@@ -234,7 +239,7 @@ describe('QueryBus', () => {
     it('应该缓存查询结果', async () => {
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 第一次执行
       const result1 = await queryBus.execute(query);
@@ -274,7 +279,7 @@ describe('QueryBus', () => {
 
       queryBus.registerHandler('TestQuery', shortCacheHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 第一次执行
       await queryBus.execute(query);
@@ -315,7 +320,7 @@ describe('QueryBus', () => {
 
       queryBus.registerHandler('TestQuery', noCacheHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 两次执行都应该调用处理器
       await queryBus.execute(query);
@@ -327,7 +332,7 @@ describe('QueryBus', () => {
     it('应该提供缓存统计信息', async () => {
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 执行查询
       await queryBus.execute(query);
@@ -341,7 +346,7 @@ describe('QueryBus', () => {
     it('应该能够清除所有缓存', async () => {
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       // 执行查询
       await queryBus.execute(query);
@@ -458,7 +463,7 @@ describe('QueryBus', () => {
       queryBus.addMiddleware(middleware2);
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
       await queryBus.execute(query);
 
       expect(middleware1.executedCount).toBe(1);
@@ -472,12 +477,12 @@ describe('QueryBus', () => {
       queryBus.addMiddleware(middleware);
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
       await queryBus.execute(query);
 
       expect(middleware.context).toBeDefined();
       expect(middleware.context?.messageId).toBe(query.queryId.toString());
-      expect(middleware.context?.tenantId).toBe('tenant-1');
+      expect(middleware.context?.tenantId.toString()).toBe(TEST_TENANT_ID);
       expect(middleware.context?.userId).toBe('user-1');
       expect(middleware.context?.messageType).toBe('TestQuery');
     });
@@ -491,7 +496,7 @@ describe('QueryBus', () => {
       queryBus.addMiddleware(errorMiddleware);
       queryBus.registerHandler('TestQuery', testHandler);
 
-      const query = new TestQuery('test-filter', 'tenant-1', 'user-1');
+      const query = new TestQuery('test-filter', TEST_TENANT_ID, 'user-1');
 
       await expect(queryBus.execute(query)).rejects.toThrow('Middleware error');
       expect(testHandler.executedQueries).toHaveLength(0);

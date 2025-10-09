@@ -22,7 +22,7 @@ import {
   IMultiLevelStats,
   IHierarchyPath,
   IMultiTenancyModuleOptions,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import {
   IMultiLevelIsolationStrategy,
   IMultiLevelIsolationStrategyFactory,
@@ -652,7 +652,7 @@ export class MultiLevelIsolationService
       }
 
       const multiLevelContext: IMultiLevelContext = {
-        tenantId: tenantContext.tenantId,
+        tenantId: tenantContext.tenantId.toString(),
         userId: tenantContext.userId,
         requestId: tenantContext.requestId,
         isolationLevel: 'tenant', // 默认租户级隔离

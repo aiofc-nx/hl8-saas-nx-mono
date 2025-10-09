@@ -12,7 +12,7 @@ class TestDomainEvent extends BaseDomainEvent {
   constructor(
     aggregateId: EntityId,
     aggregateVersion: number,
-    tenantId: string,
+    tenantId: EntityId,
     public readonly testData: string
   ) {
     super(aggregateId, aggregateVersion, tenantId);
@@ -31,11 +31,11 @@ class TestDomainEvent extends BaseDomainEvent {
 
 describe('BaseDomainEvent', () => {
   let aggregateId: EntityId;
-  let tenantId: string;
+  let tenantId: EntityId;
 
   beforeEach(() => {
     aggregateId = EntityId.generate();
-    tenantId = 'test-tenant-123';
+    tenantId = EntityId.generate();
   });
 
   describe('事件创建', () => {
@@ -46,7 +46,7 @@ describe('BaseDomainEvent', () => {
       expect(event.eventId).toBeInstanceOf(EntityId);
       expect(event.aggregateId.equals(aggregateId)).toBe(true);
       expect(event.aggregateVersion).toBe(1);
-      expect(event.tenantId).toBe(tenantId);
+      expect(event.tenantId.equals(tenantId)).toBe(true);
       expect(event.occurredAt).toBeInstanceOf(Date);
       expect(event.eventVersion).toBe(1);
       expect(event.eventType).toBe('TestDomainEvent');
@@ -126,7 +126,7 @@ describe('BaseDomainEvent', () => {
       const event1 = new TestDomainEvent(aggregateId, 1, tenantId, 'data1');
 
       class OtherTestEvent extends BaseDomainEvent {
-        constructor(aggregateId: EntityId, version: number, tenantId: string) {
+        constructor(aggregateId: EntityId, version: number, tenantId: EntityId) {
           super(aggregateId, version, tenantId);
         }
 
@@ -174,7 +174,7 @@ describe('BaseDomainEvent', () => {
 
     it('应该正确检查事件是否属于指定的租户', () => {
       const event = new TestDomainEvent(aggregateId, 1, tenantId, 'test-data');
-      const otherTenantId = 'other-tenant-456';
+      const otherTenantId = EntityId.generate();
 
       expect(event.belongsToTenant(tenantId)).toBe(true);
       expect(event.belongsToTenant(otherTenantId)).toBe(false);
@@ -196,7 +196,7 @@ describe('BaseDomainEvent', () => {
       expect(json).toHaveProperty('eventType', 'TestDomainEvent');
       expect(json).toHaveProperty('aggregateId');
       expect(json).toHaveProperty('aggregateVersion', 1);
-      expect(json).toHaveProperty('tenantId', tenantId);
+      expect(json).toHaveProperty('tenantId', tenantId.toString());
       expect(json).toHaveProperty('occurredAt');
       expect(json).toHaveProperty('eventVersion', 1);
       expect(json).toHaveProperty('eventData', { testData: 'test-data' });
@@ -221,7 +221,7 @@ describe('BaseDomainEvent', () => {
         constructor(
           aggregateId: EntityId,
           aggregateVersion: number,
-          tenantId: string,
+          tenantId: EntityId,
           eventVersion: number
         ) {
           super(aggregateId, aggregateVersion, tenantId, eventVersion);

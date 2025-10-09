@@ -9,8 +9,8 @@
  */
 
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { CacheModule } from '@hl8/cache';
-import { LoggerModule } from '@hl8/logger';
+import { CacheModule, CacheService } from '@hl8/cache';
+import { LoggerModule, PinoLogger } from '@hl8/logger';
 
 import { CacheAdapter } from './cache.adapter';
 import { CacheFactory } from './cache.factory';
@@ -60,7 +60,17 @@ export class CacheAdaptersModule {
 
     // 添加管理组件
     providers.push(CacheFactory);
-    providers.push(CacheManager);
+    providers.push({
+      provide: CacheManager,
+      useFactory: (cacheService, logger, cacheFactory) => {
+        return new CacheManager(cacheService, logger, cacheFactory, {
+          enableAutoCleanup: options.enableAutoCleanup,
+          enableHealthCheck: options.enableHealthCheck,
+          enableStatistics: options.enableStatistics,
+        });
+      },
+      inject: [CacheService, PinoLogger, CacheFactory],
+    });
 
     // 根据选项动态添加提供者
     if (options.enableCache !== false) {
@@ -89,7 +99,17 @@ export class CacheAdaptersModule {
 
     // 添加管理组件
     providers.push(CacheFactory);
-    providers.push(CacheManager);
+    providers.push({
+      provide: CacheManager,
+      useFactory: (cacheService, logger, cacheFactory) => {
+        return new CacheManager(cacheService, logger, cacheFactory, {
+          enableAutoCleanup: options.enableAutoCleanup,
+          enableHealthCheck: options.enableHealthCheck,
+          enableStatistics: options.enableStatistics,
+        });
+      },
+      inject: [CacheService, PinoLogger, CacheFactory],
+    });
 
     // 根据选项动态添加提供者
     if (options.enableCache !== false) {

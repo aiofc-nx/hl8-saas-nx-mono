@@ -40,6 +40,7 @@ import { BaseDomainEvent } from '../../../domain/events/base/base-domain-event';
 import { ICommandHandler } from '../commands/base/command-handler.interface';
 import { IQueryHandler } from '../queries/base/query-handler.interface';
 import { IEventHandler } from '../events/base/event-handler.interface';
+import { EntityId } from '../../../domain/value-objects/entity-id';
 
 /**
  * 消息处理上下文接口
@@ -51,9 +52,9 @@ export interface IMessageContext {
   messageId: string;
 
   /**
-   * 租户ID
+   * 租户ID（使用EntityId确保类型安全）
    */
-  tenantId: string;
+  tenantId: EntityId;
 
   /**
    * 用户ID

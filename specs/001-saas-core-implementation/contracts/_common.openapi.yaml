@@ -1,0 +1,223 @@
+# 通用API组件定义
+# 此文件包含所有API共享的通用组件，可被其他OpenAPI文件引用
+
+openapi: 3.0.3
+info:
+  title: Common API Components
+  version: 1.0.0
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT认证令牌
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 页码（从1开始）
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PageSize:
+      name: pageSize
+      in: query
+      description: 每页大小
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+    SortBy:
+      name: sortBy
+      in: query
+      description: 排序字段
+      schema:
+        type: string
+
+    SortOrder:
+      name: sortOrder
+      in: query
+      description: 排序方向
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+    Search:
+      name: search
+      in: query
+      description: 搜索关键词
+      schema:
+        type: string
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+        - timestamp
+      properties:
+        type:
+          type: string
+          format: uri
+          description: 错误类型URI（遵循RFC7807）
+          example: "https://docs.hl8.com/errors/bad-request"
+        title:
+          type: string
+          description: 错误标题
+          example: "Bad Request"
+        status:
+          type: integer
+          description: HTTP状态码
+          example: 400
+        detail:
+          type: string
+          description: 错误详情（支持中文和英文）
+          example: "租户代码只能包含小写字母和数字"
+        instance:
+          type: string
+          description: 请求路径
+          example: "/api/v1/tenants"
+        timestamp:
+          type: string
+          format: date-time
+          description: 错误发生时间
+        tenantId:
+          type: string
+          format: uuid
+          description: 租户ID（多租户场景）
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          description: 额外的错误元数据
+          nullable: true
+
+    PaginationMeta:
+      type: object
+      required:
+        - total
+        - page
+        - pageSize
+        - totalPages
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+          example: 100
+        page:
+          type: integer
+          description: 当前页码
+          example: 1
+        pageSize:
+          type: integer
+          description: 每页大小
+          example: 20
+        totalPages:
+          type: integer
+          description: 总页数
+          example: 5
+        hasNextPage:
+          type: boolean
+          description: 是否有下一页
+          example: true
+        hasPreviousPage:
+          type: boolean
+          description: 是否有上一页
+          example: false
+
+  responses:
+    BadRequest:
+      description: 请求参数错误（400）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/bad-request"
+            title: "Bad Request"
+            status: 400
+            detail: "请求参数验证失败"
+            instance: "/api/v1/resource"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    Unauthorized:
+      description: 未认证（401）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "未提供认证令牌或令牌无效"
+            instance: "/api/v1/resource"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    Forbidden:
+      description: 无权限访问（403）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/forbidden"
+            title: "Forbidden"
+            status: 403
+            detail: "您没有权限执行此操作"
+            instance: "/api/v1/resource"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    NotFound:
+      description: 资源未找到（404）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/not-found"
+            title: "Not Found"
+            status: 404
+            detail: "资源未找到"
+            instance: "/api/v1/resource/123"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    Conflict:
+      description: 资源冲突（409）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/conflict"
+            title: "Conflict"
+            status: 409
+            detail: "资源已存在或存在冲突"
+            instance: "/api/v1/resource"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    InternalServerError:
+      description: 服务器内部错误（500）
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "服务器内部错误，请稍后重试"
+            instance: "/api/v1/resource"
+            timestamp: "2025-10-08T10:00:00Z"

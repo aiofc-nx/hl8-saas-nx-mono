@@ -222,20 +222,20 @@ export class DepartmentLevel extends BaseValueObject {
    *
    * @returns {string}
    */
-  public toString(): string {
+  public override toString(): string {
     return `LEVEL_${this.level}`;
   }
 
   /**
    * 转换为JSON
    *
-   * @returns {number}
+   * @returns {Record<string, unknown>}
    */
-  public toJSON(): number {
-    return this.level;
+  public override toJSON(): Record<string, unknown> {
+    return { level: this.level };
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof DepartmentLevel)) {
       return false;
     }

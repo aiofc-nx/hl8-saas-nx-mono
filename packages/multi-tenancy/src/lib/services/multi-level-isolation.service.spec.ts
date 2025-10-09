@@ -15,7 +15,7 @@ import {
   IMultiTenancyModuleOptions,
   IMultiLevelContext,
   IMultiLevelIsolationConfig,
-} from '../types/tenant-core.types';
+} from '../types/tenant-context.types';
 import { DI_TOKENS } from '../constants';
 import { TenantConfigInvalidException } from '../exceptions';
 

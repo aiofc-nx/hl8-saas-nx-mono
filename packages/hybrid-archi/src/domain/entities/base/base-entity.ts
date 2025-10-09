@@ -60,7 +60,7 @@
  *   EntityId.generate(),
  *   '张三',
  *   'zhangsan@example.com',
- *   { createdBy: 'system', tenantId: 'tenant-123' }
+ *   { createdBy: 'system', tenantId: EntityId.fromString('tenant-123') }
  * );
  *
  * // 更新用户信息
@@ -152,7 +152,7 @@ export abstract class BaseEntity implements IEntity {
    *
    * @returns 租户标识符
    */
-  public get tenantId(): string {
+  public get tenantId(): EntityId {
     return this._auditInfo.tenantId;
   }
 
@@ -392,7 +392,10 @@ export abstract class BaseEntity implements IEntity {
     return {
       id: this._id.toString(),
       type: this.constructor.name,
-      auditInfo: this._auditInfo,
+      auditInfo: {
+        ...this._auditInfo,
+        tenantId: this._auditInfo.tenantId.toString(),
+      },
     };
   }
 
@@ -442,7 +445,7 @@ export abstract class BaseEntity implements IEntity {
       createdAt: this._auditInfo.createdAt,
       updatedAt: this._auditInfo.updatedAt,
       version: this._auditInfo.version,
-      tenantId: this._auditInfo.tenantId,
+      tenantId: this._auditInfo.tenantId.toString(), // 序列化为string
       isDeleted: this._auditInfo.deletedAt !== null,
     };
   }
@@ -487,7 +490,8 @@ export abstract class BaseEntity implements IEntity {
       // 如果存在多租户上下文，优先使用上下文中的信息
       const tenantContext = this.getTenantContext();
       if (tenantContext) {
-        tenantId = tenantContext.tenantId;
+        // 从上下文获取tenantId（现在是EntityId类型）
+        tenantId = EntityId.fromString(tenantContext.tenantId.toString());
         createdBy = tenantContext.userId || createdBy;
       }
     } catch (error) {
@@ -505,7 +509,7 @@ export abstract class BaseEntity implements IEntity {
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
-      tenantId: tenantId !== undefined ? tenantId : 'default',
+      tenantId: tenantId !== undefined ? tenantId : EntityId.generate(),
       version: partialAuditInfo.version || 1,
       lastOperation: partialAuditInfo.lastOperation || ENTITY_OPERATIONS.CREATE,
       lastOperationIp: partialAuditInfo.lastOperationIp || null,
@@ -580,14 +584,14 @@ export abstract class BaseEntity implements IEntity {
       );
     }
 
-    if (!this._auditInfo.tenantId || this._auditInfo.tenantId.trim() === '') {
+    if (!this._auditInfo.tenantId || !this._auditInfo.tenantId.value || this._auditInfo.tenantId.value.trim() === '') {
       throw new GeneralBadRequestException(
         'Entity validation failed',
         'Tenant ID cannot be null or empty',
         {
           entityType: this.constructor.name,
           entityId: this._id.toString(),
-          tenantId: this._auditInfo.tenantId,
+          tenantId: this._auditInfo.tenantId?.toString() || 'null',
           validationError: ENTITY_ERROR_CODES.TENANT_VALIDATION_ERROR,
         }
       );
@@ -620,7 +624,7 @@ export abstract class BaseEntity implements IEntity {
     this.logger.info(`Entity ${operation}`, {
       entityId: this._id.toString(),
       entityType: this.constructor.name,
-      tenantId: this._auditInfo.tenantId,
+      tenantId: this._auditInfo.tenantId.toString(),
       operation,
       details,
     });
@@ -642,7 +646,7 @@ export abstract class BaseEntity implements IEntity {
     this.logger.error(`Entity ${operation} failed`, {
       entityId: this._id.toString(),
       entityType: this.constructor.name,
-      tenantId: this._auditInfo.tenantId,
+      tenantId: this._auditInfo.tenantId.toString(),
       operation,
       error: error.message,
       stack: error.stack,
@@ -666,7 +670,7 @@ export abstract class BaseEntity implements IEntity {
     throw new GeneralBadRequestException('Entity validation failed', message, {
       entityType: this.constructor.name,
       entityId: this._id.toString(),
-      tenantId: this._auditInfo.tenantId,
+      tenantId: this._auditInfo.tenantId.toString(),
       validationError,
       ...details,
     });
@@ -691,7 +695,7 @@ export abstract class BaseEntity implements IEntity {
       {
         entityType: this.constructor.name,
         entityId: this._id.toString(),
-        tenantId: this._auditInfo.tenantId,
+        tenantId: this._auditInfo.tenantId.toString(),
         operation,
         ...details,
       }

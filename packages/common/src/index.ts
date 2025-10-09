@@ -105,6 +105,9 @@
 // 常量导出
 export * from './constants';
 
+// 值对象导出
+export * from './value-objects';
+
 // 类型定义导出
 export * from './types/shared-types';
 

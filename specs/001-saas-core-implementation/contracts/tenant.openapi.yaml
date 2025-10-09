@@ -1,0 +1,845 @@
+openapi: 3.0.3
+info:
+  title: Tenant Management API
+  description: 租户管理API - SAAS Core 核心业务模块
+  version: 1.0.0
+  contact:
+    name: SAAS Platform Team
+    email: support@hl8.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: 开发环境
+  - url: https://api-staging.hl8.com/api/v1
+    description: 测试环境
+  - url: https://api.hl8.com/api/v1
+    description: 生产环境
+
+tags:
+  - name: Tenants
+    description: 租户管理
+
+security:
+  - BearerAuth: []
+
+paths:
+  /tenants:
+    post:
+      summary: 创建租户
+      description: 创建新租户，包含租户基本信息、类型、域名等
+      tags:
+        - Tenants
+      operationId: createTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTenantRequest"
+            examples:
+              free:
+                summary: 创建免费租户
+                value:
+                  code: "demo001"
+                  name: "演示租户"
+                  type: "FREE"
+                  domain: "demo001.hl8.com"
+              enterprise:
+                summary: 创建企业租户
+                value:
+                  code: "enterprise001"
+                  name: "企业A"
+                  type: "ENTERPRISE"
+                  domain: "enterprise001.hl8.com"
+      responses:
+        "201":
+          description: 租户创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: 租户代码或域名冲突
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                type: "https://docs.hl8.com/errors/conflict"
+                title: "Conflict"
+                status: 409
+                detail: "租户代码已存在"
+                instance: "/api/v1/tenants"
+                timestamp: "2025-10-08T10:00:00Z"
+                metadata:
+                  field: "code"
+                  value: "demo001"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      summary: 查询租户列表
+      description: 分页查询租户列表，支持按类型、状态筛选
+      tags:
+        - Tenants
+      operationId: listTenants
+      parameters:
+        - name: page
+          in: query
+          description: 页码（从1开始）
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页大小
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          description: 租户类型筛选
+          schema:
+            $ref: "#/components/schemas/TenantType"
+        - name: status
+          in: query
+          description: 租户状态筛选
+          schema:
+            $ref: "#/components/schemas/TenantStatus"
+        - name: search
+          in: query
+          description: 搜索关键词（匹配代码或名称）
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: 排序字段
+          schema:
+            type: string
+            enum: [createdAt, updatedAt, name, code]
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: 排序方向
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: 租户列表查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}:
+    get:
+      summary: 查询租户详情
+      description: 根据租户ID查询租户的详细信息
+      tags:
+        - Tenants
+      operationId: getTenantById
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: 租户详情查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantDetailResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      summary: 更新租户信息
+      description: 部分更新租户信息（名称、描述等）
+      tags:
+        - Tenants
+      operationId: updateTenant
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenantRequest"
+      responses:
+        "200":
+          description: 租户更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      summary: 删除租户
+      description: 软删除租户，数据保留30天
+      tags:
+        - Tenants
+      operationId: deleteTenant
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "204":
+          description: 租户删除成功
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}/activate:
+    post:
+      summary: 激活租户
+      description: 将试用租户激活为正式租户
+      tags:
+        - Tenants
+      operationId: activateTenant
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: 租户激活成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}/suspend:
+    post:
+      summary: 暂停租户
+      description: 暂停租户服务，用户无法登录
+      tags:
+        - Tenants
+      operationId: suspendTenant
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: 暂停原因
+                  minLength: 1
+                  maxLength: 500
+      responses:
+        "200":
+          description: 租户暂停成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}/upgrade:
+    post:
+      summary: 升级租户
+      description: 升级租户类型（如从FREE升级到BASIC）
+      tags:
+        - Tenants
+      operationId: upgradeTenant
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - targetType
+              properties:
+                targetType:
+                  $ref: "#/components/schemas/TenantType"
+                  description: 目标租户类型
+      responses:
+        "200":
+          description: 租户升级成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResponse"
+        "400":
+          description: 无效的升级路径
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}/configuration:
+    get:
+      summary: 查询租户配置
+      description: 查询租户的资源配置和配额信息
+      tags:
+        - Tenants
+      operationId: getTenantConfiguration
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: 租户配置查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantConfigurationResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      summary: 更新租户配置
+      description: 更新租户的资源配额（仅限平台管理员）
+      tags:
+        - Tenants
+      operationId: updateTenantConfiguration
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenantConfigurationRequest"
+      responses:
+        "200":
+          description: 租户配置更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantConfigurationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /tenants/{tenantId}/usage:
+    get:
+      summary: 查询租户资源使用情况
+      description: 查询租户当前的资源使用情况（用户数、存储空间等）
+      tags:
+        - Tenants
+      operationId: getTenantUsage
+      parameters:
+        - $ref: "#/components/parameters/TenantId"
+      responses:
+        "200":
+          description: 租户使用情况查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantUsageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      description: 租户唯一标识
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    TenantType:
+      type: string
+      enum:
+        - FREE
+        - BASIC
+        - PROFESSIONAL
+        - ENTERPRISE
+        - CUSTOM
+      description: |
+        租户类型：
+        - FREE: 免费版
+        - BASIC: 基础版
+        - PROFESSIONAL: 专业版
+        - ENTERPRISE: 企业版
+        - CUSTOM: 定制版
+
+    TenantStatus:
+      type: string
+      enum:
+        - TRIAL
+        - ACTIVE
+        - SUSPENDED
+        - EXPIRED
+        - DELETED
+      description: |
+        租户状态：
+        - TRIAL: 试用中
+        - ACTIVE: 活跃
+        - SUSPENDED: 暂停
+        - EXPIRED: 过期
+        - DELETED: 已删除
+
+    CreateTenantRequest:
+      type: object
+      required:
+        - code
+        - name
+        - type
+        - domain
+      properties:
+        code:
+          type: string
+          minLength: 3
+          maxLength: 20
+          pattern: "^[a-z0-9]+$"
+          description: 租户代码（全局唯一，小写字母+数字）
+          example: "demo001"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: 租户名称
+          example: "演示租户"
+        type:
+          $ref: "#/components/schemas/TenantType"
+        domain:
+          type: string
+          format: hostname
+          description: 租户域名（全局唯一）
+          example: "demo001.hl8.com"
+
+    UpdateTenantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: 租户名称
+          example: "新租户名称"
+
+    TenantResponse:
+      type: object
+      required:
+        - id
+        - code
+        - name
+        - type
+        - status
+        - domain
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 租户唯一标识
+        code:
+          type: string
+          description: 租户代码
+          example: "demo001"
+        name:
+          type: string
+          description: 租户名称
+          example: "演示租户"
+        type:
+          $ref: "#/components/schemas/TenantType"
+        status:
+          $ref: "#/components/schemas/TenantStatus"
+        domain:
+          type: string
+          description: 租户域名
+          example: "demo001.hl8.com"
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+        trialEndsAt:
+          type: string
+          format: date-time
+          description: 试用结束时间
+          nullable: true
+        activatedAt:
+          type: string
+          format: date-time
+          description: 激活时间
+          nullable: true
+
+    TenantDetailResponse:
+      allOf:
+        - $ref: "#/components/schemas/TenantResponse"
+        - type: object
+          properties:
+            configuration:
+              $ref: "#/components/schemas/TenantConfigurationResponse"
+            usage:
+              $ref: "#/components/schemas/TenantUsageResponse"
+
+    TenantListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - pageSize
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantResponse"
+        total:
+          type: integer
+          description: 总记录数
+          example: 100
+        page:
+          type: integer
+          description: 当前页码
+          example: 1
+        pageSize:
+          type: integer
+          description: 每页大小
+          example: 20
+        totalPages:
+          type: integer
+          description: 总页数
+          example: 5
+
+    TenantConfigurationResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - maxUsers
+        - maxStorageMB
+        - maxOrganizations
+        - maxDepartmentLevels
+        - maxApiCallsPerDay
+        - enabledFeatures
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 配置ID
+        tenantId:
+          type: string
+          format: uuid
+          description: 租户ID
+        maxUsers:
+          type: integer
+          description: 最大用户数
+          example: 50
+        maxStorageMB:
+          type: integer
+          description: 最大存储空间（MB）
+          example: 1024
+        maxOrganizations:
+          type: integer
+          description: 最大组织数
+          example: 2
+        maxDepartmentLevels:
+          type: integer
+          description: 最大部门层级
+          example: 7
+        maxApiCallsPerDay:
+          type: integer
+          description: 每日API调用限制
+          example: 10000
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+          description: 启用的功能列表
+          example: ["user_management", "organization_management"]
+        customSettings:
+          type: object
+          additionalProperties: true
+          description: 自定义配置
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    UpdateTenantConfigurationRequest:
+      type: object
+      properties:
+        maxUsers:
+          type: integer
+          minimum: 1
+          description: 最大用户数
+        maxStorageMB:
+          type: integer
+          minimum: 1
+          description: 最大存储空间（MB）
+        maxOrganizations:
+          type: integer
+          minimum: 1
+          description: 最大组织数
+        maxDepartmentLevels:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: 最大部门层级
+        maxApiCallsPerDay:
+          type: integer
+          minimum: 1
+          description: 每日API调用限制
+        enabledFeatures:
+          type: array
+          items:
+            type: string
+          description: 启用的功能列表
+        customSettings:
+          type: object
+          additionalProperties: true
+          description: 自定义配置
+
+    TenantUsageResponse:
+      type: object
+      required:
+        - tenantId
+        - userCount
+        - storageUsedMB
+        - organizationCount
+        - apiCallsToday
+        - updatedAt
+      properties:
+        tenantId:
+          type: string
+          format: uuid
+          description: 租户ID
+        userCount:
+          type: integer
+          description: 当前用户数
+          example: 45
+        storageUsedMB:
+          type: integer
+          description: 已使用存储空间（MB）
+          example: 512
+        organizationCount:
+          type: integer
+          description: 当前组织数
+          example: 1
+        apiCallsToday:
+          type: integer
+          description: 今日API调用次数
+          example: 5000
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    ErrorResponse:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - instance
+        - timestamp
+      properties:
+        type:
+          type: string
+          format: uri
+          description: 错误类型URI
+          example: "https://docs.hl8.com/errors/bad-request"
+        title:
+          type: string
+          description: 错误标题
+          example: "Bad Request"
+        status:
+          type: integer
+          description: HTTP状态码
+          example: 400
+        detail:
+          type: string
+          description: 错误详情
+          example: "租户代码只能包含小写字母和数字"
+        instance:
+          type: string
+          description: 请求路径
+          example: "/api/v1/tenants"
+        timestamp:
+          type: string
+          format: date-time
+          description: 错误发生时间
+        metadata:
+          type: object
+          additionalProperties: true
+          description: 额外的错误元数据
+          nullable: true
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/bad-request"
+            title: "Bad Request"
+            status: 400
+            detail: "请求参数验证失败"
+            instance: "/api/v1/tenants"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    Unauthorized:
+      description: 未认证
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "未提供认证令牌或令牌无效"
+            instance: "/api/v1/tenants"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    Forbidden:
+      description: 无权限访问
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/forbidden"
+            title: "Forbidden"
+            status: 403
+            detail: "您没有权限执行此操作"
+            instance: "/api/v1/tenants"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    NotFound:
+      description: 资源未找到
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/not-found"
+            title: "Not Found"
+            status: 404
+            detail: "租户未找到"
+            instance: "/api/v1/tenants/123"
+            timestamp: "2025-10-08T10:00:00Z"
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            type: "https://docs.hl8.com/errors/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "服务器内部错误，请稍后重试"
+            instance: "/api/v1/tenants"
+            timestamp: "2025-10-08T10:00:00Z"

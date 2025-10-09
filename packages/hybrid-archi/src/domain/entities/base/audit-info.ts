@@ -26,12 +26,14 @@
  *
  * ### 多租户规则
  * - 租户标识符必须记录
- * - 租户信息不可为空
+ * - 租户信息不可为空（EntityId类型）
  * - 支持跨租户的审计追踪
  *
  * @description 实体审计信息接口，提供完整的生命周期追踪
  * @example
  * ```typescript
+ * import { EntityId } from '../../value-objects/entity-id';
+ * 
  * const auditInfo: AuditInfo = {
  *   createdBy: 'user-123',
  *   updatedBy: 'user-123',
@@ -39,7 +41,7 @@
  *   createdAt: new Date('2024-01-01T00:00:00Z'),
  *   updatedAt: new Date('2024-01-01T00:00:00Z'),
  *   deletedAt: null,
- *   tenantId: 'tenant-456',
+ *   tenantId: EntityId.fromString('tenant-456'),
  *   version: 1,
  *   lastOperation: 'CREATE',
  *   lastOperationIp: '192.168.1.1',
@@ -51,6 +53,8 @@
  *
  * @since 1.0.0
  */
+import { EntityId } from '../../value-objects/entity-id';
+
 export interface IAuditInfo {
   /**
    * 创建者标识符
@@ -117,9 +121,9 @@ export interface IAuditInfo {
    * 记录实体所属的租户标识符。
    * 支持多租户架构的数据隔离。
    *
-   * @description 租户标识符，支持多租户架构
+   * @description 租户标识符，支持多租户架构，使用EntityId类型确保类型安全
    */
-  tenantId: string;
+  tenantId: EntityId;
 
   /**
    * 版本号
@@ -205,7 +209,7 @@ export interface IPartialAuditInfo {
   /**
    * 租户标识符
    */
-  tenantId?: string;
+  tenantId?: EntityId;
 
   /**
    * 版本号
@@ -277,7 +281,7 @@ export class AuditInfoBuilder {
    * @param tenantId - 租户标识符
    * @returns 构建器实例
    */
-  public withTenantId(tenantId: string): AuditInfoBuilder {
+  public withTenantId(tenantId: EntityId): AuditInfoBuilder {
     this.auditInfo.tenantId = tenantId;
     return this;
   }
@@ -352,7 +356,7 @@ export class AuditInfoBuilder {
       tenantId:
         this.auditInfo.tenantId !== undefined
           ? this.auditInfo.tenantId
-          : 'default',
+          : EntityId.generate(),
       version:
         this.auditInfo.version !== undefined ? this.auditInfo.version : 1,
       lastOperation: this.auditInfo.lastOperation || 'CREATE',

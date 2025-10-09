@@ -22,7 +22,7 @@ class TestSagaEvent extends BaseDomainEvent {
   constructor(
     aggregateId: EntityId,
     aggregateVersion: number,
-    tenantId: string,
+    tenantId: EntityId,
     public readonly data: { orderId: string }
   ) {
     super(aggregateId, aggregateVersion, tenantId);
