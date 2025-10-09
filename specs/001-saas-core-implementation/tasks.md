@@ -172,15 +172,15 @@
 
 ### 领域层 - User 子领域
 
-- [ ] T074 [P] [US2] 创建 User 实体（packages/saas-core/src/domain/user/entities/user.entity.ts）
-- [ ] T075 [P] [US2] 创建 User 实体单元测试（packages/saas-core/src/domain/user/entities/user.entity.spec.ts）
-- [ ] T076 [P] [US2] 创建 UserProfile 实体（packages/saas-core/src/domain/user/entities/user-profile.entity.ts）
-- [ ] T077 [P] [US2] 创建 UserCredentials 实体（packages/saas-core/src/domain/user/entities/user-credentials.entity.ts）
-- [ ] T078 [US2] 创建 UserAggregate 聚合根（packages/saas-core/src/domain/user/aggregates/user.aggregate.ts）
-- [ ] T079 [US2] 创建 UserAggregate 单元测试（packages/saas-core/src/domain/user/aggregates/user.aggregate.spec.ts）
-- [ ] T080 [P] [US2] 创建用户领域事件（packages/saas-core/src/domain/user/events/）
+- [X] T074 [P] [US2] 创建 User 实体（packages/saas-core/src/domain/user/entities/user.entity.ts）
+- [X] T075 [P] [US2] 创建 User 实体单元测试（packages/saas-core/src/domain/user/entities/user.entity.spec.ts）
+- [X] T076 [P] [US2] 创建 UserProfile 实体（packages/saas-core/src/domain/user/entities/user-profile.entity.ts）
+- [X] T077 [P] [US2] 创建 UserCredentials 实体（packages/saas-core/src/domain/user/entities/user-credentials.entity.ts）
+- [X] T078 [US2] 创建 UserAggregate 聚合根（packages/saas-core/src/domain/user/aggregates/user.aggregate.ts）
+- [X] T079 [US2] 创建 UserAggregate 单元测试（packages/saas-core/src/domain/user/aggregates/user.aggregate.spec.ts）
+- [X] T080 [P] [US2] 创建用户领域事件（packages/saas-core/src/domain/user/events/）
   - UserRegisteredEvent, UserActivatedEvent, UserDisabledEvent, UserPasswordChangedEvent, UserLoginEvent
-- [ ] T081 [P] [US2] 创建用户仓储接口（packages/saas-core/src/domain/user/repositories/user-aggregate.repository.interface.ts）
+- [X] T081 [P] [US2] 创建用户仓储接口（packages/saas-core/src/domain/user/repositories/user-aggregate.repository.interface.ts）
 
 ### 应用层 - User 用例
 
