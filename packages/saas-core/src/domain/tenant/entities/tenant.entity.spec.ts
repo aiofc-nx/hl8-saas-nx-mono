@@ -33,11 +33,11 @@ describe('Tenant Entity', () => {
         { createdBy: 'system' },
       );
 
-      expect(tenant.getId()).toEqual(tenantId);
+      expect(tenant.id).toEqual(tenantId);
       expect(tenant.getCode()).toEqual(tenantCode);
       expect(tenant.getName()).toBe('Test Corporation');
       expect(tenant.getType()).toBe(TenantType.FREE);
-      expect(tenant.getStatus()).toBe(TenantStatus.TRIAL);
+      expect(tenant.getStatus()).toBe(TenantStatus.PENDING);
       expect(tenant.isTrial()).toBe(true);
       expect(tenant.getTrialEndsAt()).not.toBeNull();
     });
@@ -268,7 +268,7 @@ describe('Tenant Entity', () => {
       expect(obj).toHaveProperty('code', 'testcorp2024');
       expect(obj).toHaveProperty('name', 'Test Corp');
       expect(obj).toHaveProperty('type', TenantType.FREE);
-      expect(obj).toHaveProperty('status', TenantStatus.TRIAL);
+      expect(obj).toHaveProperty('status', TenantStatus.PENDING);
     });
   });
 });

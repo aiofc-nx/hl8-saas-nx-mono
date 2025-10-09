@@ -35,11 +35,11 @@ describe('TenantAggregate', () => {
       );
 
       expect(aggregate).toBeDefined();
-      expect(aggregate.getId()).toEqual(aggregateId);
+      expect(aggregate.id).toEqual(aggregateId);
       expect(aggregate.getCode()).toEqual(tenantCode);
       expect(aggregate.getName()).toBe('Test Corporation');
       expect(aggregate.getType()).toBe(TenantType.FREE);
-      expect(aggregate.getStatus()).toBe(TenantStatus.TRIAL);
+      expect(aggregate.getStatus()).toBe(TenantStatus.PENDING);
     });
 
     it('应该为免费租户设置正确的默认配额', () => {

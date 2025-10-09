@@ -37,7 +37,7 @@
  *   TenantCode.create('acme2024'),
  *   'Acme Corporation',
  *   TenantDomain.create('acme.example.com'),
- *   TenantStatus.TRIAL,
+ *   TenantStatus.PENDING,
  *   { createdBy: 'system' }
  * );
  *
@@ -120,7 +120,7 @@ export class Tenant extends BaseEntity {
     auditInfo: IPartialAuditInfo,
   ): Tenant {
     // 新租户默认为试用状态
-    const status = TenantStatus.TRIAL;
+    const status = TenantStatus.PENDING;
     
     // 如果是试用状态，设置试用结束时间（30天后）
     const trialEndsAt = new Date();
@@ -380,7 +380,7 @@ export class Tenant extends BaseEntity {
    * @returns {boolean}
    */
   public isTrial(): boolean {
-    return this._status === TenantStatus.TRIAL;
+    return this._status === TenantStatus.PENDING;
   }
 
   /**

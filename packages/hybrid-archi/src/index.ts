@@ -66,6 +66,10 @@ export {
   IDomainService,
 } from './domain';
 
+// 审计信息类型
+export type { IAuditInfo, IPartialAuditInfo } from './domain/entities/base/audit-info';
+export { AuditInfoBuilder } from './domain/entities/base/audit-info';
+
 // 仓储接口导出
 export {
   // 基础仓储接口

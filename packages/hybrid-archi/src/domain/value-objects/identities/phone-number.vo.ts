@@ -5,7 +5,7 @@
  * @since 1.0.0
  */
 
-import { BaseValueObject } from '../../entities/base/base-value-object';
+import { BaseValueObject } from '../base-value-object';
 
 export class PhoneNumber extends BaseValueObject {
   get value(): string {

@@ -73,7 +73,7 @@ export class Organization extends BaseEntity {
   }
 
   public deactivate(updatedBy?: string): void {
-    this._status = OrganizationStatus.INACTIVE;
+    this._status = OrganizationStatus.DISABLED;
     this.updateTimestamp();
   }
 
