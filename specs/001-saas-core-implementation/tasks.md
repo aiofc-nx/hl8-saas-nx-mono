@@ -125,16 +125,16 @@
 
 ### CQRS - Tenant 命令和查询
 
-- [ ] T051 [P] [US1] 创建创建租户命令（packages/saas-core/src/application/cqrs/commands/tenant/create-tenant.command.ts）
-- [ ] T052 [P] [US1] 创建创建租户命令处理器（packages/saas-core/src/application/cqrs/commands/tenant/create-tenant.handler.ts）
-- [ ] T053 [P] [US1] 创建升级租户命令（packages/saas-core/src/application/cqrs/commands/tenant/upgrade-tenant.command.ts）
-- [ ] T054 [P] [US1] 创建升级租户命令处理器（packages/saas-core/src/application/cqrs/commands/tenant/upgrade-tenant.handler.ts）
-- [ ] T055 [P] [US1] 创建获取租户查询（packages/saas-core/src/application/cqrs/queries/tenant/get-tenant.query.ts）
-- [ ] T056 [P] [US1] 创建获取租户查询处理器（packages/saas-core/src/application/cqrs/queries/tenant/get-tenant.handler.ts）
-- [ ] T057 [P] [US1] 创建列表租户查询（packages/saas-core/src/application/cqrs/queries/tenant/list-tenants.query.ts）
-- [ ] T058 [P] [US1] 创建列表租户查询处理器（packages/saas-core/src/application/cqrs/queries/tenant/list-tenants.handler.ts）
-- [ ] T059 [P] [US1] 创建租户创建事件处理器（packages/saas-core/src/application/cqrs/events/tenant/tenant-created.handler.ts）
-- [ ] T060 [P] [US1] 创建租户升级事件处理器（packages/saas-core/src/application/cqrs/events/tenant/tenant-upgraded.handler.ts）
+- [X] T051 [P] [US1] 创建创建租户命令（packages/saas-core/src/application/cqrs/commands/tenant/create-tenant.command.ts）
+- [X] T052 [P] [US1] 创建创建租户命令处理器（packages/saas-core/src/application/cqrs/commands/tenant/create-tenant.handler.ts）
+- [X] T053 [P] [US1] 创建升级租户命令（packages/saas-core/src/application/cqrs/commands/tenant/upgrade-tenant.command.ts）
+- [X] T054 [P] [US1] 创建升级租户命令处理器（packages/saas-core/src/application/cqrs/commands/tenant/upgrade-tenant.handler.ts）
+- [X] T055 [P] [US1] 创建获取租户查询（packages/saas-core/src/application/cqrs/queries/tenant/get-tenant.query.ts）
+- [X] T056 [P] [US1] 创建获取租户查询处理器（packages/saas-core/src/application/cqrs/queries/tenant/get-tenant.handler.ts）
+- [X] T057 [P] [US1] 创建列表租户查询（packages/saas-core/src/application/cqrs/queries/tenant/list-tenants.query.ts）
+- [X] T058 [P] [US1] 创建列表租户查询处理器（packages/saas-core/src/application/cqrs/queries/tenant/list-tenants.handler.ts）
+- [X] T059 [P] [US1] 创建租户创建事件处理器（packages/saas-core/src/application/cqrs/events/tenant/tenant-created.handler.ts）
+- [X] T060 [P] [US1] 创建租户升级事件处理器（packages/saas-core/src/application/cqrs/events/tenant/tenant-upgraded.handler.ts）
 
 ### 基础设施层 - Tenant 持久化
 
