@@ -49,6 +49,7 @@
 
 import { BaseValueObject } from '@hl8/hybrid-archi';
 import { TENANT_TYPE_QUOTAS } from '../../../constants/tenant.constants';
+import { TenantType } from './tenant-type.enum';
 
 /**
  * 租户配额属性
@@ -67,11 +68,6 @@ export interface ITenantQuotaProps {
   /** 每日API调用限制 */
   maxApiCallsPerDay: number;
 }
-
-/**
- * 租户类型枚举
- */
-export type TenantType = 'FREE' | 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE' | 'CUSTOM';
 
 /**
  * 租户配额值对象
@@ -197,13 +193,13 @@ export class TenantQuota extends BaseValueObject {
       throw new Error(`无效的租户类型: ${tenantType}`);
     }
 
-    return new TenantQuota({
-      maxUsers: quotaConfig.maxUsers,
-      maxStorageMB: quotaConfig.maxStorageMB,
-      maxOrganizations: quotaConfig.maxOrganizations,
-      maxDepartmentLevels: quotaConfig.maxDepartmentLevels,
-      maxApiCallsPerDay: quotaConfig.maxApiCallsPerDay,
-    });
+    return new TenantQuota(
+      quotaConfig.maxUsers,
+      quotaConfig.maxStorageMB,
+      quotaConfig.maxOrganizations,
+      quotaConfig.maxDepartmentLevels,
+      quotaConfig.maxApiCallsPerDay,
+    );
   }
 
   /**
@@ -325,11 +321,11 @@ export class TenantQuota extends BaseValueObject {
    *
    * @returns {ITenantQuotaProps} 配额属性对象
    */
-  public toJSON(): ITenantQuotaProps {
-    return this.toObject();
+  public override toJSON(): Record<string, unknown> {
+    return this.toObject() as unknown as Record<string, unknown>;
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof TenantQuota)) {
       return false;
     }

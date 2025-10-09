@@ -45,6 +45,7 @@ import { Module, DynamicModule, Global } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { CacheModule } from '@hl8/cache';
 import { TypedConfigModule, dotenvLoader } from '@hl8/config';
+import { CommandBus, QueryBus, EventBus } from '@hl8/hybrid-archi';
 import { SaasCoreConfig } from './config/saas-core.config';
 import { mikroOrmConfig } from './infrastructure/persistence/mikro-orm.config';
 import { EventStoreAdapter } from './infrastructure/event-sourcing/event-store.adapter';
@@ -120,7 +121,6 @@ export class SaasCoreModule {
           load: [
             dotenvLoader({
               separator: '__',
-              expandVariables: true,
             }),
           ],
           isGlobal: true,
@@ -152,6 +152,11 @@ export class SaasCoreModule {
         // 例如：TenantModule, UserModule, OrganizationModule 等
       ],
       providers: [
+        // CQRS 总线
+        CommandBus,
+        QueryBus,
+        EventBus,
+
         // 事件存储
         EventStoreAdapter,
 
@@ -169,7 +174,9 @@ export class SaasCoreModule {
       ],
       exports: [
         // 导出 CQRS 总线
-        CqrsModule,
+        CommandBus,
+        QueryBus,
+        EventBus,
 
         // 导出 MikroORM
         MikroOrmModule,
@@ -200,8 +207,8 @@ export class SaasCoreModule {
   static forFeature(): DynamicModule {
     return {
       module: SaasCoreModule,
-      imports: [CqrsModule],
-      exports: [CqrsModule],
+      providers: [CommandBus, QueryBus, EventBus],
+      exports: [CommandBus, QueryBus, EventBus],
     };
   }
 }

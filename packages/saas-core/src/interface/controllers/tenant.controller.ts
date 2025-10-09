@@ -33,7 +33,8 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@hl8/hybrid-archi';
+import { CommandBus, QueryBus, EntityId } from '@hl8/hybrid-archi';
+import { TenantAggregate } from '../../domain/tenant/aggregates/tenant.aggregate';
 import { CreateTenantDto } from '../dtos/tenant/create-tenant.dto';
 import { UpdateTenantDto } from '../dtos/tenant/update-tenant.dto';
 import { TenantResponseDto } from '../dtos/tenant/tenant-response.dto';
@@ -61,15 +62,17 @@ export class TenantController {
   async create(
     @Body() dto: CreateTenantDto,
   ): Promise<{ id: string }> {
+    // TODO: 从认证上下文获取 tenantId 和 userId
     const command = new CreateTenantCommand(
+      '', // tenantId - 创建租户时可为空
+      'system', // userId - TODO: 从认证上下文获取
       dto.code,
       dto.name,
       dto.domain,
       dto.type,
-      'system', // TODO: 从认证上下文获取当前用户ID
     );
 
-    const tenantId = await this.commandBus.execute(command);
+    const tenantId = await this.commandBus.execute(command) as unknown as EntityId;
     return { id: tenantId.toString() };
   }
 
@@ -81,7 +84,8 @@ export class TenantController {
    */
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<TenantResponseDto> {
-    const query = new GetTenantQuery(id);
+    // TODO: 从认证上下文获取 tenantId 和 userId
+    const query = new GetTenantQuery('', 'system', id);
     const aggregate = await this.queryBus.execute(query);
 
     if (!aggregate) {
@@ -103,15 +107,15 @@ export class TenantController {
     @Query('page') page = 1,
     @Query('pageSize') pageSize = 20,
   ): Promise<TenantListResponseDto> {
-    const offset = (page - 1) * pageSize;
-    const query = new ListTenantsQuery(offset, pageSize);
+    // TODO: 从认证上下文获取 tenantId 和 userId
+    const query = new ListTenantsQuery('', 'system', page, pageSize);
     const aggregates = await this.queryBus.execute(query);
 
     // TODO: 获取总数
-    const total = aggregates.length;
+    const total = (aggregates as any).length;
 
     return TenantListResponseDto.fromAggregates(
-      aggregates,
+      aggregates as unknown as TenantAggregate[],
       total,
       page,
       pageSize,
@@ -159,10 +163,12 @@ export class TenantController {
     @Param('id') id: string,
     @Body() body: { type: string },
   ): Promise<void> {
+    // TODO: 从认证上下文获取 tenantId 和 userId
     const command = new UpgradeTenantCommand(
-      id,
-      body.type as any,
-      'system', // TODO: 从认证上下文获取
+      '', // tenantId - TODO: 从上下文获取
+      'system', // userId - TODO: 从认证上下文获取
+      id, // targetTenantId
+      body.type as any, // targetType
     );
 
     await this.commandBus.execute(command);

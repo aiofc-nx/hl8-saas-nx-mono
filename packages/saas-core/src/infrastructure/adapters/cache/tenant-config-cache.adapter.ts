@@ -48,7 +48,7 @@ export class TenantConfigCacheAdapter {
    * @param {string} tenantId - 租户ID
    * @returns {Promise<ITenantConfig | null>} 租户配置
    */
-  @Cacheable('tenant:config', TENANT_CACHE_CONFIG.TTL)
+  @Cacheable('tenant:config', TENANT_CACHE_CONFIG.CONFIG_TTL)
   async get(tenantId: string): Promise<ITenantConfig | null> {
     const key = this.getCacheKey(tenantId);
     return await this.cacheService.get<ITenantConfig>(key);
@@ -64,7 +64,7 @@ export class TenantConfigCacheAdapter {
    */
   async set(tenantId: string, config: ITenantConfig): Promise<void> {
     const key = this.getCacheKey(tenantId);
-    await this.cacheService.set(key, config, TENANT_CACHE_CONFIG.TTL);
+    await this.cacheService.set(key, config, TENANT_CACHE_CONFIG.CONFIG_TTL);
   }
 
   /**
@@ -89,6 +89,7 @@ export class TenantConfigCacheAdapter {
    */
   async invalidateMany(tenantIds: string[]): Promise<void> {
     const keys = tenantIds.map(id => this.getCacheKey(id));
-    await this.cacheService.deleteMany(keys);
+    // 逐个删除缓存（CacheService 不提供 deleteMany 方法）
+    await Promise.all(keys.map(key => this.cacheService.delete(key)));
   }
 }

@@ -299,7 +299,7 @@ export class TenantConfiguration extends BaseEntity {
    *
    * @private
    */
-  private validate(): void {
+  protected override validate(): void {
     // 配额由值对象保证有效性
     // enabledFeatures 可以为空数组
     // customSettings 可以为空对象

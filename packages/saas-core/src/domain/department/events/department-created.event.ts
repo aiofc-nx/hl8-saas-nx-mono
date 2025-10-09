@@ -10,5 +10,9 @@ export class DepartmentCreatedEvent extends BaseDomainEvent {
   ) {
     super(aggregateId, version, tenantId);
   }
+
+  get eventType(): string {
+    return 'DepartmentCreated';
+  }
 }
 

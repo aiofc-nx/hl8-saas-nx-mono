@@ -105,15 +105,15 @@ export class RoleLevel extends BaseValueObject {
     return this.getPriority() <= otherLevel.getPriority();
   }
 
-  public toString(): string {
+  public override toString(): string {
     return this.value;
   }
 
-  public toJSON(): RoleLevelValue {
-    return this.value;
+  public override toJSON(): Record<string, unknown> {
+    return { value: this.value };
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof RoleLevel)) {
       return false;
     }

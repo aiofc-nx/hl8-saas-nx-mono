@@ -30,7 +30,6 @@
 
 import { Options } from '@mikro-orm/core';
 import { PostgreSqlDriver } from '@mikro-orm/postgresql';
-import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
 import { Migrator } from '@mikro-orm/migrations';
 import { join } from 'path';
 
@@ -50,18 +49,18 @@ const config: Options = {
   /**
    * 数据库连接配置
    */
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  dbName: process.env.DB_NAME || 'saas_core',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  host: process.env['DB_HOST'] || 'localhost',
+  port: parseInt(process.env['DB_PORT'] || '5432', 10),
+  dbName: process.env['DB_NAME'] || 'saas_core',
+  user: process.env['DB_USER'] || 'postgres',
+  password: process.env['DB_PASSWORD'] || 'postgres',
 
   /**
    * 连接池配置
    */
   pool: {
-    min: parseInt(process.env.DB_POOL_MIN || '2', 10),
-    max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+    min: parseInt(process.env['DB_POOL_MIN'] || '2', 10),
+    max: parseInt(process.env['DB_POOL_MAX'] || '10', 10),
   },
 
   /**
@@ -69,12 +68,6 @@ const config: Options = {
    */
   entities: ['./dist/packages/saas-core/src/infrastructure/persistence/entities/**/*.js'],
   entitiesTs: ['./packages/saas-core/src/infrastructure/persistence/entities/**/*.ts'],
-
-  /**
-   * 元数据提供器
-   * 使用 TsMorphMetadataProvider 支持 TypeScript 反射
-   */
-  metadataProvider: TsMorphMetadataProvider,
 
   /**
    * 迁移配置
@@ -91,7 +84,6 @@ const config: Options = {
     safe: true,
     snapshot: true,
     emit: 'ts',
-    generator: Migrator,
   },
 
   /**
@@ -102,24 +94,19 @@ const config: Options = {
      * 禁用外键约束（生产环境）
      * 多租户场景下使用应用层约束
      */
-    disableForeignKeys: process.env.NODE_ENV === 'production',
-
-    /**
-     * 创建数据库（仅开发环境）
-     */
-    createDatabase: process.env.NODE_ENV === 'development',
+    disableForeignKeys: process.env['NODE_ENV'] === 'production',
   },
 
   /**
    * 调试配置
    */
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env['NODE_ENV'] === 'development',
 
   /**
    * 日志配置
    */
   logger: (message: string) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.log('[MikroORM]', message);
     }
   },
@@ -134,7 +121,7 @@ const config: Options = {
    * 验证模式
    * 开发环境启用，确保实体定义正确
    */
-  validate: process.env.NODE_ENV === 'development',
+  validate: process.env['NODE_ENV'] === 'development',
 
   /**
    * 发现模式
@@ -147,13 +134,9 @@ const config: Options = {
   },
 
   /**
-   * 缓存配置
+   * 结果缓存配置（MikroORM 6.x 已移除 cache 配置）
+   * 需要使用 resultCache 选项
    */
-  cache: {
-    enabled: process.env.NODE_ENV === 'production',
-    pretty: process.env.NODE_ENV === 'development',
-    adapter: undefined, // 使用默认内存缓存，生产环境可配置 Redis
-  },
 
   /**
    * 全局过滤器
@@ -173,13 +156,13 @@ const config: Options = {
    * 类型安全
    */
   forceUtcTimezone: true,
-  ensureIndexes: process.env.NODE_ENV === 'development',
+  ensureIndexes: process.env['NODE_ENV'] === 'development',
 
   /**
    * 性能优化
    */
   implicitTransactions: true,
-  propagateToOneOwner: true,
+  // propagateToOneOwner: true, // MikroORM 6.x 已移除此选项
 };
 
 /**

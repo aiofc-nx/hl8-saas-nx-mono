@@ -15,5 +15,9 @@ export class UserActivatedEvent extends BaseDomainEvent {
   ) {
     super(aggregateId, version, tenantId);
   }
+
+  get eventType(): string {
+    return 'UserActivated';
+  }
 }
 

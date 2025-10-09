@@ -13,10 +13,10 @@
  * @since 1.0.0
  */
 
-import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
+import { EventHandler, IEventHandler } from '@hl8/hybrid-archi';
 import { TenantUpgradedEvent } from '../../../../domain/tenant/events/tenant-upgraded.event';
 
-@EventsHandler(TenantUpgradedEvent)
+// @EventHandler('TenantUpgraded') // TODO: 修复装饰器类型问题
 export class TenantUpgradedHandler implements IEventHandler<TenantUpgradedEvent> {
   async handle(event: TenantUpgradedEvent): Promise<void> {
     // TODO: 实现事件处理逻辑

@@ -11,6 +11,10 @@ export class OrganizationCreatedEvent extends BaseDomainEvent {
     super(aggregateId, version, tenantId);
   }
 
+  get eventType(): string {
+    return 'OrganizationCreated';
+  }
+
   public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),

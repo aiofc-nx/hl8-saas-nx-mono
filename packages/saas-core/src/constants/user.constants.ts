@@ -172,13 +172,14 @@ export const PHONE_VERIFICATION = {
  *
  * @constant
  */
-export const USER_STATUS_TRANSITIONS = {
-  PENDING: ['ACTIVE', 'DELETED'],
+export const USER_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
+  PENDING: ['ACTIVE', 'DELETED', 'REJECTED'],
   ACTIVE: ['DISABLED', 'LOCKED', 'EXPIRED', 'SUSPENDED', 'DELETED'],
   DISABLED: ['ACTIVE', 'DELETED'],
   LOCKED: ['ACTIVE', 'DISABLED', 'DELETED'],
   EXPIRED: ['ACTIVE', 'DELETED'],
   SUSPENDED: ['ACTIVE', 'DISABLED', 'DELETED'],
+  REJECTED: ['DELETED'], // 被拒绝的用户只能删除
   DELETED: [], // 已删除状态不可转换
 } as const;
 

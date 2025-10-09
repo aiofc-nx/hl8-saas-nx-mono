@@ -47,6 +47,10 @@ export {
   IQuery,
 } from './application';
 
+// CQRS 基类（使用别名避免与 CLI BaseCommand 冲突）
+export { BaseCommand as CqrsBaseCommand } from './application/cqrs/commands/base';
+export { BaseQuery as CqrsBaseQuery } from './application/cqrs/queries/base';
+
 // 通用应用层组件导出
 export * from './application/exceptions/common';
 export * from './application/interfaces/common';

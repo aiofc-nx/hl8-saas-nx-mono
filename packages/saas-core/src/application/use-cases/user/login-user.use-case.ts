@@ -50,7 +50,7 @@ export class LoginUserUseCase
 
     // TODO: 生成 JWT token
     return {
-      userId: aggregate.getId().toString(),
+      userId: aggregate.id.toString(),
       accessToken: 'mock-token',
     };
   }

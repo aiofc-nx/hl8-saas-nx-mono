@@ -5,7 +5,28 @@
  * @since 1.0.0
  */
 
-export class GetTenantQuery {
-  constructor(public readonly tenantId: string) {}
+import { CqrsBaseQuery } from '@hl8/hybrid-archi';
+
+export class GetTenantQuery extends CqrsBaseQuery {
+  constructor(
+    tenantId: string,
+    userId: string,
+    public readonly targetTenantId: string,
+  ) {
+    super(tenantId, userId);
+  }
+
+  get queryType(): string {
+    return 'GetTenantQuery';
+  }
+
+  protected createCopyWithSortRules(sortRules: any[]): this {
+    const copy = new GetTenantQuery(
+      this.tenantId,
+      this.userId,
+      this.targetTenantId,
+    );
+    return copy as this;
+  }
 }
 

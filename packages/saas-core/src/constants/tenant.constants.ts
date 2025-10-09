@@ -154,7 +154,7 @@ export const QUOTA_WARNING_THRESHOLDS = {
  *
  * @constant
  */
-export const TENANT_STATUS_TRANSITIONS = {
+export const TENANT_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
   CREATING: ['PENDING', 'DISABLED'],
   PENDING: ['ACTIVE', 'DISABLED'],
   ACTIVE: ['SUSPENDED', 'DISABLED'],
@@ -170,7 +170,7 @@ export const TENANT_STATUS_TRANSITIONS = {
  *
  * @constant
  */
-export const TENANT_UPGRADE_PATHS = {
+export const TENANT_UPGRADE_PATHS: Record<string, readonly string[]> = {
   FREE: ['BASIC', 'PROFESSIONAL', 'ENTERPRISE', 'CUSTOM'],
   BASIC: ['PROFESSIONAL', 'ENTERPRISE', 'CUSTOM'],
   PROFESSIONAL: ['ENTERPRISE', 'CUSTOM'],
@@ -185,7 +185,7 @@ export const TENANT_UPGRADE_PATHS = {
  *
  * @constant
  */
-export const TENANT_DOWNGRADE_PATHS = {
+export const TENANT_DOWNGRADE_PATHS: Record<string, readonly string[]> = {
   CUSTOM: ['ENTERPRISE', 'PROFESSIONAL', 'BASIC', 'FREE'],
   ENTERPRISE: ['PROFESSIONAL', 'BASIC', 'FREE'],
   PROFESSIONAL: ['BASIC', 'FREE'],

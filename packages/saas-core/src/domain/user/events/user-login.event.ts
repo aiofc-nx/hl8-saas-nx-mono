@@ -18,7 +18,11 @@ export class UserLoginEvent extends BaseDomainEvent {
     super(aggregateId, version, tenantId);
   }
 
-  public toJSON(): object {
+  get eventType(): string {
+    return 'UserLogin';
+  }
+
+  public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
       ip: this.ip,

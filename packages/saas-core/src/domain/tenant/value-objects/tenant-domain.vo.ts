@@ -92,7 +92,7 @@ export class TenantDomain extends BaseValueObject {
     // 转换为小写
     const normalizedDomain = domain?.toLowerCase().trim();
     this.validate(normalizedDomain);
-    return new TenantDomain({ value: normalizedDomain });
+    return new TenantDomain(normalizedDomain);
   }
 
   /**
@@ -190,20 +190,20 @@ export class TenantDomain extends BaseValueObject {
    *
    * @returns {string} 租户域名字符串
    */
-  public toString(): string {
+  public override toString(): string {
     return this.value;
   }
 
   /**
    * 转换为JSON
    *
-   * @returns {string} 租户域名字符串
+   * @returns {Record<string, unknown>} 租户域名对象
    */
-  public toJSON(): string {
-    return this.value;
+  public override toJSON(): Record<string, unknown> {
+    return { value: this.value };
   }
 
-  protected arePropertiesEqual(other: BaseValueObject): boolean {
+  protected override arePropertiesEqual(other: BaseValueObject): boolean {
     if (!(other instanceof TenantDomain)) {
       return false;
     }

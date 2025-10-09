@@ -106,7 +106,7 @@ export class Migration001_InitialSchema extends Migration {
     this.addSql(`CREATE INDEX idx_snapshot_store_version ON snapshot_store(aggregate_type, aggregate_id, version DESC);`);
   }
 
-  async down(): Promise<void> {
+  override async down(): Promise<void> {
     // 按依赖关系反向删除表
     this.addSql(`DROP TABLE IF EXISTS snapshot_store;`);
     this.addSql(`DROP TABLE IF EXISTS event_store;`);

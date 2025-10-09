@@ -48,12 +48,16 @@ export class TenantDeletedEvent extends BaseDomainEvent {
     super(aggregateId, version, tenantId);
   }
 
+  get eventType(): string {
+    return 'TenantDeleted';
+  }
+
   /**
    * 转换为 JSON
    *
    * @returns {object} 事件数据对象
    */
-  public toJSON(): object {
+  public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
       reason: this.reason,

@@ -5,13 +5,21 @@
  * @since 1.0.0
  */
 
+import { CqrsBaseCommand } from '@hl8/hybrid-archi';
 import { TenantType } from '../../../../domain/tenant/value-objects/tenant-type.enum';
 
-export class UpgradeTenantCommand {
+export class UpgradeTenantCommand extends CqrsBaseCommand {
   constructor(
-    public readonly tenantId: string,
+    tenantId: string,
+    userId: string,
+    public readonly targetTenantId: string,
     public readonly targetType: TenantType,
-    public readonly upgradedBy: string,
-  ) {}
+  ) {
+    super(tenantId, userId);
+  }
+
+  get commandType(): string {
+    return 'UpgradeTenantCommand';
+  }
 }
 

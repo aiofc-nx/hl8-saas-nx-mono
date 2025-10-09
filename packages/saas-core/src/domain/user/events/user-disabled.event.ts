@@ -17,7 +17,11 @@ export class UserDisabledEvent extends BaseDomainEvent {
     super(aggregateId, version, tenantId);
   }
 
-  public toJSON(): object {
+  get eventType(): string {
+    return 'UserDisabled';
+  }
+
+  public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
       reason: this.reason,
