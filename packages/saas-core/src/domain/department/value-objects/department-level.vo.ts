@@ -48,9 +48,9 @@ export interface IDepartmentLevelProps {
  * 部门层级值对象
  *
  * @class DepartmentLevel
- * @extends {BaseValueObject<IDepartmentLevelProps>}
+ * @extends {BaseValueObject}
  */
-export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
+export class DepartmentLevel extends BaseValueObject {
   /**
    * 获取层级数值
    *
@@ -58,17 +58,17 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
    * @type {number}
    */
   get level(): number {
-    return this.props.level;
+    return this._level;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {IDepartmentLevelProps} props - 部门层级属性
+   * @param {number} level - 部门层级
    */
-  private constructor(props: IDepartmentLevelProps) {
-    super(props);
+  private constructor(private readonly _level: number) {
+    super();
   }
 
   /**
@@ -81,7 +81,7 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
    */
   public static create(level: number): DepartmentLevel {
     this.validate(level);
-    return new DepartmentLevel({ level });
+    return new DepartmentLevel(level);
   }
 
   /**
@@ -108,7 +108,7 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
    * @returns {DepartmentLevel}
    */
   public static root(): DepartmentLevel {
-    return new DepartmentLevel({ level: 1 });
+    return new DepartmentLevel(1);
   }
 
   /**
@@ -201,7 +201,7 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
     if (!this.canHaveChildren()) {
       throw new Error('已达到最大层级深度，无法创建下一层级');
     }
-    return new DepartmentLevel({ level: this.level + 1 });
+    return new DepartmentLevel(this.level + 1);
   }
 
   /**
@@ -214,7 +214,7 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
     if (this.isRoot()) {
       throw new Error('根层级没有上一层级');
     }
-    return new DepartmentLevel({ level: this.level - 1 });
+    return new DepartmentLevel(this.level - 1);
   }
 
   /**
@@ -233,6 +233,13 @@ export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
    */
   public toJSON(): number {
     return this.level;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof DepartmentLevel)) {
+      return false;
+    }
+    return this._level === other._level;
   }
 }
 

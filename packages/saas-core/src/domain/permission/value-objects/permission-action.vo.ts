@@ -31,38 +31,38 @@ export interface IPermissionActionProps {
   value: PermissionActionValue;
 }
 
-export class PermissionAction extends BaseValueObject<IPermissionActionProps> {
+export class PermissionAction extends BaseValueObject {
   get value(): PermissionActionValue {
-    return this.props.value;
+    return this._value;
   }
 
-  private constructor(props: IPermissionActionProps) {
-    super(props);
+  private constructor(private readonly _value: PermissionActionValue) {
+    super();
   }
 
   public static create(action: PermissionActionValue): PermissionAction {
     this.validate(action);
-    return new PermissionAction({ value: action });
+    return new PermissionAction(action);
   }
 
   public static createAction(): PermissionAction {
-    return new PermissionAction({ value: 'CREATE' });
+    return new PermissionAction('CREATE');
   }
 
   public static read(): PermissionAction {
-    return new PermissionAction({ value: 'READ' });
+    return new PermissionAction('READ');
   }
 
   public static update(): PermissionAction {
-    return new PermissionAction({ value: 'UPDATE' });
+    return new PermissionAction('UPDATE');
   }
 
   public static delete(): PermissionAction {
-    return new PermissionAction({ value: 'DELETE' });
+    return new PermissionAction('DELETE');
   }
 
   public static execute(): PermissionAction {
-    return new PermissionAction({ value: 'EXECUTE' });
+    return new PermissionAction('EXECUTE');
   }
 
   private static validate(action: PermissionActionValue): void {
@@ -101,6 +101,13 @@ export class PermissionAction extends BaseValueObject<IPermissionActionProps> {
 
   public toJSON(): PermissionActionValue {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof PermissionAction)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

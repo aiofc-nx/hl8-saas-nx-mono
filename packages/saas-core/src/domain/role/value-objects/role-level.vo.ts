@@ -47,36 +47,36 @@ export interface IRoleLevelProps {
  * 角色层级值对象
  *
  * @class RoleLevel
- * @extends {BaseValueObject<IRoleLevelProps>}
+ * @extends {BaseValueObject}
  */
-export class RoleLevel extends BaseValueObject<IRoleLevelProps> {
+export class RoleLevel extends BaseValueObject {
   get value(): RoleLevelValue {
-    return this.props.value;
+    return this._value;
   }
 
-  private constructor(props: IRoleLevelProps) {
-    super(props);
+  private constructor(private readonly _value: RoleLevelValue) {
+    super();
   }
 
   public static create(level: RoleLevelValue): RoleLevel {
     this.validate(level);
-    return new RoleLevel({ value: level });
+    return new RoleLevel(level);
   }
 
   public static platform(): RoleLevel {
-    return new RoleLevel({ value: 'PLATFORM' });
+    return new RoleLevel('PLATFORM');
   }
 
   public static tenant(): RoleLevel {
-    return new RoleLevel({ value: 'TENANT' });
+    return new RoleLevel('TENANT');
   }
 
   public static organization(): RoleLevel {
-    return new RoleLevel({ value: 'ORGANIZATION' });
+    return new RoleLevel('ORGANIZATION');
   }
 
   public static department(): RoleLevel {
-    return new RoleLevel({ value: 'DEPARTMENT' });
+    return new RoleLevel('DEPARTMENT');
   }
 
   private static validate(level: RoleLevelValue): void {
@@ -111,6 +111,13 @@ export class RoleLevel extends BaseValueObject<IRoleLevelProps> {
 
   public toJSON(): RoleLevelValue {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof RoleLevel)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

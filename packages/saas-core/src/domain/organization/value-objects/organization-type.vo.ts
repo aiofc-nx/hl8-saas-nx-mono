@@ -40,21 +40,12 @@ export type OrganizationTypeValue =
   | 'CUSTOM';
 
 /**
- * 组织类型属性
- *
- * @interface IOrganizationTypeProps
- */
-export interface IOrganizationTypeProps {
-  value: OrganizationTypeValue;
-}
-
-/**
  * 组织类型值对象
  *
  * @class OrganizationType
- * @extends {BaseValueObject<IOrganizationTypeProps>}
+ * @extends {BaseValueObject}
  */
-export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
+export class OrganizationType extends BaseValueObject {
   /**
    * 获取组织类型值
    *
@@ -62,17 +53,17 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @type {OrganizationTypeValue}
    */
   get value(): OrganizationTypeValue {
-    return this.props.value;
+    return this._value;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {IOrganizationTypeProps} props - 组织类型属性
+   * @param {OrganizationTypeValue} value - 组织类型
    */
-  private constructor(props: IOrganizationTypeProps) {
-    super(props);
+  private constructor(private readonly _value: OrganizationTypeValue) {
+    super();
   }
 
   /**
@@ -85,7 +76,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    */
   public static create(type: OrganizationTypeValue): OrganizationType {
     this.validate(type);
-    return new OrganizationType({ value: type });
+    return new OrganizationType(type);
   }
 
   /**
@@ -95,7 +86,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @returns {OrganizationType}
    */
   public static professionalCommittee(): OrganizationType {
-    return new OrganizationType({ value: 'PROFESSIONAL_COMMITTEE' });
+    return new OrganizationType('PROFESSIONAL_COMMITTEE');
   }
 
   /**
@@ -105,7 +96,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @returns {OrganizationType}
    */
   public static projectTeam(): OrganizationType {
-    return new OrganizationType({ value: 'PROJECT_TEAM' });
+    return new OrganizationType('PROJECT_TEAM');
   }
 
   /**
@@ -115,7 +106,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @returns {OrganizationType}
    */
   public static qualityControl(): OrganizationType {
-    return new OrganizationType({ value: 'QUALITY_CONTROL' });
+    return new OrganizationType('QUALITY_CONTROL');
   }
 
   /**
@@ -125,7 +116,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @returns {OrganizationType}
    */
   public static performanceTeam(): OrganizationType {
-    return new OrganizationType({ value: 'PERFORMANCE_TEAM' });
+    return new OrganizationType('PERFORMANCE_TEAM');
   }
 
   /**
@@ -135,7 +126,7 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    * @returns {OrganizationType}
    */
   public static custom(): OrganizationType {
-    return new OrganizationType({ value: 'CUSTOM' });
+    return new OrganizationType('CUSTOM');
   }
 
   /**
@@ -216,6 +207,13 @@ export class OrganizationType extends BaseValueObject<IOrganizationTypeProps> {
    */
   public toJSON(): OrganizationTypeValue {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof OrganizationType)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

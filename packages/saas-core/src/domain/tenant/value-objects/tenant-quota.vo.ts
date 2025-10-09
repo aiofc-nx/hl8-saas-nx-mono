@@ -77,9 +77,9 @@ export type TenantType = 'FREE' | 'BASIC' | 'PROFESSIONAL' | 'ENTERPRISE' | 'CUS
  * 租户配额值对象
  *
  * @class TenantQuota
- * @extends {BaseValueObject<ITenantQuotaProps>}
+ * @extends {BaseValueObject}
  */
-export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
+export class TenantQuota extends BaseValueObject {
   /**
    * 获取最大用户数
    *
@@ -87,7 +87,7 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    * @type {number}
    */
   get maxUsers(): number {
-    return this.props.maxUsers;
+    return this._maxUsers;
   }
 
   /**
@@ -97,7 +97,7 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    * @type {number}
    */
   get maxStorageMB(): number {
-    return this.props.maxStorageMB;
+    return this._maxStorageMB;
   }
 
   /**
@@ -107,7 +107,7 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    * @type {number}
    */
   get maxOrganizations(): number {
-    return this.props.maxOrganizations;
+    return this._maxOrganizations;
   }
 
   /**
@@ -117,7 +117,7 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    * @type {number}
    */
   get maxDepartmentLevels(): number {
-    return this.props.maxDepartmentLevels;
+    return this._maxDepartmentLevels;
   }
 
   /**
@@ -127,17 +127,27 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    * @type {number}
    */
   get maxApiCallsPerDay(): number {
-    return this.props.maxApiCallsPerDay;
+    return this._maxApiCallsPerDay;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {ITenantQuotaProps} props - 租户配额属性
+   * @param {number} maxUsers
+   * @param {number} maxStorageMB
+   * @param {number} maxOrganizations
+   * @param {number} maxDepartmentLevels
+   * @param {number} maxApiCallsPerDay
    */
-  private constructor(props: ITenantQuotaProps) {
-    super(props);
+  private constructor(
+    private readonly _maxUsers: number,
+    private readonly _maxStorageMB: number,
+    private readonly _maxOrganizations: number,
+    private readonly _maxDepartmentLevels: number,
+    private readonly _maxApiCallsPerDay: number,
+  ) {
+    super();
   }
 
   /**
@@ -156,7 +166,13 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    */
   public static create(props: ITenantQuotaProps): TenantQuota {
     this.validate(props);
-    return new TenantQuota(props);
+    return new TenantQuota(
+      props.maxUsers,
+      props.maxStorageMB,
+      props.maxOrganizations,
+      props.maxDepartmentLevels,
+      props.maxApiCallsPerDay,
+    );
   }
 
   /**
@@ -311,6 +327,19 @@ export class TenantQuota extends BaseValueObject<ITenantQuotaProps> {
    */
   public toJSON(): ITenantQuotaProps {
     return this.toObject();
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof TenantQuota)) {
+      return false;
+    }
+    return (
+      this._maxUsers === other._maxUsers &&
+      this._maxStorageMB === other._maxStorageMB &&
+      this._maxOrganizations === other._maxOrganizations &&
+      this._maxDepartmentLevels === other._maxDepartmentLevels &&
+      this._maxApiCallsPerDay === other._maxApiCallsPerDay
+    );
   }
 }
 

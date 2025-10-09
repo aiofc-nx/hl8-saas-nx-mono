@@ -41,21 +41,12 @@ import { BaseValueObject } from '@hl8/hybrid-archi';
 import { TENANT_DOMAIN_VALIDATION } from '../../../constants/tenant.constants';
 
 /**
- * 租户域名值对象属性
- *
- * @interface ITenantDomainProps
- */
-export interface ITenantDomainProps {
-  value: string;
-}
-
-/**
  * 租户域名值对象
  *
  * @class TenantDomain
- * @extends {BaseValueObject<ITenantDomainProps>}
+ * @extends {BaseValueObject}
  */
-export class TenantDomain extends BaseValueObject<ITenantDomainProps> {
+export class TenantDomain extends BaseValueObject {
   /**
    * 获取租户域名原始值
    *
@@ -63,17 +54,17 @@ export class TenantDomain extends BaseValueObject<ITenantDomainProps> {
    * @type {string}
    */
   get value(): string {
-    return this.props.value;
+    return this._value;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {ITenantDomainProps} props - 租户域名属性
+   * @param {string} value - 租户域名
    */
-  private constructor(props: ITenantDomainProps) {
-    super(props);
+  private constructor(private readonly _value: string) {
+    super();
   }
 
   /**
@@ -210,6 +201,13 @@ export class TenantDomain extends BaseValueObject<ITenantDomainProps> {
    */
   public toJSON(): string {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof TenantDomain)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

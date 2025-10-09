@@ -44,21 +44,12 @@ import { BaseValueObject } from '@hl8/hybrid-archi';
 import { TENANT_CODE_VALIDATION } from '../../../constants/tenant.constants';
 
 /**
- * 租户代码值对象属性
- *
- * @interface ITenantCodeProps
- */
-export interface ITenantCodeProps {
-  value: string;
-}
-
-/**
  * 租户代码值对象
  *
  * @class TenantCode
- * @extends {BaseValueObject<ITenantCodeProps>}
+ * @extends {BaseValueObject}
  */
-export class TenantCode extends BaseValueObject<ITenantCodeProps> {
+export class TenantCode extends BaseValueObject {
   /**
    * 获取租户代码原始值
    *
@@ -66,17 +57,17 @@ export class TenantCode extends BaseValueObject<ITenantCodeProps> {
    * @type {string}
    */
   get value(): string {
-    return this.props.value;
+    return this._value;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {ITenantCodeProps} props - 租户代码属性
+   * @param {string} value - 租户代码
    */
-  private constructor(props: ITenantCodeProps) {
-    super(props);
+  private constructor(private readonly _value: string) {
+    super();
   }
 
   /**
@@ -173,6 +164,19 @@ export class TenantCode extends BaseValueObject<ITenantCodeProps> {
    */
   public toJSON(): string {
     return this.value;
+  }
+
+  /**
+   * 比较两个租户代码是否相等
+   *
+   * @param {BaseValueObject} other - 另一个值对象
+   * @returns {boolean}
+   */
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof TenantCode)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

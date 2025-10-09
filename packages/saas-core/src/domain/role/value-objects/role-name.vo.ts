@@ -14,18 +14,18 @@ export interface IRoleNameProps {
   value: string;
 }
 
-export class RoleName extends BaseValueObject<IRoleNameProps> {
+export class RoleName extends BaseValueObject {
   get value(): string {
-    return this.props.value;
+    return this._value;
   }
 
-  private constructor(props: IRoleNameProps) {
-    super(props);
+  private constructor(private readonly _value: string) {
+    super();
   }
 
   public static create(name: string): RoleName {
     this.validate(name);
-    return new RoleName({ value: name.trim() });
+    return new RoleName(name.trim());
   }
 
   private static validate(name: string): void {
@@ -47,6 +47,13 @@ export class RoleName extends BaseValueObject<IRoleNameProps> {
 
   public toJSON(): string {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof RoleName)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 

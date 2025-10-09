@@ -43,9 +43,9 @@ export interface IDepartmentPathProps {
  * 部门路径值对象
  *
  * @class DepartmentPath
- * @extends {BaseValueObject<IDepartmentPathProps>}
+ * @extends {BaseValueObject}
  */
-export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
+export class DepartmentPath extends BaseValueObject {
   /**
    * 获取路径字符串
    *
@@ -53,17 +53,17 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
    * @type {string}
    */
   get value(): string {
-    return this.props.value;
+    return this._value;
   }
 
   /**
    * 私有构造函数
    *
    * @private
-   * @param {IDepartmentPathProps} props - 部门路径属性
+   * @param {string} value - 部门路径
    */
-  private constructor(props: IDepartmentPathProps) {
-    super(props);
+  private constructor(private readonly _value: string) {
+    super();
   }
 
   /**
@@ -76,7 +76,7 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
    */
   public static create(path: string): DepartmentPath {
     this.validate(path);
-    return new DepartmentPath({ value: path });
+    return new DepartmentPath(path);
   }
 
   /**
@@ -87,7 +87,7 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
    * @returns {DepartmentPath} 根部门路径
    */
   public static root(rootId: string): DepartmentPath {
-    return new DepartmentPath({ value: `/${rootId}` });
+    return new DepartmentPath(`/${rootId}`);
   }
 
   /**
@@ -100,7 +100,7 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
    */
   public static fromParent(parentPath: DepartmentPath, departmentId: string): DepartmentPath {
     const newPath = `${parentPath.value}${DEPARTMENT_PATH_CONFIG.SEPARATOR}${departmentId}`;
-    return new DepartmentPath({ value: newPath });
+    return new DepartmentPath(newPath);
   }
 
   /**
@@ -243,9 +243,9 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
     }
     const segments = this.getSegments();
     const parentSegments = segments.slice(0, -1);
-    return new DepartmentPath({
-      value: DEPARTMENT_PATH_CONFIG.SEPARATOR + parentSegments.join(DEPARTMENT_PATH_CONFIG.SEPARATOR),
-    });
+    return new DepartmentPath(
+      DEPARTMENT_PATH_CONFIG.SEPARATOR + parentSegments.join(DEPARTMENT_PATH_CONFIG.SEPARATOR),
+    );
   }
 
   /**
@@ -264,6 +264,13 @@ export class DepartmentPath extends BaseValueObject<IDepartmentPathProps> {
    */
   public toJSON(): string {
     return this.value;
+  }
+
+  protected arePropertiesEqual(other: BaseValueObject): boolean {
+    if (!(other instanceof DepartmentPath)) {
+      return false;
+    }
+    return this._value === other._value;
   }
 }
 
