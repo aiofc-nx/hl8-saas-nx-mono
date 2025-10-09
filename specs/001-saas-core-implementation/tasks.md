@@ -68,11 +68,11 @@
 
 ### 枚举定义
 
-- [ ] T025 [P] 创建 TenantType 枚举（packages/saas-core/src/domain/tenant/value-objects/tenant-type.enum.ts）
-- [ ] T026 [P] 创建 Gender 枚举（packages/saas-core/src/domain/user/value-objects/gender.enum.ts）
-- [ ] T027 [P] 创建 DepartmentStatus 枚举（packages/saas-core/src/domain/department/value-objects/department-status.enum.ts）
-- [ ] T028 [P] 创建 RoleStatus 枚举（packages/saas-core/src/domain/role/value-objects/role-status.enum.ts）
-- [ ] T029 [P] 创建 PermissionStatus 枚举（packages/saas-core/src/domain/permission/value-objects/permission-status.enum.ts）
+- [X] T025 [P] 创建 TenantType 枚举（packages/saas-core/src/domain/tenant/value-objects/tenant-type.enum.ts）
+- [X] T026 [P] 创建 Gender 枚举（packages/saas-core/src/domain/user/value-objects/gender.enum.ts）
+- [X] T027 [P] 创建 DepartmentStatus 枚举（packages/saas-core/src/domain/department/value-objects/department-status.enum.ts）
+- [X] T028 [P] 创建 RoleStatus 枚举（packages/saas-core/src/domain/role/value-objects/role-status.enum.ts）
+- [X] T029 [P] 创建 PermissionStatus 枚举（packages/saas-core/src/domain/permission/value-objects/permission-status.enum.ts）
 
 ### MikroORM 配置和基础设施
 
