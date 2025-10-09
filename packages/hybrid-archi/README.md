@@ -652,6 +652,63 @@ export class GetOrderQuery extends BaseQuery {
 }
 ```
 
+### EventBus vs Messaging 使用指南
+
+> 💡 **重要决策**：何时使用 EventBus，何时使用 @hl8/messaging？
+
+#### 核心原则
+
+- **EventBus**：用于进程内的领域事件处理（CQRS 模式）
+- **@hl8/messaging**：用于跨服务的分布式通信（集成事件）
+
+#### 使用决策
+
+| 场景 | 使用 | 原因 |
+|------|------|------|
+| 聚合根发布领域事件 | EventBus | 微秒级延迟，高性能 |
+| CQRS 读写模型同步 | EventBus | 进程内通信，严格顺序 |
+| 跨服务/微服务通信 | @hl8/messaging | 松耦合，支持分布式 |
+| 异步任务（发邮件） | @hl8/messaging | 持久化，可靠传递 |
+
+#### 示例对比
+
+```typescript
+// ✅ 使用 EventBus：领域事件
+@EventHandler('TenantCreated')
+export class TenantCreatedHandler implements IEventHandler<TenantCreatedEvent> {
+  async handle(event: TenantCreatedEvent): Promise<void> {
+    // 更新读模型、触发其他领域逻辑
+    console.log('租户已创建:', event.aggregateId);
+  }
+}
+
+// ✅ 使用 @hl8/messaging：集成事件
+@EventHandler('TenantCreated')
+export class TenantIntegrationHandler implements IEventHandler<TenantCreatedEvent> {
+  constructor(
+    @Optional() private readonly messagingService?: MessagingService
+  ) {}
+
+  async handle(event: TenantCreatedEvent): Promise<void> {
+    // 1. 处理领域逻辑（EventBus）
+    // ...
+    
+    // 2. 发布集成事件到消息队列（Messaging）
+    if (this.messagingService) {
+      await this.messagingService.publish('integration.tenant.created', {
+        tenantId: event.aggregateId.toString(),
+      });
+    }
+  }
+}
+```
+
+#### 详细指南
+
+完整的使用指南和最佳实践，请参考：
+
+📖 **[HL8 SAAS 平台宪章 - 业务模块开发指南](../../.specify/memory/constitution.md#eventbus-vs-messaging-使用指南)**
+
 ### 多租户开发指南
 
 1. **租户隔离**：所有聚合根包含租户 ID

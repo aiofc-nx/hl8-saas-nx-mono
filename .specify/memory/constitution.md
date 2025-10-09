@@ -3,20 +3,34 @@
 宪章同步影响报告
 ===================================================================================
 
-版本变更：1.3.1 → 1.3.2
-修改日期：2025-10-08
+版本变更：1.4.0 → 1.4.1
+修改日期：2025-10-09
 
-修正内容：
-  - 移除不存在的 packages/auth/ 模块引用
-  - 澄清认证和授权功能集成在 @hl8/saas-core 中
-  - 更新关键模块说明，明确 saas-core 包含认证授权能力
+新增内容：
+  - 添加"EventBus vs Messaging 使用指南"小节
+  - 澄清 EventBus 和 @hl8/messaging 的使用场景和区别
+  - 提供详细的使用决策表和架构决策规则
+  - 明确区分领域事件和集成事件的处理方式
+  - 补充实际代码示例
 
 版本升级理由：
-  - PATCH 版本升级（1.3.1 → 1.3.2）
-  - 原因：修正错误的模块引用信息
-  - 影响：澄清模块职责，避免误解
+  - PATCH 版本升级（1.4.0 → 1.4.1）
+  - 原因：澄清和补充说明，未改变已有的强制性约束
+  - 影响：帮助开发者更好理解何时使用 EventBus vs messaging
 
 历史版本：
+  1.4.1 (2025-10-09):
+    - 添加 EventBus vs Messaging 使用指南
+    - 澄清进程内事件总线和分布式消息队列的使用场景
+  
+  1.4.0 (2025-10-09):
+    - 添加业务模块开发指南
+    - 强调 CQRS、日志、配置、缓存模块使用规范
+  
+  1.3.2 (2025-10-08):
+    - 移除不存在的 packages/auth/ 模块引用
+    - 澄清认证和授权功能集成在 @hl8/saas-core 中
+  
   1.3.1 (2025-10-08):
     - 添加核心业务模块说明
   
@@ -49,10 +63,11 @@
   ✅ definition-of-terms.mdc - 已验证，业务术语定义文档
 
 后续行动项：
-  - 确保新业务模块遵循依赖层次：业务模块 → saas-core → hybrid-archi
-  - 审查 @hl8/saas-core 模块的实现是否完整覆盖六大子领域
-  - 验证其他业务模块是否正确依赖 @hl8/saas-core
-  - 更新业务模块开发指南，明确 saas-core 的使用规范
+  - 审查现有业务模块是否使用了 @nestjs/cqrs，需要迁移到 @hl8/hybrid-archi
+  - 审查现有业务模块是否直接使用了 NestJS 内置日志/配置，需要迁移到 hybrid-archi
+  - 审查现有业务模块是否直接使用了第三方缓存库，需要迁移到 @hl8/cache
+  - 更新业务模块开发文档，明确依赖选择规范
+  - 在代码审查流程中增加依赖合规性检查
 
 ===================================================================================
 -->
@@ -310,17 +325,17 @@ Platform（平台）
 
 #### 集成的基础设施模块
 
-`@hl8/hybrid-archi` 集成了以下核心基础设施模块：
+`@hl8/hybrid-archi` 集成了以下自定义的核心基础设施模块：
 
-- **logger**：结构化日志服务（基于 Pino）
-- **config**：配置管理服务（支持多环境、动态配置）
-- **cache**：缓存服务（基于 Redis，支持多级缓存）
-- **database**：数据库访问服务（支持 PostgreSQL、MongoDB）
-- **common**：公共工具和基础类型定义
-- **multi-tenancy**：多租户支持（租户隔离、上下文管理）
-- **fastify-pro**：企业级 Web 框架（高性能、可扩展）
-- **messaging**：消息服务（事件总线、消息队列）
-- **utils**：通用工具函数库
+- **@hl8/logger**：结构化日志服务（基于 Pino）
+- **@hl8/config**：配置管理服务（支持多环境、动态配置）
+- **@hl8/cache**：缓存服务（基于 Redis，支持多级缓存）
+- **@hl8/database**：数据库访问服务（支持 PostgreSQL、MongoDB）
+- **@hl8/common**：公共工具和基础类型定义
+- **@hl8/multi-tenancy**：多租户支持（租户隔离、上下文管理）
+- **@hl8/fastify-pro**：企业级 Web 框架（高性能、可扩展）
+- **@hl8/messaging**：消息服务（事件总线、消息队列）
+- **@hl8/utils**：通用工具函数库
 
 #### 业务模块开发要求
 
@@ -331,6 +346,303 @@ Platform（平台）
 5. **文档参考**：详细规范见 `packages/hybrid-archi/README.md` 和 `docs/hybrid-archi/`
 
 **理由**：统一架构基础确保系统的一致性、可维护性和可扩展性，降低技术债务，提高开发效率。
+
+### 业务模块开发指南 (NON-NEGOTIABLE)
+
+**业务模块开发必须优先使用 @hl8/hybrid-archi 提供的功能组件，禁止直接使用 NestJS 内置或第三方依赖。**
+
+#### CQRS 实现规范
+
+`@hl8/hybrid-archi` 提供了完整的 CQRS 功能组件，业务模块必须使用这些组件：
+
+1. **命令处理**
+   - ✅ **必须使用**：`CommandBus`、`ICommandHandler`、`BaseCommand` (from `@hl8/hybrid-archi`)
+   - ❌ **禁止使用**：`@nestjs/cqrs` 的 `CommandBus`、`ICommandHandler`、`CommandHandler`
+   - 命令类必须继承 `BaseCommand` (或使用别名 `CqrsBaseCommand`)
+   - 命令处理器必须实现 `ICommandHandler<TCommand, TResult>`
+
+2. **查询处理**
+   - ✅ **必须使用**：`QueryBus`、`IQueryHandler`、`BaseQuery` (from `@hl8/hybrid-archi`)
+   - ❌ **禁止使用**：`@nestjs/cqrs` 的 `QueryBus`、`IQueryHandler`、`QueryHandler`
+   - 查询类必须继承 `BaseQuery` (或使用别名 `CqrsBaseQuery`)
+   - 查询处理器必须实现 `IQueryHandler<TQuery, TResult>`
+
+3. **事件处理**
+   - ✅ **必须使用**：`EventBus`、`IEventHandler`、`BaseDomainEvent` (from `@hl8/hybrid-archi`)
+   - ❌ **禁止使用**：`@nestjs/cqrs` 的 `EventBus`、`IEventHandler`、`EventsHandler`
+   - 领域事件必须继承 `BaseDomainEvent`
+   - 事件处理器必须实现 `IEventHandler<TEvent>`
+
+#### EventBus vs Messaging 使用指南
+
+**核心原则**：`EventBus` 用于进程内的领域事件处理，`@hl8/messaging` 用于跨服务的分布式通信。
+
+##### 1. EventBus（进程内事件总线）
+
+**定位**：CQRS 模式的领域事件处理
+
+**使用场景**：
+
+- ✅ 聚合根发布领域事件（状态变更通知）
+- ✅ 同一进程内的事件订阅和处理
+- ✅ CQRS 读写模型同步
+- ✅ 领域模型的一致性维护
+
+**特点**：
+
+- 进程内通信（内存级别）
+- 微秒级延迟
+- 紧密耦合的业务逻辑
+- 高性能、低开销
+
+**示例**：
+
+```typescript
+// 领域事件发布
+export class TenantAggregate extends TenantAwareAggregateRoot {
+  public activate(userId: string): void {
+    // 业务逻辑
+    this._tenant.activate();
+    
+    // 发布领域事件
+    this.addDomainEvent(new TenantActivatedEvent(
+      this.id,
+      this.version,
+      this.tenantId
+    ));
+  }
+}
+
+// 领域事件处理
+@EventHandler('TenantActivated')
+export class TenantActivatedHandler implements IEventHandler<TenantActivatedEvent> {
+  async handle(event: TenantActivatedEvent): Promise<void> {
+    // 更新读模型、触发其他领域逻辑
+    console.log('租户已激活:', event.aggregateId);
+  }
+}
+```
+
+##### 2. @hl8/messaging（分布式消息队列）
+
+**定位**：企业级多租户消息队列解决方案
+
+**使用场景**：
+
+- ✅ 跨服务/微服务通信（集成事件）
+- ✅ 异步任务处理（发送邮件、生成报表）
+- ✅ 长时间运行的后台任务
+- ✅ 解耦的分布式系统集成
+
+**特点**：
+
+- 跨进程/跨服务通信
+- 毫秒级延迟
+- 松耦合的分布式架构
+- 支持多种适配器（RabbitMQ、Kafka、Redis Streams）
+
+**示例**：
+
+```typescript
+// 发布集成事件到消息队列
+@EventHandler('TenantCreated')
+export class TenantCreatedHandler implements IEventHandler<TenantCreatedEvent> {
+  constructor(
+    @Optional() private readonly messagingService?: MessagingService
+  ) {}
+
+  async handle(event: TenantCreatedEvent): Promise<void> {
+    // 1. 处理领域逻辑（必须）
+    console.log('租户创建事件:', event.toJSON());
+    // TODO: 创建默认组织、根部门
+    
+    // 2. 发布集成事件（可选，如果配置了 messaging）
+    if (this.messagingService) {
+      await this.messagingService.publish('integration.tenant.created', {
+        tenantId: event.aggregateId.toString(),
+        tenantCode: event.code,
+        tenantName: event.name,
+      });
+    }
+  }
+}
+
+// 异步任务发布
+@EventHandler('UserRegistered')
+export class UserRegisteredHandler implements IEventHandler<UserRegisteredEvent> {
+  constructor(private readonly taskService: TaskService) {} // from @hl8/messaging
+
+  async handle(event: UserRegisteredEvent): Promise<void> {
+    // 发布异步任务
+    await this.taskService.publish('send-verification-email', {
+      userId: event.aggregateId.toString(),
+      email: event.email,
+    });
+  }
+}
+```
+
+##### 3. 使用决策表
+
+| 方面 | EventBus | @hl8/messaging |
+|------|----------|----------------|
+| **使用场景** | CQRS 领域事件 | 分布式系统集成 |
+| **通信范围** | 进程内 | 跨进程/跨服务 |
+| **延迟** | 微秒级 | 毫秒级 |
+| **可靠性** | 进程可靠性 | 消息队列可靠性 |
+| **持久化** | 不持久化（内存） | 持久化（队列） |
+| **顺序保证** | 严格顺序 | 部分顺序（取决于适配器） |
+| **适用模块** | 所有业务模块（核心） | 需要跨服务通信的模块 |
+| **依赖关系** | 必须（hybrid-archi 提供） | 可选（按需引入） |
+
+##### 4. 架构决策规则
+
+**核心业务模块（如 saas-core）**：
+
+- ✅ **必须使用** `EventBus` 处理领域事件
+- ✅ **可选引入** `@hl8/messaging`（仅当需要跨服务通信时）
+- 保持架构简洁，优先使用高性能的进程内通信
+
+**独立服务模块（如邮件服务、通知服务）**：
+
+- ✅ **必须使用** `EventBus` 处理内部领域事件
+- ✅ **必须引入** `@hl8/messaging` 接收集成事件
+- 通过消息队列与其他服务解耦
+
+**微服务架构**：
+
+- ✅ **必须使用** `EventBus` 处理内部领域事件
+- ✅ **必须引入** `@hl8/messaging` 实现服务间通信
+- 领域事件和集成事件明确分离
+
+##### 5. 事件类型区分
+
+**领域事件（Domain Events）**：
+
+- 反映领域模型内部状态变更
+- 使用 `EventBus` 发布和处理
+- 例如：`TenantCreatedEvent`、`UserRegisteredEvent`、`OrderPlacedEvent`
+
+**集成事件（Integration Events）**：
+
+- 通知其他服务或系统的事件
+- 使用 `@hl8/messaging` 发布和处理
+- 例如：`integration.tenant.created`、`integration.order.paid`
+
+**理由**：明确区分领域事件和集成事件，确保核心业务模块保持高性能的进程内通信，同时为分布式架构提供灵活的扩展能力。
+
+#### 模块集成
+
+   ```typescript
+   // ✅ 正确的模块配置
+   import { CommandBus, QueryBus, EventBus } from '@hl8/hybrid-archi';
+   
+   @Module({
+     providers: [CommandBus, QueryBus, EventBus, ...],
+     exports: [CommandBus, QueryBus, EventBus],
+   })
+   export class MyModule {}
+   
+   // ❌ 禁止导入 @nestjs/cqrs
+   import { CqrsModule } from '@nestjs/cqrs'; // 禁止
+   ```
+
+#### 基础设施依赖规范
+
+业务模块必须通过 `@hl8/hybrid-archi` 使用基础设施服务，禁止直接依赖第三方库：
+
+1. **日志服务**
+   - ✅ **必须使用**：`@hl8/logger` (通过 `@hl8/hybrid-archi` 集成)
+   - ❌ **禁止使用**：`@nestjs/common` 的 `Logger`、`winston`、`bunyan` 等
+   - 提供结构化日志、日志级别控制、性能追踪
+   - 支持租户级别的日志隔离
+
+2. **配置管理**
+   - ✅ **必须使用**：`@hl8/config` (通过 `@hl8/hybrid-archi` 集成)
+   - ❌ **禁止使用**：`@nestjs/config`、`dotenv`、`config` 等
+   - 支持多环境配置、动态配置、类型安全配置
+   - 提供配置验证和配置变更通知
+
+3. **缓存服务**
+   - ✅ **必须使用**：`@hl8/cache` (通过 `@hl8/hybrid-archi` 集成)
+   - ❌ **禁止使用**：`@nestjs/cache-manager`、`cache-manager`、`redis` 直接依赖
+   - 提供多级缓存、缓存装饰器、缓存失效策略
+   - 支持租户级别的缓存隔离
+
+4. **数据库访问**
+   - ✅ **必须使用**：`@hl8/database` (通过 `@hl8/hybrid-archi` 集成)
+   - ✅ **ORM 选择**：必须使用 `MikroORM`（已集成）
+   - 提供连接池管理、事务管理、查询构建器
+   - 支持租户级别的数据隔离
+
+5. **多租户支持**
+   - ✅ **必须使用**：`@hl8/multi-tenancy` (通过 `@hl8/hybrid-archi` 集成)
+   - 提供租户上下文管理、租户识别、租户过滤器
+   - 确保所有数据访问自动应用租户隔离
+
+6. **通用工具**
+   - ✅ **必须使用**：`@hl8/common`、`@hl8/utils` (通过 `@hl8/hybrid-archi` 集成)
+   - 提供类型定义、工具函数、装饰器、验证器
+
+#### 依赖声明规范
+
+在 `package.json` 中正确声明依赖：
+
+```json
+{
+  "dependencies": {
+    "@hl8/hybrid-archi": "^x.x.x",      // ✅ 必须
+    "@hl8/saas-core": "^x.x.x",         // ✅ 业务模块通常需要
+    "@nestjs/common": "^11.x.x",        // ✅ NestJS 核心
+    "@nestjs/core": "^11.x.x",          // ✅ NestJS 核心
+    
+    // ❌ 以下依赖禁止直接声明
+    // "@nestjs/cqrs": "...",            // 使用 @hl8/hybrid-archi 的 CQRS
+    // "@nestjs/config": "...",          // 使用 @hl8/config
+    // "@nestjs/cache-manager": "...",   // 使用 @hl8/cache
+    // "winston": "...",                 // 使用 @hl8/logger
+    // "pino": "...",                    // 已集成在 @hl8/logger
+    // "redis": "...",                   // 使用 @hl8/cache
+    // "cache-manager": "..."            // 使用 @hl8/cache
+  }
+}
+```
+
+#### 代码审查检查项
+
+在代码审查时，必须检查以下合规性：
+
+- [ ] 是否导入了 `@nestjs/cqrs`？（禁止）
+- [ ] 是否直接使用了 NestJS 内置的 `Logger`？（禁止）
+- [ ] 是否直接导入了 `@nestjs/config`？（禁止）
+- [ ] 是否直接导入了缓存相关的第三方库？（禁止）
+- [ ] CQRS 命令/查询是否继承了正确的基类？（必须）
+- [ ] 是否正确使用了 `@hl8/hybrid-archi` 提供的服务？（必须）
+- [ ] 是否遵循了多租户数据隔离规范？（必须）
+
+#### 迁移指南
+
+对于现有使用了 `@nestjs/cqrs` 或其他第三方依赖的业务模块：
+
+1. **CQRS 迁移**
+   - 将 `@nestjs/cqrs` 导入替换为 `@hl8/hybrid-archi`
+   - 命令/查询类继承 `BaseCommand`/`BaseQuery`
+   - 装饰器参数从类引用改为字符串（例如：`@CommandHandler('CreateTenant')`）
+   - 在模块中显式提供 `CommandBus`、`QueryBus`、`EventBus`
+
+2. **日志迁移**
+   - 将 `@nestjs/common` 的 `Logger` 替换为 `@hl8/logger` 的 `PinoLogger`
+   - 更新日志调用方式，使用结构化日志格式
+
+3. **配置迁移**
+   - 将 `@nestjs/config` 的 `ConfigService` 替换为 `@hl8/config`
+   - 使用类型安全的配置模式
+
+4. **缓存迁移**
+   - 将缓存相关依赖替换为 `@hl8/cache` 的 `CacheService`
+   - 使用缓存装饰器简化缓存逻辑
+
+**理由**：统一使用 hybrid-archi 提供的功能组件确保架构一致性、降低依赖冲突、简化升级维护、提供更好的多租户支持和性能优化。
 
 ### 核心业务模块
 
@@ -513,6 +825,7 @@ Platform（平台）
 
 - 所有 PR 必须验证宪章合规性
 - 验证业务模块是否正确依赖 @hl8/hybrid-archi
+- 验证是否使用了禁止的依赖（如 @nestjs/cqrs）
 - 验证代码和文档是否使用统一的业务术语
 - 定期进行宪章合规性审计
 - 违反宪章的代码不得合并到主分支
@@ -529,4 +842,4 @@ Platform（平台）
 - 使用 Nx MCP 工具进行项目管理和任务执行
 - 遵循 Clean Architecture 分层原则进行代码组织
 
-**版本**: 1.3.2 | **批准日期**: 2025-10-08 | **最后修订**: 2025-10-08
+**版本**: 1.4.1 | **批准日期**: 2025-10-08 | **最后修订**: 2025-10-09

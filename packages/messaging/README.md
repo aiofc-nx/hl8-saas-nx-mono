@@ -6,6 +6,81 @@
 
 > 企业级多租户消息队列解决方案 - 基于NestJS的高性能、可扩展消息传递系统
 
+## 📌 定位说明
+
+### 与 EventBus 的关系
+
+> 💡 **重要**：`@hl8/messaging` 与 `EventBus`（来自 `@hl8/hybrid-archi`）是互补而非替代关系。
+
+#### 核心区别
+
+| 特性 | EventBus (hybrid-archi) | @hl8/messaging |
+|------|------------------------|----------------|
+| **定位** | 进程内事件总线（CQRS） | 分布式消息队列 |
+| **用途** | 领域事件处理 | 集成事件、异步任务 |
+| **通信范围** | 进程内 | 跨进程/跨服务 |
+| **延迟** | 微秒级 | 毫秒级 |
+| **持久化** | 不持久化 | 持久化到消息队列 |
+
+#### 使用场景
+
+**✅ 使用 EventBus（进程内）**：
+
+- 聚合根发布领域事件
+- CQRS 读写模型同步
+- 领域模型状态变更通知
+- 需要严格顺序和高性能的场景
+
+**✅ 使用 @hl8/messaging（跨服务）**：
+
+- 跨服务/微服务通信
+- 异步任务处理（发送邮件、生成报表）
+- 长时间运行的后台任务
+- 需要持久化和可靠传递的场景
+
+#### 典型集成模式
+
+```typescript
+// 在领域事件处理器中桥接 EventBus 和 Messaging
+@EventHandler('TenantCreated')  // EventBus 处理领域事件
+export class TenantCreatedHandler implements IEventHandler<TenantCreatedEvent> {
+  constructor(
+    @Optional() private readonly messagingService?: MessagingService
+  ) {}
+
+  async handle(event: TenantCreatedEvent): Promise<void> {
+    // 1. 处理领域逻辑（EventBus，必须）
+    console.log('租户创建事件:', event.toJSON());
+    // TODO: 创建默认组织、根部门
+    
+    // 2. 发布集成事件（Messaging，可选）
+    if (this.messagingService) {
+      // 通知其他微服务
+      await this.messagingService.publish('integration.tenant.created', {
+        tenantId: event.aggregateId.toString(),
+        tenantCode: event.code,
+        tenantName: event.name,
+      });
+      
+      // 发布异步任务
+      await this.taskService.publish('send-welcome-email', {
+        tenantId: event.aggregateId.toString(),
+      });
+    }
+  }
+}
+```
+
+#### 架构建议
+
+- **核心业务模块（如 saas-core）**：必须使用 EventBus，可选引入 messaging
+- **独立服务模块（如邮件服务）**：必须使用 EventBus + messaging
+- **微服务架构**：两者配合使用，明确区分领域事件和集成事件
+
+📖 **详细指南**：[HL8 SAAS 平台宪章 - EventBus vs Messaging 使用指南](../../.specify/memory/constitution.md#eventbus-vs-messaging-使用指南)
+
+---
+
 ## 🚀 特性
 
 ### 核心功能
