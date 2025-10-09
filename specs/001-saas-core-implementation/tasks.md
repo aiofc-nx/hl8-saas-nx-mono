@@ -117,11 +117,11 @@
 
 ### 应用层 - Tenant 用例
 
-- [ ] T046 [P] [US1] 创建用例接口（packages/saas-core/src/application/use-cases/base/use-case.interface.ts）
-- [ ] T047 [P] [US1] 创建创建租户用例（packages/saas-core/src/application/use-cases/tenant/create-tenant.use-case.ts）
-- [ ] T048 [P] [US1] 创建创建租户用例测试（packages/saas-core/src/application/use-cases/tenant/create-tenant.use-case.spec.ts）
-- [ ] T049 [P] [US1] 创建升级租户用例（packages/saas-core/src/application/use-cases/tenant/upgrade-tenant.use-case.ts）
-- [ ] T050 [P] [US1] 创建激活租户用例（packages/saas-core/src/application/use-cases/tenant/activate-tenant.use-case.ts）
+- [X] T046 [P] [US1] 创建用例接口（packages/saas-core/src/application/use-cases/base/use-case.interface.ts）
+- [X] T047 [P] [US1] 创建创建租户用例（packages/saas-core/src/application/use-cases/tenant/create-tenant.use-case.ts）
+- [X] T048 [P] [US1] 创建创建租户用例测试（packages/saas-core/src/application/use-cases/tenant/create-tenant.use-case.spec.ts）
+- [X] T049 [P] [US1] 创建升级租户用例（packages/saas-core/src/application/use-cases/tenant/upgrade-tenant.use-case.ts）
+- [X] T050 [P] [US1] 创建激活租户用例（packages/saas-core/src/application/use-cases/tenant/activate-tenant.use-case.ts）
 
 ### CQRS - Tenant 命令和查询
 
