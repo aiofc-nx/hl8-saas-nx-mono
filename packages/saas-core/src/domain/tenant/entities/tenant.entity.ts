@@ -222,7 +222,7 @@ export class Tenant extends BaseEntity {
   public updateName(name: string, updatedBy?: string): void {
     this.validateName(name);
     this._name = name;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -235,7 +235,7 @@ export class Tenant extends BaseEntity {
    */
   public updateType(type: TenantType, updatedBy?: string): void {
     this._type = type;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -256,7 +256,7 @@ export class Tenant extends BaseEntity {
     this._status = TenantStatus.ACTIVE;
     this._activatedAt = new Date();
     this._trialEndsAt = null;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -275,7 +275,7 @@ export class Tenant extends BaseEntity {
   public suspend(reason: string, updatedBy?: string): void {
     this.validateStatusTransition(TenantStatus.SUSPENDED);
     this._status = TenantStatus.SUSPENDED;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
     
     // 记录暂停原因到日志
     this.logger.warn({
@@ -299,7 +299,7 @@ export class Tenant extends BaseEntity {
       throw new Error('只有暂停状态的租户可以恢复');
     }
     this._status = TenantStatus.ACTIVE;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -312,7 +312,7 @@ export class Tenant extends BaseEntity {
   public expire(updatedBy?: string): void {
     this.validateStatusTransition(TenantStatus.EXPIRED);
     this._status = TenantStatus.EXPIRED;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   // ============================================================================

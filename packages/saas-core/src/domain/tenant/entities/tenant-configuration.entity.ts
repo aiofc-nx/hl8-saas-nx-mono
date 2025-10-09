@@ -175,7 +175,7 @@ export class TenantConfiguration extends BaseEntity {
    */
   public updateQuota(quota: TenantQuota, updatedBy?: string): void {
     this._quota = quota;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -189,7 +189,7 @@ export class TenantConfiguration extends BaseEntity {
   public enableFeature(feature: string, updatedBy?: string): void {
     if (!this._enabledFeatures.includes(feature)) {
       this._enabledFeatures.push(feature);
-      this.updateTimestamp(updatedBy);
+      this.updateTimestamp();
     }
   }
 
@@ -205,7 +205,7 @@ export class TenantConfiguration extends BaseEntity {
     const index = this._enabledFeatures.indexOf(feature);
     if (index > -1) {
       this._enabledFeatures.splice(index, 1);
-      this.updateTimestamp(updatedBy);
+      this.updateTimestamp();
     }
   }
 
@@ -220,7 +220,7 @@ export class TenantConfiguration extends BaseEntity {
    */
   public setCustomSetting(key: string, value: any, updatedBy?: string): void {
     this._customSettings[key] = value;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -242,7 +242,7 @@ export class TenantConfiguration extends BaseEntity {
   public removeCustomSetting(key: string, updatedBy?: string): void {
     if (key in this._customSettings) {
       delete this._customSettings[key];
-      this.updateTimestamp(updatedBy);
+      this.updateTimestamp();
     }
   }
 

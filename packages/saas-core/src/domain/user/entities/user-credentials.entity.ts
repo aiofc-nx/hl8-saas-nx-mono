@@ -89,7 +89,7 @@ export class UserCredentials extends BaseEntity {
     this._passwordHash = newPasswordHash;
     this._passwordSalt = newPasswordSalt;
     this._passwordChangedAt = new Date();
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public toObject(): object {

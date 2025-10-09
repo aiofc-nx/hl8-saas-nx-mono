@@ -64,17 +64,17 @@ export class Organization extends BaseEntity {
 
   public updateName(name: string, updatedBy?: string): void {
     this._name = name;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public activate(updatedBy?: string): void {
     this._status = OrganizationStatus.ACTIVE;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public deactivate(updatedBy?: string): void {
     this._status = OrganizationStatus.INACTIVE;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public isActive(): boolean {

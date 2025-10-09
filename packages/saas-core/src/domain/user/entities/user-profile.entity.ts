@@ -59,17 +59,17 @@ export class UserProfile extends BaseEntity {
 
   public updateFullName(fullName: string, updatedBy?: string): void {
     this._fullName = fullName;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public updateNickname(nickname: string, updatedBy?: string): void {
     this._nickname = nickname;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public updateAvatar(avatar: string, updatedBy?: string): void {
     this._avatar = avatar;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   public toObject(): object {

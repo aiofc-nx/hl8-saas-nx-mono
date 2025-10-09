@@ -167,7 +167,7 @@ export class User extends BaseEntity {
       this._status = UserStatus.ACTIVE;
     }
     
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -177,7 +177,7 @@ export class User extends BaseEntity {
    */
   public verifyPhone(updatedBy?: string): void {
     this._phoneVerified = true;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -189,7 +189,7 @@ export class User extends BaseEntity {
   public disable(reason: string, updatedBy?: string): void {
     this.validateStatusTransition(UserStatus.DISABLED);
     this._status = UserStatus.DISABLED;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
     
     this.logger.warn({
       message: '用户已禁用',
@@ -208,7 +208,7 @@ export class User extends BaseEntity {
       throw new Error('只有禁用状态的用户可以启用');
     }
     this._status = UserStatus.ACTIVE;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -220,7 +220,7 @@ export class User extends BaseEntity {
   public lock(reason: string, updatedBy?: string): void {
     this.validateStatusTransition(UserStatus.LOCKED);
     this._status = UserStatus.LOCKED;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -233,7 +233,7 @@ export class User extends BaseEntity {
       throw new Error('只有锁定状态的用户可以解锁');
     }
     this._status = UserStatus.ACTIVE;
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -253,7 +253,7 @@ export class User extends BaseEntity {
   public updateEmail(email: Email, updatedBy?: string): void {
     this._email = email;
     this._emailVerified = false; // 更换邮箱后需要重新验证
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   /**
@@ -265,7 +265,7 @@ export class User extends BaseEntity {
   public updatePhoneNumber(phoneNumber: PhoneNumber, updatedBy?: string): void {
     this._phoneNumber = phoneNumber;
     this._phoneVerified = false; // 更换手机号后需要重新验证
-    this.updateTimestamp(updatedBy);
+    this.updateTimestamp();
   }
 
   // ============================================================================
