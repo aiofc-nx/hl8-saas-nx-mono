@@ -127,7 +127,7 @@ export class DepartmentPath extends BaseValueObject {
     }
 
     // 验证路径格式：只包含数字和分隔符
-    const pathPattern = /^\/[\d\/]+$/;
+    const pathPattern = /^\/[\d/]+$/;
     if (!pathPattern.test(path)) {
       throw new Error(DEPARTMENT_PATH_CONFIG.ERROR_MESSAGE);
     }

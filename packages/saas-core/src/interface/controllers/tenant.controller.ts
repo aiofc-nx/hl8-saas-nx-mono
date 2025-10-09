@@ -100,8 +100,8 @@ export class TenantController {
    */
   @Get()
   async findAll(
-    @Query('page') page: number = 1,
-    @Query('pageSize') pageSize: number = 20,
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 20,
   ): Promise<TenantListResponseDto> {
     const offset = (page - 1) * pageSize;
     const query = new ListTenantsQuery(offset, pageSize);

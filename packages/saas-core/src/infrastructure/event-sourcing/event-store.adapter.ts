@@ -150,7 +150,7 @@ export class EventStoreAdapter {
    */
   public async readEvents(
     streamId: string,
-    fromVersion: number = 0,
+    fromVersion = 0,
   ): Promise<BaseDomainEvent[]> {
     const records = await this.em.find<IEventStoreRecord>('event_store', {
       aggregateType: this.extractAggregateType(streamId),

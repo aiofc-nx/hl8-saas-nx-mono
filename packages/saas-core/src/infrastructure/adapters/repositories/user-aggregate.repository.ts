@@ -35,7 +35,10 @@ export class UserAggregateRepository implements IUserAggregateRepository {
     return [];
   }
 
-  async delete(id: any, deletedBy: string, reason: string): Promise<void> {}
+  async delete(id: any, deletedBy: string, reason: string): Promise<void> {
+    // TODO: 实现用户删除逻辑
+    throw new Error('User deletion not implemented yet');
+  }
 
   async existsByUsername(username: any): Promise<boolean> {
     return false;

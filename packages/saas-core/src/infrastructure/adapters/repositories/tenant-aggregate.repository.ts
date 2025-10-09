@@ -93,7 +93,7 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
     return this.mapper.toDomainAggregate(tenantOrm, configOrm);
   }
 
-  async findAll(offset: number = 0, limit: number = 20): Promise<TenantAggregate[]> {
+  async findAll(offset = 0, limit = 20): Promise<TenantAggregate[]> {
     const tenantOrms = await this.em.find(
       TenantOrmEntity,
       {},
