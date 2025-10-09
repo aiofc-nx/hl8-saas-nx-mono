@@ -201,23 +201,23 @@
 
 ### 基础设施层 - User 持久化
 
-- [ ] T093 [P] [US2] 创建 User ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user.orm-entity.ts）
-- [ ] T094 [P] [US2] 创建 UserProfile ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user-profile.orm-entity.ts）
-- [ ] T095 [P] [US2] 创建 UserCredentials ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user-credentials.orm-entity.ts）
-- [ ] T096 [US2] 创建用户映射器（packages/saas-core/src/infrastructure/mappers/user.mapper.ts）
-- [ ] T097 [US2] 创建用户仓储适配器（packages/saas-core/src/infrastructure/adapters/repositories/user-aggregate.repository.ts）
-- [ ] T098 [P] [US2] 创建邮件适配器（packages/saas-core/src/infrastructure/adapters/email/email.adapter.ts）
+- [X] T093 [P] [US2] 创建 User ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user.orm-entity.ts）
+- [X] T094 [P] [US2] 创建 UserProfile ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user-profile.orm-entity.ts）
+- [X] T095 [P] [US2] 创建 UserCredentials ORM实体（packages/saas-core/src/infrastructure/persistence/entities/user-credentials.orm-entity.ts）
+- [X] T096 [US2] 创建用户映射器（packages/saas-core/src/infrastructure/mappers/user.mapper.ts）
+- [X] T097 [US2] 创建用户仓储适配器（packages/saas-core/src/infrastructure/adapters/repositories/user-aggregate.repository.ts）
+- [X] T098 [P] [US2] 创建邮件适配器（packages/saas-core/src/infrastructure/adapters/email/email.adapter.ts）
 
 ### 接口层 - User API
 
-- [ ] T099 [P] [US2] 创建注册用户DTO（packages/saas-core/src/interface/dtos/user/register-user.dto.ts）
-- [ ] T100 [P] [US2] 创建登录用户DTO（packages/saas-core/src/interface/dtos/user/login-user.dto.ts）
-- [ ] T101 [P] [US2] 创建用户响应DTO（packages/saas-core/src/interface/dtos/user/user-response.dto.ts）
-- [ ] T102 [P] [US2] 创建更新用户DTO（packages/saas-core/src/interface/dtos/user/update-user.dto.ts）
-- [ ] T103 [US2] 创建用户控制器（packages/saas-core/src/interface/controllers/user.controller.ts）
-- [ ] T104 [US2] 创建用户控制器测试（packages/saas-core/src/interface/controllers/user.controller.spec.ts）
+- [X] T099 [P] [US2] 创建注册用户DTO（packages/saas-core/src/interface/dtos/user/register-user.dto.ts）
+- [X] T100 [P] [US2] 创建登录用户DTO（packages/saas-core/src/interface/dtos/user/login-user.dto.ts）
+- [X] T101 [P] [US2] 创建用户响应DTO（packages/saas-core/src/interface/dtos/user/user-response.dto.ts）
+- [X] T102 [P] [US2] 创建更新用户DTO（packages/saas-core/src/interface/dtos/user/update-user.dto.ts）
+- [X] T103 [US2] 创建用户控制器（packages/saas-core/src/interface/controllers/user.controller.ts）
+- [X] T104 [US2] 创建用户控制器测试（packages/saas-core/src/interface/controllers/user.controller.spec.ts）
 
-**Checkpoint**: User Story 2 完成 - 用户身份和认证功能可独立测试
+**Checkpoint**: ✅ User Story 2 完成 - 用户身份和认证功能可独立测试 🎉
 
 ---
 
