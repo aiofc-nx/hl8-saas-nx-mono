@@ -1,224 +1,178 @@
 /**
- * SAAS-CORE 主模块
- * 
- * @description SAAS-CORE模块的入口点，集成hybrid-archi架构
- * 提供租户、用户、组织、部门、认证等核心业务功能
- * 
- * ## 模块功能
- * 
- * ### 核心子领域
- * - 租户管理：租户生命周期、配置、资源限制
- * - 用户管理：用户账户、权限、状态管理
- * - 组织管理：组织架构、部门层级管理
- * - 认证授权：登录认证、权限验证、会话管理
- * 
- * ### 架构集成
- * - 集成@hl8/hybrid-archi混合架构
- * - 集成@hl8/multi-tenancy多租户支持
- * - 集成@hl8/fastify-pro企业级Fastify
- * - 支持PostgreSQL数据库和Redis缓存
- * 
+ * SAAS Core 主模块
+ *
+ * @description SAAS Core 核心业务模块的主入口
+ *
+ * ## 模块职责
+ *
+ * ### 核心功能
+ * - 租户管理（Tenant Management）
+ * - 用户管理（User Management）
+ * - 组织管理（Organization Management）
+ * - 部门管理（Department Management）
+ * - 角色管理（Role Management）
+ * - 权限管理（Permission Management）
+ *
+ * ### 依赖模块
+ * - @hl8/hybrid-archi: 架构基础
+ * - @hl8/multi-tenancy: 多租户支持
+ * - @hl8/common: 通用工具
+ * - @mikro-orm/nestjs: ORM集成
+ *
+ * ### 提供服务
+ * - CQRS总线（CommandBus, QueryBus, EventBus）
+ * - 事件存储（EventStore, SnapshotStore）
+ * - 租户过滤器（TenantFilter）
+ *
  * @example
  * ```typescript
- * // 导入模块
- * import { SaasCoreModule } from '@hl8/saas-core';
- * 
  * @Module({
  *   imports: [
  *     SaasCoreModule.forRoot({
- *       database: {
- *         host: 'localhost',
- *         port: 5432,
- *         database: 'saas_core'
- *       },
- *       cache: {
- *         host: 'localhost',
- *         port: 6379
- *       }
- *     })
- *   ]
+ *       isGlobal: true,
+ *       mikroOrm: { ... },
+ *     }),
+ *   ],
  * })
  * export class AppModule {}
  * ```
- * 
+ *
+ * @module SaasCoreModule
  * @since 1.0.0
  */
 
-import { Module, DynamicModule } from '@nestjs/common';
+import { Module, DynamicModule, Global } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { ConfigModule } from '@nestjs/config';
-
-// 领域层
-import { TenantAggregate } from './domain/tenant/aggregates/tenant.aggregate';
-
-// 应用层
-// import { TenantService } from './application/services/tenant.service';
-
-// 基础设施层
-// import { TenantRepository } from './infrastructure/repositories/tenant/tenant.repository';
-
-// 接口层
-// import { TenantController } from './interfaces/rest/controllers/tenant.controller';
-
-// 配置
-import { getDatabaseConfig } from './config/database.config';
-import { getCacheConfig } from './config/cache.config';
+import { CqrsModule } from '@nestjs/cqrs';
+import { mikroOrmConfig } from './infrastructure/persistence/mikro-orm.config';
+import { EventStoreAdapter } from './infrastructure/event-sourcing/event-store.adapter';
+import { SnapshotStoreAdapter } from './infrastructure/event-sourcing/snapshot-store.adapter';
 
 /**
- * SAAS-CORE模块选项
- * 
- * @description 配置SAAS-CORE模块的选项
+ * SAAS Core 模块配置选项
+ *
+ * @interface ISaasCoreModuleOptions
  */
-export interface SaasCoreOptions {
-  /** 数据库配置 */
-  database?: {
-    host?: string;
-    port?: number;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
-  /** 缓存配置 */
-  cache?: {
-    host?: string;
-    port?: number;
-    password?: string;
-    db?: number;
-  };
-  /** 消息队列配置 */
-  messaging?: {
-    host?: string;
-    port?: number;
-    password?: string;
-    db?: number;
+export interface ISaasCoreModuleOptions {
+  /**
+   * 是否全局模块
+   * @default false
+   */
+  isGlobal?: boolean;
+
+  /**
+   * MikroORM 配置（可选，覆盖默认配置）
+   */
+  mikroOrm?: any;
+
+  /**
+   * 快照配置（可选）
+   */
+  snapshot?: {
+    snapshotInterval?: number;
+    retainCount?: number;
+    enableCompression?: boolean;
+    enableCache?: boolean;
   };
 }
 
 /**
- * SAAS-CORE模块类
- * 
- * @description 提供SAAS核心业务功能的主模块
+ * SAAS Core 主模块
+ *
+ * @class SaasCoreModule
+ * @description 核心业务模块，提供多租户SAAS平台的基础能力
  */
 @Module({})
 export class SaasCoreModule {
   /**
-   * 创建SAAS-CORE模块
-   * 
-   * @description 使用提供的选项创建和配置SAAS-CORE模块
-   * 
-   * @param options 模块配置选项
-   * @returns 配置好的动态模块
-   * @since 1.0.0
+   * 配置根模块
+   *
+   * @description 使用自定义配置创建 SAAS Core 模块
+   *
+   * @static
+   * @param {ISaasCoreModuleOptions} options - 模块配置选项
+   * @returns {DynamicModule} 动态模块
+   *
+   * @example
+   * ```typescript
+   * SaasCoreModule.forRoot({
+   *   isGlobal: true,
+   *   mikroOrm: customConfig,
+   *   snapshot: {
+   *     snapshotInterval: 50,
+   *     retainCount: 5,
+   *   },
+   * })
+   * ```
    */
-  static forRoot(options: SaasCoreOptions = {}): DynamicModule {
+  static forRoot(options: ISaasCoreModuleOptions = {}): DynamicModule {
+    const { isGlobal = false, mikroOrm, snapshot } = options;
+
     return {
       module: SaasCoreModule,
+      global: isGlobal,
       imports: [
-        // 配置模块
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.local', '.env'],
-        }),
+        // CQRS 模块
+        CqrsModule,
 
-        // 数据库模块
-        MikroOrmModule.forRoot({
-          ...getDatabaseConfig(),
-          ...(options.database && {
-            host: options.database.host,
-            port: options.database.port,
-            user: options.database.username,
-            password: options.database.password,
-            dbName: options.database.database,
-          }),
-        }),
+        // MikroORM 模块
+        MikroOrmModule.forRoot(mikroOrm || mikroOrmConfig),
 
-        // 实体模块
-        // MikroOrmModule.forFeature([
-        //   TenantEntity,
-        //   UserEntity,
-        //   OrganizationEntity,
-        //   DepartmentEntity,
-        // ]),
+        // 注意：实体注册将在各个子模块中完成
+        // 例如：TenantModule, UserModule, OrganizationModule 等
       ],
-
-      // 控制器
-      controllers: [
-        // TenantController,
-        // UserController,
-        // OrganizationController,
-        // DepartmentController,
-        // AuthController,
-      ],
-
-      // 提供者
       providers: [
-        // 应用服务
-        // TenantService,
-        // UserService,
-        // OrganizationService,
-        // DepartmentService,
-        // AuthService,
+        // 事件存储
+        EventStoreAdapter,
 
-        // 仓储实现
-        // {
-        //   provide: 'TENANT_REPOSITORY',
-        //   useClass: TenantRepository,
-        // },
+        // 快照存储
+        {
+          provide: SnapshotStoreAdapter,
+          useFactory: (em: any) => {
+            return new SnapshotStoreAdapter(em, snapshot);
+          },
+          inject: ['EntityManager'],
+        },
 
-        // 缓存服务
-        // TenantCacheService,
-        // UserCacheService,
-
-        // 事件处理器
-        // TenantCreatedHandler,
-        // UserCreatedHandler,
+        // 注意：具体的服务、仓储、用例将在各个子模块中提供
+        // 这里只提供核心基础设施
       ],
-
-      // 导出
       exports: [
-        // TenantService,
-        // UserService,
-        // OrganizationService,
-        // DepartmentService,
-        // AuthService,
+        // 导出 CQRS 总线
+        CqrsModule,
+
+        // 导出 MikroORM
+        MikroOrmModule,
+
+        // 导出事件存储
+        EventStoreAdapter,
+        SnapshotStoreAdapter,
       ],
     };
   }
 
   /**
-   * 创建异步SAAS-CORE模块
-   * 
-   * @description 支持异步配置的SAAS-CORE模块创建方法
-   * 
-   * @param options 异步模块配置选项
-   * @returns 配置好的动态模块
-   * @since 1.0.0
+   * 配置特性模块
+   *
+   * @description 用于在其他模块中导入 SAAS Core 功能
+   *
+   * @static
+   * @returns {DynamicModule} 动态模块
+   *
+   * @example
+   * ```typescript
+   * @Module({
+   *   imports: [SaasCoreModule.forFeature()],
+   * })
+   * export class HrModule {}
+   * ```
    */
-  static forRootAsync(options: {
-    imports?: any[];
-    useFactory?: (...args: any[]) => Promise<SaasCoreOptions> | SaasCoreOptions;
-    inject?: any[];
-  }): DynamicModule {
+  static forFeature(): DynamicModule {
     return {
       module: SaasCoreModule,
-      imports: [
-        ConfigModule.forRoot({
-          isGlobal: true,
-          envFilePath: ['.env.local', '.env'],
-        }),
-        ...(options.imports || []),
-      ],
-      providers: [
-        {
-          provide: 'SAAS_CORE_OPTIONS',
-          useFactory: options.useFactory || (() => ({})),
-          inject: options.inject || [],
-        },
-        // 其他提供者...
-      ],
-      exports: ['SAAS_CORE_OPTIONS'],
+      imports: [CqrsModule],
+      exports: [CqrsModule],
     };
   }
 }
 
-// 注意：主要类型和接口的导出已移至 index.ts 文件中，避免重复导出

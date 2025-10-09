@@ -76,15 +76,15 @@
 
 ### MikroORM 配置和基础设施
 
-- [ ] T030 配置 MikroORM（packages/saas-core/src/infrastructure/persistence/mikro-orm.config.ts）
-- [ ] T031 创建租户过滤器（packages/saas-core/src/infrastructure/persistence/filters/tenant.filter.ts）
-- [ ] T032 创建事件存储基础（packages/saas-core/src/infrastructure/event-sourcing/event-store.adapter.ts）
-- [ ] T033 创建快照存储基础（packages/saas-core/src/infrastructure/event-sourcing/snapshot-store.adapter.ts）
+- [X] T030 配置 MikroORM（packages/saas-core/src/infrastructure/persistence/mikro-orm.config.ts）
+- [X] T031 创建租户过滤器（packages/saas-core/src/infrastructure/persistence/filters/tenant.filter.ts）
+- [X] T032 创建事件存储基础（packages/saas-core/src/infrastructure/event-sourcing/event-store.adapter.ts）
+- [X] T033 创建快照存储基础（packages/saas-core/src/infrastructure/event-sourcing/snapshot-store.adapter.ts）
 
 ### 主模块配置
 
-- [ ] T034 创建 SAAS Core 主模块（packages/saas-core/src/saas-core.module.ts）
-- [ ] T035 创建模块导出（packages/saas-core/src/index.ts）
+- [X] T034 创建 SAAS Core 主模块（packages/saas-core/src/saas-core.module.ts）
+- [X] T035 创建模块导出（packages/saas-core/src/index.ts）
 
 **Checkpoint**: 基础设施完成 - 用户故事实现现在可以并行开始
 
