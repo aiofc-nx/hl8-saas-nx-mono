@@ -109,11 +109,11 @@
 - [X] T039 [P] [US1] 创建 TenantQuota 实体（作为值对象已实现，见 tenant-quota.vo.ts）
 - [X] T040 [US1] 创建 TenantAggregate 聚合根（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.ts）
 - [X] T041 [US1] 创建 TenantAggregate 单元测试（packages/saas-core/src/domain/tenant/aggregates/tenant.aggregate.spec.ts）
-- [ ] T042 [P] [US1] 创建租户领域事件（packages/saas-core/src/domain/tenant/events/）
+- [X] T042 [P] [US1] 创建租户领域事件（packages/saas-core/src/domain/tenant/events/）
   - TenantCreatedEvent, TenantActivatedEvent, TenantSuspendedEvent, TenantUpgradedEvent, TenantDeletedEvent
-- [ ] T043 [P] [US1] 创建租户仓储接口（packages/saas-core/src/domain/tenant/repositories/tenant-aggregate.repository.interface.ts）
-- [ ] T044 [P] [US1] 创建租户配额业务规则（packages/saas-core/src/domain/tenant/rules/tenant-quota.rule.ts）
-- [ ] T045 [P] [US1] 创建租户升级领域服务（packages/saas-core/src/domain/tenant/services/tenant-upgrade.service.ts）
+- [X] T043 [P] [US1] 创建租户仓储接口（packages/saas-core/src/domain/tenant/repositories/tenant-aggregate.repository.interface.ts）
+- [X] T044 [P] [US1] 创建租户配额业务规则（packages/saas-core/src/domain/tenant/rules/tenant-quota.rule.ts）
+- [X] T045 [P] [US1] 创建租户升级领域服务（packages/saas-core/src/domain/tenant/services/tenant-upgrade.service.ts）
 
 ### 应用层 - Tenant 用例
 
