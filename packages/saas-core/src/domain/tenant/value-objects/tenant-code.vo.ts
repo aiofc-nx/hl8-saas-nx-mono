@@ -92,7 +92,7 @@ export class TenantCode extends BaseValueObject {
    */
   public static create(code: string): TenantCode {
     this.validate(code);
-    return new TenantCode({ value: code });
+    return new TenantCode(code);
   }
 
   /**
