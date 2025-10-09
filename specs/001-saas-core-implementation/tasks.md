@@ -56,15 +56,15 @@
 
 ### 值对象（复用 hybrid-archi 和创建特定值对象）
 
-- [ ] T016 [P] 创建 TenantCode 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-code.vo.ts）
-- [ ] T017 [P] 创建 TenantDomain 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-domain.vo.ts）
-- [ ] T018 [P] 创建 TenantQuota 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-quota.vo.ts）
-- [ ] T019 [P] 创建 OrganizationType 值对象（packages/saas-core/src/domain/organization/value-objects/organization-type.vo.ts）
-- [ ] T020 [P] 创建 DepartmentLevel 值对象（packages/saas-core/src/domain/department/value-objects/department-level.vo.ts）
-- [ ] T021 [P] 创建 DepartmentPath 值对象（packages/saas-core/src/domain/department/value-objects/department-path.vo.ts）
-- [ ] T022 [P] 创建 RoleLevel 值对象（packages/saas-core/src/domain/role/value-objects/role-level.vo.ts）
-- [ ] T023 [P] 创建 RoleName 值对象（packages/saas-core/src/domain/role/value-objects/role-name.vo.ts）
-- [ ] T024 [P] 创建 PermissionAction 值对象（packages/saas-core/src/domain/permission/value-objects/permission-action.vo.ts）
+- [X] T016 [P] 创建 TenantCode 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-code.vo.ts）
+- [X] T017 [P] 创建 TenantDomain 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-domain.vo.ts）
+- [X] T018 [P] 创建 TenantQuota 值对象（packages/saas-core/src/domain/tenant/value-objects/tenant-quota.vo.ts）
+- [X] T019 [P] 创建 OrganizationType 值对象（packages/saas-core/src/domain/organization/value-objects/organization-type.vo.ts）
+- [X] T020 [P] 创建 DepartmentLevel 值对象（packages/saas-core/src/domain/department/value-objects/department-level.vo.ts）
+- [X] T021 [P] 创建 DepartmentPath 值对象（packages/saas-core/src/domain/department/value-objects/department-path.vo.ts）
+- [X] T022 [P] 创建 RoleLevel 值对象（packages/saas-core/src/domain/role/value-objects/role-level.vo.ts）
+- [X] T023 [P] 创建 RoleName 值对象（packages/saas-core/src/domain/role/value-objects/role-name.vo.ts）
+- [X] T024 [P] 创建 PermissionAction 值对象（packages/saas-core/src/domain/permission/value-objects/permission-action.vo.ts）
 
 ### 枚举定义
 

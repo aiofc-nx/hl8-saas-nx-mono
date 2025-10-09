@@ -1,430 +1,238 @@
-import { BaseValueObject } from '@hl8/hybrid-archi';
-
 /**
- * 部门层级属性接口
+ * 部门层级值对象
  *
- * @description 定义部门的层级信息
- * 包括层级级别、父部门ID、子部门列表等
+ * @description 封装部门层级的验证逻辑和业务规则
  *
+ * ## 业务规则
+ *
+ * ### 层级定义
+ * - LEVEL_1: 总部（根部门）
+ * - LEVEL_2: 事业部
+ * - LEVEL_3: 区域
+ * - LEVEL_4: 分公司
+ * - LEVEL_5: 部门
+ * - LEVEL_6: 组
+ * - LEVEL_7: 小组
+ * - LEVEL_8: 专项团队
+ *
+ * ### 验证规则
+ * - 层级必须在1-8之间（可扩展到10）
+ * - 层级必须为正整数
+ *
+ * @example
+ * ```typescript
+ * const level = DepartmentLevel.create(1); // 总部
+ * const level2 = DepartmentLevel.fromString('LEVEL_2'); // 事业部
+ * ```
+ *
+ * @class DepartmentLevel
  * @since 1.0.0
  */
-export interface DepartmentLevelProps {
-  /**
-   * 层级级别
-   * 
-   * @description 部门在组织架构中的层级
-   * 1表示一级部门，2表示二级部门，以此类推
-   */
+
+import { BaseValueObject } from '@hl8/hybrid-archi';
+import {
+  DEPARTMENT_LEVEL_CONFIG,
+  DEPARTMENT_HIERARCHY_LIMITS,
+} from '../../../constants/department.constants';
+
+/**
+ * 部门层级属性
+ *
+ * @interface IDepartmentLevelProps
+ */
+export interface IDepartmentLevelProps {
   level: number;
-
-  /**
-   * 父部门ID
-   * 
-   * @description 上级部门的ID
-   * 一级部门的父部门ID为空
-   */
-  parentDepartmentId?: string;
-
-  /**
-   * 子部门ID列表
-   * 
-   * @description 下级部门的ID列表
-   * 叶子部门没有子部门
-   */
-  childDepartmentIds: string[];
-
-  /**
-   * 部门路径
-   * 
-   * @description 从根部门到当前部门的完整路径
-   * 格式如：/root/parent/current
-   */
-  path: string;
-
-  /**
-   * 排序序号
-   * 
-   * @description 在同级部门中的排序序号
-   * 用于界面显示和操作顺序
-   */
-  sortOrder: number;
 }
 
 /**
  * 部门层级值对象
  *
- * @description 封装部门的层级信息
- * 提供层级验证、路径管理、层级操作等功能
- *
- * ## 业务规则
- *
- * ### 层级规则
- * - 层级级别必须 >= 1
- * - 一级部门的父部门ID必须为空
- * - 非一级部门的父部门ID不能为空
- * - 部门路径必须唯一
- * - 排序序号在同级部门中必须唯一
- *
- * ### 路径规则
- * - 路径格式：/root/parent/current
- * - 路径不能包含特殊字符
- * - 路径长度不能超过500个字符
- * - 路径必须反映真实的层级关系
- *
- * @example
- * ```typescript
- * const level = DepartmentLevel.create({
- *   level: 2,
- *   parentDepartmentId: 'parent-dept-id',
- *   childDepartmentIds: ['child1-dept-id', 'child2-dept-id'],
- *   path: '/root/parent/current',
- *   sortOrder: 1
- * });
- * 
- * const isRoot = level.isRoot(); // false
- * const hasChildren = level.hasChildren(); // true
- * const newLevel = level.addChild('new-child-id');
- * ```
- *
- * @since 1.0.0
+ * @class DepartmentLevel
+ * @extends {BaseValueObject<IDepartmentLevelProps>}
  */
-export class DepartmentLevel extends BaseValueObject {
+export class DepartmentLevel extends BaseValueObject<IDepartmentLevelProps> {
   /**
-   * 私有属性存储
-   */
-  private readonly _props: DepartmentLevelProps;
-  /**
-   * 私有构造函数
-   * 
-   * @description 使用工厂方法创建实例
-   * 确保数据验证和不变性
+   * 获取层级数值
    *
-   * @param props - 部门层级属性
+   * @readonly
+   * @type {number}
    */
-  private constructor(props: DepartmentLevelProps) {
-    super();
-    this._props = props;
-    this.validate();
+  get level(): number {
+    return this.props.level;
   }
 
   /**
-   * 创建部门层级实例
+   * 私有构造函数
    *
-   * @description 工厂方法，创建并验证部门层级实例
-   *
-   * @param props - 部门层级属性
-   * @returns 部门层级实例
-   * @throws {InvalidDepartmentLevelException} 当层级数据无效时抛出异常
-   *
-   * @example
-   * ```typescript
-   * const level = DepartmentLevel.create({
-   *   level: 1,
-   *   childDepartmentIds: [],
-   *   path: '/root',
-   *   sortOrder: 1
-   * });
-   * ```
-   *
-   * @since 1.0.0
+   * @private
+   * @param {IDepartmentLevelProps} props - 部门层级属性
    */
-  public static create(props: DepartmentLevelProps): DepartmentLevel {
-    return new DepartmentLevel(props);
+  private constructor(props: IDepartmentLevelProps) {
+    super(props);
+  }
+
+  /**
+   * 创建部门层级值对象
+   *
+   * @static
+   * @param {number} level - 层级数值
+   * @returns {DepartmentLevel} 部门层级值对象
+   * @throws {Error} 当层级无效时抛出错误
+   */
+  public static create(level: number): DepartmentLevel {
+    this.validate(level);
+    return new DepartmentLevel({ level });
+  }
+
+  /**
+   * 从字符串创建层级
+   *
+   * @static
+   * @param {string} levelString - 层级字符串（如 'LEVEL_1'）
+   * @returns {DepartmentLevel} 部门层级值对象
+   * @throws {Error} 当层级字符串无效时抛出错误
+   */
+  public static fromString(levelString: string): DepartmentLevel {
+    const match = levelString.match(/LEVEL_(\d+)/);
+    if (!match) {
+      throw new Error(`无效的层级字符串: ${levelString}`);
+    }
+    const level = parseInt(match[1], 10);
+    return this.create(level);
   }
 
   /**
    * 创建根部门层级
    *
-   * @description 创建一级部门（根部门）的层级信息
-   *
-   * @param sortOrder - 排序序号
-   * @returns 根部门层级实例
-   *
-   * @example
-   * ```typescript
-   * const rootLevel = DepartmentLevel.createRoot(1);
-   * ```
-   *
-   * @since 1.0.0
+   * @static
+   * @returns {DepartmentLevel}
    */
-  public static createRoot(sortOrder: number): DepartmentLevel {
-    return DepartmentLevel.create({
-      level: 1,
-      childDepartmentIds: [],
-      path: '/root',
-      sortOrder
-    });
+  public static root(): DepartmentLevel {
+    return new DepartmentLevel({ level: 1 });
   }
 
   /**
-   * 验证部门层级数据
+   * 验证部门层级
    *
-   * @description 验证层级数据是否符合业务规则
-   *
-   * @throws {InvalidDepartmentLevelException} 当层级数据无效时抛出异常
-   *
-   * @since 1.0.0
+   * @private
+   * @static
+   * @param {number} level - 待验证的层级
+   * @throws {Error} 当层级无效时抛出错误
    */
-  protected override validate(): void {
-    // 验证层级级别
-    if (this._props.level < 1) {
-      throw new InvalidDepartmentLevelException('部门层级级别不能小于1');
+  private static validate(level: number): void {
+    if (!Number.isInteger(level)) {
+      throw new Error('部门层级必须为整数');
     }
 
-    // 验证一级部门
-    if (this._props.level === 1) {
-      if (this._props.parentDepartmentId) {
-        throw new InvalidDepartmentLevelException('一级部门不能有父部门');
-      }
-      if (this._props.path !== '/root') {
-        throw new InvalidDepartmentLevelException('一级部门路径必须为 /root');
-      }
-    } else {
-      // 验证非一级部门
-      if (!this._props.parentDepartmentId) {
-        throw new InvalidDepartmentLevelException('非一级部门必须有父部门');
-      }
-      if (!this._props.path.startsWith('/')) {
-        throw new InvalidDepartmentLevelException('部门路径必须以 / 开头');
-      }
-    }
-
-    // 验证路径长度
-    if (this._props.path.length > 500) {
-      throw new InvalidDepartmentLevelException('部门路径长度不能超过500个字符');
-    }
-
-    // 验证排序序号
-    if (this._props.sortOrder < 0) {
-      throw new InvalidDepartmentLevelException('排序序号不能为负数');
-    }
-
-    // 验证子部门ID列表
-    if (this._props.childDepartmentIds.some(id => !id || id.trim().length === 0)) {
-      throw new InvalidDepartmentLevelException('子部门ID不能为空');
+    if (
+      level < DEPARTMENT_HIERARCHY_LIMITS.MIN_LEVEL ||
+      level > DEPARTMENT_HIERARCHY_LIMITS.MAX_LEVEL_ABSOLUTE
+    ) {
+      throw new Error(
+        `部门层级必须在 ${DEPARTMENT_HIERARCHY_LIMITS.MIN_LEVEL} 到 ${DEPARTMENT_HIERARCHY_LIMITS.MAX_LEVEL_ABSOLUTE} 之间`,
+      );
     }
   }
 
   /**
-   * 检查是否为根部门
+   * 获取层级名称
    *
-   * @description 检查部门是否为一级部门（根部门）
+   * @returns {string} 层级名称
+   */
+  public getName(): string {
+    const levelKey = `LEVEL_${this.level}` as keyof typeof DEPARTMENT_LEVEL_CONFIG;
+    return DEPARTMENT_LEVEL_CONFIG[levelKey]?.name || `第${this.level}级`;
+  }
+
+  /**
+   * 获取层级描述
    *
-   * @returns 是否为根部门
+   * @returns {string} 层级描述
+   */
+  public getDescription(): string {
+    const levelKey = `LEVEL_${this.level}` as keyof typeof DEPARTMENT_LEVEL_CONFIG;
+    return DEPARTMENT_LEVEL_CONFIG[levelKey]?.description || '';
+  }
+
+  /**
+   * 获取该层级的最大子部门数
    *
-   * @example
-   * ```typescript
-   * const isRoot = level.isRoot(); // true
-   * ```
+   * @returns {number} 最大子部门数
+   */
+  public getMaxChildren(): number {
+    const levelKey = `LEVEL_${this.level}` as keyof typeof DEPARTMENT_LEVEL_CONFIG;
+    return DEPARTMENT_LEVEL_CONFIG[levelKey]?.maxChildren || 0;
+  }
+
+  /**
+   * 检查是否为根层级
    *
-   * @since 1.0.0
+   * @returns {boolean}
    */
   public isRoot(): boolean {
-    return this._props.level === 1;
+    return this.level === DEPARTMENT_HIERARCHY_LIMITS.MIN_LEVEL;
   }
 
   /**
-   * 检查是否有子部门
+   * 检查是否为叶子层级（最深层级）
    *
-   * @description 检查部门是否拥有子部门
-   *
-   * @returns 是否有子部门
-   *
-   * @example
-   * ```typescript
-   * const hasChildren = level.hasChildren(); // true
-   * ```
-   *
-   * @since 1.0.0
-   */
-  public hasChildren(): boolean {
-    return this._props.childDepartmentIds.length > 0;
-  }
-
-  /**
-   * 检查是否为叶子部门
-   *
-   * @description 检查部门是否为叶子部门（没有子部门）
-   *
-   * @returns 是否为叶子部门
-   *
-   * @example
-   * ```typescript
-   * const isLeaf = level.isLeaf(); // false
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {boolean}
    */
   public isLeaf(): boolean {
-    return !this.hasChildren();
+    return this.level === DEPARTMENT_HIERARCHY_LIMITS.MAX_LEVEL_DEFAULT;
   }
 
   /**
-   * 添加子部门
+   * 检查是否可以有子部门
    *
-   * @description 创建新的层级实例，添加子部门
-   * 遵循值对象不变性原则
-   *
-   * @param childDepartmentId - 子部门ID
-   * @returns 新的部门层级实例
-   *
-   * @example
-   * ```typescript
-   * const newLevel = level.addChild('new-child-dept-id');
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {boolean}
    */
-  public addChild(childDepartmentId: string): DepartmentLevel {
-    if (!childDepartmentId || childDepartmentId.trim().length === 0) {
-      throw new InvalidDepartmentLevelException('子部门ID不能为空');
-    }
-
-    if (this._props.childDepartmentIds.includes(childDepartmentId)) {
-      throw new InvalidDepartmentLevelException('子部门ID已存在');
-    }
-
-    return DepartmentLevel.create({
-      ...this._props,
-      childDepartmentIds: [...this._props.childDepartmentIds, childDepartmentId]
-    });
+  public canHaveChildren(): boolean {
+    return this.level < DEPARTMENT_HIERARCHY_LIMITS.MAX_LEVEL_DEFAULT;
   }
 
   /**
-   * 移除子部门
+   * 获取下一层级
    *
-   * @description 创建新的层级实例，移除子部门
-   *
-   * @param childDepartmentId - 子部门ID
-   * @returns 新的部门层级实例
-   *
-   * @example
-   * ```typescript
-   * const newLevel = level.removeChild('child-dept-id');
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {DepartmentLevel} 下一层级
+   * @throws {Error} 当已是最深层级时抛出错误
    */
-  public removeChild(childDepartmentId: string): DepartmentLevel {
-    const index = this._props.childDepartmentIds.indexOf(childDepartmentId);
-    if (index === -1) {
-      throw new InvalidDepartmentLevelException('子部门ID不存在');
+  public getNextLevel(): DepartmentLevel {
+    if (!this.canHaveChildren()) {
+      throw new Error('已达到最大层级深度，无法创建下一层级');
     }
-
-    const newChildIds = [...this._props.childDepartmentIds];
-    newChildIds.splice(index, 1);
-
-    return DepartmentLevel.create({
-      ...this._props,
-      childDepartmentIds: newChildIds
-    });
+    return new DepartmentLevel({ level: this.level + 1 });
   }
 
   /**
-   * 更新排序序号
+   * 获取上一层级
    *
-   * @description 创建新的层级实例，更新排序序号
-   *
-   * @param sortOrder - 新的排序序号
-   * @returns 新的部门层级实例
-   *
-   * @example
-   * ```typescript
-   * const newLevel = level.updateSortOrder(2);
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {DepartmentLevel} 上一层级
+   * @throws {Error} 当已是根层级时抛出错误
    */
-  public updateSortOrder(sortOrder: number): DepartmentLevel {
-    if (sortOrder < 0) {
-      throw new InvalidDepartmentLevelException('排序序号不能为负数');
+  public getParentLevel(): DepartmentLevel {
+    if (this.isRoot()) {
+      throw new Error('根层级没有上一层级');
     }
-
-    return DepartmentLevel.create({
-      ...this._props,
-      sortOrder
-    });
+    return new DepartmentLevel({ level: this.level - 1 });
   }
 
   /**
-   * 更新路径
+   * 转换为字符串
    *
-   * @description 创建新的层级实例，更新部门路径
-   *
-   * @param path - 新的路径
-   * @returns 新的部门层级实例
-   *
-   * @example
-   * ```typescript
-   * const newLevel = level.updatePath('/root/parent/new');
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {string}
    */
-  public updatePath(path: string): DepartmentLevel {
-    if (!path || path.trim().length === 0) {
-      throw new InvalidDepartmentLevelException('部门路径不能为空');
-    }
-
-    if (path.length > 500) {
-      throw new InvalidDepartmentLevelException('部门路径长度不能超过500个字符');
-    }
-
-    return DepartmentLevel.create({
-      ...this._props,
-      path: path.trim()
-    });
+  public toString(): string {
+    return `LEVEL_${this.level}`;
   }
 
   /**
-   * 获取子部门数量
+   * 转换为JSON
    *
-   * @description 返回子部门的数量
-   *
-   * @returns 子部门数量
-   *
-   * @example
-   * ```typescript
-   * const childCount = level.getChildCount(); // 3
-   * ```
-   *
-   * @since 1.0.0
+   * @returns {number}
    */
-  public getChildCount(): number {
-    return this._props.childDepartmentIds.length;
+  public toJSON(): number {
+    return this.level;
   }
-
-  /**
-   * 获取所有层级信息
-   *
-   * @description 返回所有层级信息的副本
-   *
-   * @returns 层级属性副本
-   *
-   * @since 1.0.0
-   */
-  public getAllLevelInfo(): DepartmentLevelProps {
-    return { ...this._props };
-  }
-
-  // Getter 方法
-  public get level(): number { return this._props.level; }
-  public get parentDepartmentId(): string | undefined { return this._props.parentDepartmentId; }
-  public get childDepartmentIds(): string[] { return [...this._props.childDepartmentIds]; }
-  public get path(): string { return this._props.path; }
-  public get sortOrder(): number { return this._props.sortOrder; }
 }
 
-/**
- * 无效部门层级异常
- *
- * @description 当部门层级数据无效时抛出的异常
- *
- * @since 1.0.0
- */
-export class InvalidDepartmentLevelException extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'InvalidDepartmentLevelException';
-  }
-}
