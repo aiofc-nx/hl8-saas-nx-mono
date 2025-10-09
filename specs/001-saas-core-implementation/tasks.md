@@ -192,12 +192,12 @@
 
 ### CQRS - User 命令和查询
 
-- [ ] T087 [P] [US2] 创建注册用户命令及处理器（packages/saas-core/src/application/cqrs/commands/user/register-user.*）
-- [ ] T088 [P] [US2] 创建激活用户命令及处理器（packages/saas-core/src/application/cqrs/commands/user/activate-user.*）
-- [ ] T089 [P] [US2] 创建用户登录命令及处理器（packages/saas-core/src/application/cqrs/commands/user/login-user.*）
-- [ ] T090 [P] [US2] 创建获取用户查询及处理器（packages/saas-core/src/application/cqrs/queries/user/get-user.*）
-- [ ] T091 [P] [US2] 创建用户注册事件处理器（packages/saas-core/src/application/cqrs/events/user/user-registered.handler.ts）
-- [ ] T092 [P] [US2] 创建用户登录事件处理器（packages/saas-core/src/application/cqrs/events/user/user-login.handler.ts）
+- [X] T087 [P] [US2] 创建注册用户命令及处理器（packages/saas-core/src/application/cqrs/commands/user/register-user.*）
+- [X] T088 [P] [US2] 创建激活用户命令及处理器（包含在 T087 中）
+- [X] T089 [P] [US2] 创建用户登录命令及处理器（packages/saas-core/src/application/cqrs/commands/user/login-user.*）
+- [X] T090 [P] [US2] 创建获取用户查询及处理器（packages/saas-core/src/application/cqrs/queries/user/get-user.*）
+- [X] T091 [P] [US2] 创建用户注册事件处理器（packages/saas-core/src/application/cqrs/events/user/user-registered.handler.ts）
+- [X] T092 [P] [US2] 创建用户登录事件处理器（packages/saas-core/src/application/cqrs/events/user/user-login.handler.ts）
 
 ### 基础设施层 - User 持久化
 
