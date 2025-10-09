@@ -43,7 +43,7 @@
 
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { CqrsModule } from '@nestjs/cqrs';
+import { CacheModule } from '@hl8/cache';
 import { mikroOrmConfig } from './infrastructure/persistence/mikro-orm.config';
 import { EventStoreAdapter } from './infrastructure/event-sourcing/event-store.adapter';
 import { SnapshotStoreAdapter } from './infrastructure/event-sourcing/snapshot-store.adapter';
@@ -112,11 +112,24 @@ export class SaasCoreModule {
       module: SaasCoreModule,
       global: isGlobal,
       imports: [
-        // CQRS 模块
-        CqrsModule,
-
         // MikroORM 模块
         MikroOrmModule.forRoot(mikroOrm || mikroOrmConfig),
+
+        // 缓存模块（使用 @hl8/cache）
+        CacheModule.forRoot({
+          redis: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
+            password: process.env.REDIS_PASSWORD,
+            db: parseInt(process.env.REDIS_DB || '0', 10),
+          },
+          defaultTTL: 3600,
+          keyPrefix: 'hl8:saas-core:',
+          cls: {
+            global: true,
+            middleware: { mount: true, generateId: true },
+          },
+        }),
 
         // 注意：实体注册将在各个子模块中完成
         // 例如：TenantModule, UserModule, OrganizationModule 等
