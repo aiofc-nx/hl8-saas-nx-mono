@@ -60,7 +60,7 @@ export class TenantMapper {
 
     const configOrm = new TenantConfigurationOrmEntity();
     configOrm.id = config.id.toString();
-    configOrm.tenantId = tenant.id.toString();
+    configOrm.tenant = tenantOrm; // 设置关联的租户实体
     configOrm.maxUsers = config.getQuota().maxUsers;
     configOrm.maxStorageMB = config.getQuota().maxStorageMB;
     configOrm.maxOrganizations = config.getQuota().maxOrganizations;
@@ -121,7 +121,7 @@ export class TenantMapper {
       {
         createdBy: configOrm.createdBy,
         updatedBy: configOrm.updatedBy,
-        tenantId: EntityId.fromString(configOrm.tenantId),
+        tenantId: EntityId.fromString(configOrm.tenant.id),
         version: configOrm.version,
       },
     );

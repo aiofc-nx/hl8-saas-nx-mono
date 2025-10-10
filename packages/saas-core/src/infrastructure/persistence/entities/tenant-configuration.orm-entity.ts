@@ -21,12 +21,9 @@ export class TenantConfigurationOrmEntity {
   @PrimaryKey({ type: 'uuid' })
   id!: string;
 
-  @Property({ type: 'uuid' })
+  @OneToOne(() => TenantOrmEntity, { nullable: false, owner: true, fieldName: 'tenant_id' })
   @Index()
-  tenantId!: string;
-
-  @OneToOne(() => TenantOrmEntity, { nullable: true })
-  tenant?: TenantOrmEntity;
+  tenant!: TenantOrmEntity;
 
   // 配额字段
   @Property({ type: 'int' })

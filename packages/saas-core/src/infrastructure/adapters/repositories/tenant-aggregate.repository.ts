@@ -26,11 +26,56 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
   ) {}
 
   async save(aggregate: TenantAggregate): Promise<void> {
-    const { tenant, config } = this.mapper.toOrmEntities(aggregate);
-    
-    await this.em.transactional(async (em) => {
-      await em.persistAndFlush([tenant, config]);
+    // 检查实体是否已存在
+    const existingTenant = await this.em.findOne(TenantOrmEntity, {
+      id: aggregate.id.toString(),
     });
+
+    if (existingTenant) {
+      // 更新现有实体：直接修改已追踪实体的属性
+      const { tenant: newTenantData, config: newConfigData } = this.mapper.toOrmEntities(aggregate);
+      
+      // 手动更新租户字段（不创建新对象）
+      existingTenant.code = newTenantData.code;
+      existingTenant.name = newTenantData.name;
+      existingTenant.domain = newTenantData.domain;
+      existingTenant.type = newTenantData.type;
+      existingTenant.status = newTenantData.status;
+      existingTenant.activatedAt = newTenantData.activatedAt;
+      existingTenant.trialEndsAt = newTenantData.trialEndsAt;
+      existingTenant.deletedAt = newTenantData.deletedAt;
+      existingTenant.updatedAt = new Date();
+      existingTenant.updatedBy = newTenantData.updatedBy;
+      existingTenant.deletedBy = newTenantData.deletedBy;
+      existingTenant.version = newTenantData.version;
+      
+      // 更新配置
+      const existingConfig = await this.em.findOne(TenantConfigurationOrmEntity, {
+        tenant: { id: aggregate.id.toString() },
+      });
+
+      if (existingConfig) {
+        existingConfig.maxUsers = newConfigData.maxUsers;
+        existingConfig.maxStorageMB = newConfigData.maxStorageMB;
+        existingConfig.maxOrganizations = newConfigData.maxOrganizations;
+        existingConfig.maxDepartmentLevels = newConfigData.maxDepartmentLevels;
+        existingConfig.maxApiCallsPerDay = newConfigData.maxApiCallsPerDay;
+        existingConfig.enabledFeatures = newConfigData.enabledFeatures;
+        existingConfig.customSettings = newConfigData.customSettings;
+        existingConfig.updatedAt = new Date();
+        existingConfig.updatedBy = newConfigData.updatedBy;
+        existingConfig.version = newConfigData.version;
+      } else {
+        newConfigData.tenant = existingTenant;
+        this.em.persist(newConfigData);
+      }
+    } else {
+      // 创建新实体
+      const { tenant, config } = this.mapper.toOrmEntities(aggregate);
+      this.em.persist([tenant, config]);
+    }
+
+    await this.em.flush();
   }
 
   async findById(id: EntityId): Promise<TenantAggregate | null> {
@@ -43,7 +88,7 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
     }
 
     const configOrm = await this.em.findOne(TenantConfigurationOrmEntity, {
-      tenantId: id.toString(),
+      tenant: { id: id.toString() },
     });
 
     if (!configOrm) {
@@ -63,7 +108,7 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
     }
 
     const configOrm = await this.em.findOne(TenantConfigurationOrmEntity, {
-      tenantId: tenantOrm.id,
+      tenant: { id: tenantOrm.id },
     });
 
     if (!configOrm) {
@@ -83,7 +128,7 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
     }
 
     const configOrm = await this.em.findOne(TenantConfigurationOrmEntity, {
-      tenantId: tenantOrm.id,
+      tenant: { id: tenantOrm.id },
     });
 
     if (!configOrm) {
@@ -103,7 +148,7 @@ export class TenantAggregateRepository implements ITenantAggregateRepository {
     const aggregates: TenantAggregate[] = [];
     for (const tenantOrm of tenantOrms) {
       const configOrm = await this.em.findOne(TenantConfigurationOrmEntity, {
-        tenantId: tenantOrm.id,
+        tenant: { id: tenantOrm.id },
       });
 
       if (configOrm) {
